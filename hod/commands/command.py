@@ -97,3 +97,22 @@ class IpAddrShow(Command):
 
         ipCommand = '/sbin/ip'
         self.command = [ipCommand, "addr", "show"]
+
+
+class JavaCommand(Command):
+    def __init__(self, opt):
+        Command.__init__(self)
+
+        self.command = ["java", opt]
+
+
+class JavaVersion(JavaCommand):
+    def __init__(self):
+        JavaCommand.__init__(self, '-version')
+
+    def run(self):
+        """version prints to stderr"""
+        out, err = JavaCommand.run(self)
+        newout = out + "\n" + err
+        self.log.debug("cmd %s: %s" % (self.command, newout))
+        return newout, err

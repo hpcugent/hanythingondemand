@@ -4,7 +4,7 @@
 
 module load mpich2-x86_64
 
-NP=4 
+NP=${NPP:-4} 
 
 basedir=`dirname $(readlink -m $0)`
 HODPYTHONPATH=$basedir/../../
@@ -22,5 +22,8 @@ then
 else
     export PYTHONPATH=$HODPYTHONPATH:$PYTHONPATH
 fi
+
+export JAVA_HOME=/usr/lib/jvm/java
+export PATH=/home/stdweird/hadoop/cdh4b1/hadoop-0.23.0-cdh4b1/bin:$PATH
 
 mpirun -np $NP python $HODPYTHONPATH/hod/hodproc.py

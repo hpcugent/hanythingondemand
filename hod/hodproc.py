@@ -3,6 +3,7 @@
 from hod.mpiservice import MpiService, MASTERRANK
 
 from hod.work.work import TestWorkA, TestWorkB
+from hod.work.hadoop import Hadoop
 
 from vsc import fancylogger
 fancylogger.setLogLevelDebug()
@@ -23,12 +24,25 @@ class Master(MpiService):
 class Slave(MpiService):
     """Basic Slave"""
 
+class HadoopMaster(MpiService):
+    """Basic Master"""
+
+    def distribution(self):
+        """Master makes the distribution"""
+        ## example part one on half one, part 2 on second half
+        self.dists = []
+
+        allranks = range(self.size)
+        self.dists.append([Hadoop, allranks[:self.size / 2]])
+        self.dists.append([Hadoop, allranks[self.size / 2:]])
+
+
 
 if __name__ == '__main__':
     from mpi4py import MPI
 
     if MPI.COMM_WORLD.rank == MASTERRANK:
-        serv = Master()
+        serv = HadoopMaster()
     else:
         serv = Slave()
 

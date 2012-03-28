@@ -57,6 +57,8 @@ class MpiService:
 
     def barrier(self, txt=''):
         """Perform MPI.barrier"""
+        if not txt.endswith(' '):
+            txt += " "
         self.log.debug("%swith barrier %d" % (txt, self.barriercounter))
         self.comm.barrier()
         self.log.debug("%swith barrier %d DONE" % (txt, self.barriercounter))
@@ -124,14 +126,14 @@ class MpiService:
 
     def stop_comm(self, comm):
         """Stop a single communicator"""
-        self.check_comm(comm, 'Stopping ')
+        self.check_comm(comm, 'Stopping')
 
         if comm == MPI.COMM_NULL:
             self.log.debug("No disconnect COMM_NULL")
             return
 
         if self.stopwithbarrier:
-            self.barrier('Stop ')
+            self.barrier('Stop')
         else:
             self.log.debug("Stop without barrier")
 
@@ -150,17 +152,21 @@ class MpiService:
         self.log.debug("Stopping tempcomm")
         for comm in self.tempcomm:
             self.stop_comm(comm)
-        self.log.debug("Stoppoing self.comm")
+        self.log.debug("Stopping self.comm")
         self.stop_comm(self.comm)
 
     def check_group(self, group, txt=''):
         """Report details about group"""
+        if not txt.endswith(' '):
+            txt += " "
         myrank = group.Get_rank()
         mysize = group.Get_size()
         self.log.debug("%sgroup %s size %d rank %d" % (txt, group, mysize, myrank))
 
     def check_comm(self, comm, txt=''):
         """Report details about communicator"""
+        if not txt.endswith(' '):
+            txt += " "
         if comm == MPI.COMM_NULL:
             self.log.debug("%scomm %s" % (txt, comm))
         else:
@@ -177,10 +183,10 @@ class MpiService:
         mygroup = self.comm.Get_group()
         self.log.debug("Creating newgroup using ranks %s from group %s" % (ranks, mygroup))
         newgroup = mygroup.Incl(ranks)
-        self.check_group(newgroup, 'make_comm_group ')
+        self.check_group(newgroup, 'make_comm_group')
 
         newcomm = self.comm.Create(newgroup)
-        self.check_comm(newcomm, 'make_comm_group ')
+        self.check_comm(newcomm, 'make_comm_group')
 
         return newcomm
 
