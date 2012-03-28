@@ -20,7 +20,7 @@ class Work(MpiService):
         self.log.debug("run do_work")
         self.do_work()
 
-        self.stop()
+        self.stop_service()
 
     def do_work(self):
         """Actually do something. To be implemented by derivative classes"""

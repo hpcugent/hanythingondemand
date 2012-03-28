@@ -18,7 +18,7 @@ class Work(MpiService):
         self.log.debug("run do_work")
         self.do_work()
 
-        self.stop()
+        self.stop_script()
 
     def do_work(self):
         """Reimplement"""

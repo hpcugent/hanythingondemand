@@ -14,6 +14,9 @@ from xml.dom import getDOMImplementation
 from vsc import fancylogger
 fancylogger.setLogLevelDebug()
 
+from hod.config.hadoopcfg import HadoopCfg
+
+
 CORE_OPTS = {
     'fs.default.name' : [HostnamePort(), 'The name of the default file system.  A URI whose scheme and authority determine the FileSystem implementation.  The uris scheme determines the config property (fs.SCHEME.impl) naming ' + \
                         'the FileSystem implementation class.  The uris authority is used to determine the host, port, etc. for a filesystem.'],
@@ -54,30 +57,63 @@ HADOOP_ENV_OPTS = {
 }
 
 
-class HadoopOpts:
+class HadoopOpts(HadoopCfg):
     """Hadoop options class. Determine optimal default values and other explicit settings"""
 
-    def __init__(self, cfgdir=None, home=None):
-        self.log = fancylogger.getLogger(self.__class__.__name__)
+    def __init__(self, basedir=None):
+        HadoopCfg.__init__(self)
 
-        self.hadoophome = home
-        self.confdir = cfgdir
+        self.basedir = basedir ## opts basedir
+
+        self.confdir = None## configdir (with eg core-site.xml)
+
+        self.default_fsdefault = None  ## default namenode
 
         self.params = {} ## these will become the default params
         self.description = {} ## description info for the parameters (if any)
 
-        self.core_defaults()
-        self.defaults()
+        self.set_default_funcs = [self.set_core_service_defaults, self.set_service_defaults]
+
+        self.init_core_defaults()
+
         self.tuning = self.basic_tuning()
 
-    def core_defaults(self):
+        self.init_defaults()
+
+
+    def init_core_defaults(self):
         """Create the core default list of params and description"""
         self.log.debug("Adding core_defaults")
         self.add_from_opts_dict(CORE_OPTS)
 
-    def defaults(self):
+    def init_defaults(self):
         """Create the default list of params and description"""
-        self.log.debug("Adding defaults. Not implemented here.")
+        self.log.warn("Adding init defaults. Not implemented here.")
+
+    def set_defaults(self):
+        """Set some defaults if required"""
+        missing = self.check_params(do_error=False)
+
+        for mis in missing:
+            for set_def in self.set_default_funcs:
+                set_def(mis)
+
+    def set_core_service_defaults(self, mis):
+        """Set some defaults if required"""
+        self.log.debug("Setting core servicedefaults. Not implemented here. Skipping %s" % mis)
+        if mis in ('hadoop.tmp.dir',):
+            self.log.debug("%s not set. using basedir %s" % (mis, self.basedir))
+            self.params[mis] = self.basedir
+        elif mis in ('fs.default.name',):
+            if self.default_fsdefault is None:
+                self.log.error("%s not set and no default_fsdefault set" % mis)
+            else:
+                self.log.debug("%s not set. using %s" % (mis, self.default_fsdefault))
+                self.params[mis] = self.default_fsdefault
+
+    def set_service_defaults(self, mis):
+        """Set service specific default"""
+        self.log.warn("Setting servicedefaults. Not implemented here. Skipping %s" % mis)
 
     def add_from_opts_dict(self, optsdict):
         """Parse an opts dictionary and update params and description (overrides values!)"""
@@ -120,7 +156,6 @@ class HadoopOpts:
             else:
                 self.log.debug("None found for params %s " % (tocheck))
         return tocheck
-
 
     def basic_tuning(self):
         """Some basic tuning options to add"""
@@ -166,9 +201,16 @@ class HadoopOpts:
 
     def gen_conf_xml_new(self):
         """Generate config xml files"""
+        self.log.debug("Generate and write the xml configs")
         ## based upon the files in hadoopDir/etc/hadoop
         ## - regexp strings (will be compiled in next step
         ## - all unmatched go to defaultdestination
+        if self.confdir is None:
+            if self.basedir is None:
+                self.log.error("basedir is None")
+            else:
+                self.confdir = os.path.join(self.basedir, 'config') ## default based on basedir
+
         if not os.path.isdir(self.confdir):
             self.log.debug("confidir %s not found. Creating" % self.confdir)
             try:
@@ -298,6 +340,8 @@ class HadoopOpts:
 
     def make_cfg(self):
         """Make the cfg file"""
-        self.check_params()
-        self.gen_conf_xml_new()
+        self.log.debug("make_cfg Making the config files")
+        self.set_defaults()  ## set the default on missing values in params
+        self.check_params() ## sanity check
+        self.gen_conf_xml_new() ## write xml files
 

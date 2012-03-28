@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
         serv.run_dist()
 
-        serv.stop()
+        serv.stop_script()
     except:
         serv.log.exception("Main failed")
 

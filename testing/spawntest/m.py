@@ -24,7 +24,7 @@ class master:
         self.log.debug("Init with COMM_WORLD size %d rank %d communicator %s" % (self.size, self.rank,self.comm))
         self.stopwithbarrier = True
 
-    def stop(self):
+    def stop_script(self):
         """Stop this master"""
         self.log.debug("Stop communicator %s stopwithbarrier %s"%(self.comm,self.stopwithbarrier))
         #self.comm.Disconnect()
@@ -117,7 +117,7 @@ class Spawn:
         except:
             self.log.exception("go failed to run.")
 
-        self.stop()
+        self.stop_script()
         self.log.debug("End go")
 
 
@@ -146,7 +146,7 @@ class Spawn:
             self.comm.gather(res, root=MPI.ROOT)
             self.log.debug("Get result %s" % res)
 
-    def stop(self):
+    def stop_script(self):
         """Stop this spawn"""
         self.log.debug("Stop communicator %s stopwithbarrier %s"%(self.comm,self.stopwithbarrier))
         #self.comm.Disconnect()
@@ -179,4 +179,4 @@ if __name__ == '__main__':
     #s2.go()
 
     m.log.info("all went well")
-    m.stop()
+    m.stop_script()

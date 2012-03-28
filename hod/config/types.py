@@ -7,11 +7,10 @@ class HostnamePort:
     def __init__(self, txt=None):
         self.hostname = None
         self.port = None
-
         if type(txt) == str:
-            txt = txt.split(':')[0]
+            txt = txt.split(':')
         if type(txt) in (list, tuple,):
-            self.hostname = txt[0]
+            self.hostname = txt[0] or None ## ':10' is hostname None and port 10
             if len(txt) > 1: ## and nothing else matters....
                 self.port = txt[1]
 
@@ -23,6 +22,9 @@ class HostnamePort:
         if p is None:
             p = 0
         return "%s:%s" % (hn, p)
+
+    def __contains__(self, d):
+        return d == self.hostname or d == "%s" % self
 
 class Directories:
     """Directories"""

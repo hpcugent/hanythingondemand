@@ -141,7 +141,7 @@ class MpiService:
             self.log.debug("Stop disconnect")
             comm.Disconnect()
 
-    def stop(self):
+    def stop_script(self):
         """End all communicators"""
         if self.topocomm is not None:
             self.log.debug("Stopping topocomm")

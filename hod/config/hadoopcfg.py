@@ -28,12 +28,12 @@ class HadoopCfg:
         self.javahome = None
 
         self.name = 'all' ## default task start-all.sh, stop-all.sh
-        self.start = None
-        self.stop = None
+        self.start_script = None
+        self.stop_script = None
 
         self.extrasearchpaths = []
 
-    def run(self):
+    def run_cfg(self):
         """Perform configuration gathering"""
         ## some default initialisation
         self.log.debug("Starting cfg preparation for name %s" % self.name)
@@ -96,7 +96,7 @@ class HadoopCfg:
         if java:
             self.log.debug("java found %s" % java)
             if javahome and (not java == os.path.join(javahome, 'bin', 'java')):
-                self.log.error("java %s does not match JAVA_HOME/bin/java (JAVA_HOME %s)" % (java, javahome))
+                self.log.warn("java %s does not match JAVA_HOME/bin/java (JAVA_HOME %s)" % (java, javahome))
                 ## java from JAVA_HOME takes precedence
                 java = os.path.join(javahome, 'bin', 'java')
                 self.addenv('PATH', os.path.dirname(java))
@@ -182,27 +182,27 @@ class HadoopCfg:
     def locate_start_stop(self):
         """Try to locate the start and stop scripts"""
         startname = "start-%s.sh" % self.name
-        stopname = "start-%s.sh" % self.name
+        stopname = "stop-%s.sh" % self.name
 
         searchpaths = [os.path.join(self.hadoophome, 'sbin'), os.path.join(self.hadoophome, 'bin')] + self.extrasearchpaths
 
         for path in searchpaths:
             fn = os.path.join(path, startname)
             if os.path.isfile(fn):
-                self.start = fn
-                self.log.debug("Found start %s for name %s" % (self.start, self.name))
+                self.start_script = fn
+                self.log.debug("Found start_script %s for name %s" % (self.start_script, self.name))
                 break
-        if self.start is None:
-            self.log.error("start for name %s not found in paths %s" % (self.name, searchpaths))
+        if self.start_script is None:
+            self.log.error("start_script for name %s not found in paths %s" % (self.name, searchpaths))
 
         for path in searchpaths:
             fn = os.path.join(path, stopname)
             if os.path.isfile(fn):
-                self.stop = fn
-                self.log.debug("Found stop %s for name %s" % (self.stop, self.name))
+                self.stop_script = fn
+                self.log.debug("Found stop_script %s for name %s" % (self.stop_script, self.name))
                 break
-        if self.start is None:
-            self.log.error("start for name %s not found in paths %s" % (self.name, searchpaths))
+        if self.start_script is None:
+            self.log.error("start_script for name %s not found in paths %s" % (self.name, searchpaths))
 
     def is_version_ok(self, req=None):
         """Given a requirement req, check if current version is sufficient"""

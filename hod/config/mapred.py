@@ -7,8 +7,8 @@ from hod.config.hadoopopts import HadoopOpts
 from hod.config.hadoopcfg import HadoopCfg
 
 MAPRED_OPTS = {
-    'mapred.job.tracker' : [HostnamePort('0.0.0.0:9000'), 'The host and port that the MapReduce job tracker runs at.  If "local", then jobs are run in-process as a single map and reduce task.'],
-    'mapred.job.tracker.http.address': [HostnamePort('0.0.0.0:50030'), 'The job tracker http server address and port the server will listen on. If the port is 0 then the server will start on a free port.'],
+    'mapred.job.tracker' : [HostnamePort(':9000'), 'The host and port that the MapReduce job tracker runs at.  If "local", then jobs are run in-process as a single map and reduce task.'],
+    'mapred.job.tracker.http.address': [HostnamePort(':50030'), 'The job tracker http server address and port the server will listen on. If the port is 0 then the server will start on a free port.'],
     'mapred.local.dir' : [Directories([None]), 'The local directory where MapReduce stores intermediate data files. May be a comma-separated list of kindoflist on different devices in order to spread disk i/o. Directories that do not exist are ignored.'],
     'mapred.map.tasks' : [None, 'As a rule of thumb, use 10x the number of slaves (i.e., number of TaskTrackers).'],
     'mapred.reduce.tasks' : [None, 'As a rule of thumb, use 2x the number of slave processors (i.e., number of TaskTrackers).'],
@@ -39,15 +39,24 @@ MAPRED_ENV_OPTS = {
     'HADOOP_TASKTRACKER_OPTS':[Arguments(), ''],
 }
 
-class MapredOpts(HadoopOpts):
-    """MapRed options"""
+class MapredCfg(HadoopCfg):
+    """Mapred MR1 cfg"""
+    def __init__(self):
+        HadoopCfg.__init__(self)
+        self.name = 'mapred'  ## MR1
 
-    def defaults(self):
+class MapredOpts(MapredCfg, HadoopOpts):
+    """Mapred options"""
+    def __init__(self):
+        HadoopOpts.__init__(self)
+        MapredCfg.__init__(self)
+
+    def init_defaults(self):
         """Create the default list of params and description"""
-        self.log.debug("Adding defaults.")
+        self.log.debug("Adding init defaults.")
         self.add_from_opts_dict(MAPRED_OPTS)
 
-
-class MapredCfg(HadoopCfg):
-    """Mapred cfg"""
+    def set_service_defaults(self, mis):
+        """Set service specific default"""
+        self.log.debug("Setting servicedefaults for %s" % mis)
 

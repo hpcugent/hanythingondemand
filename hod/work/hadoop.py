@@ -1,5 +1,4 @@
 from hod.work.work import Work
-from hod.config.hadoopcfg import HadoopCfg
 from hod.config.hadoopopts import HadoopOpts
 
 import os, pwd
@@ -8,25 +7,21 @@ from vsc import fancylogger
 fancylogger.setLogLevelDebug()
 
 
-class Hadoop(Work):
+class Hadoop(Work, HadoopOpts):
     """Base Hadoop work class"""
-    def __init__(self, ranks, cfg=HadoopCfg, opts=HadoopOpts):
+    def __init__(self, ranks):
         Work.__init__(self, ranks)
-
-        self.cfg = cfg()
-        self.opts = opts()
+        HadoopOpts.__init__(self)
 
     def prepare_location(self):
         """prepare the location: make directories etc"""
 
     def prepare_cfg(self):
         """prepare the config: collect the parameters and make the necessary xml cfg files"""
-        self.cfg.run()
-        ## set hadoophome in opts
-        self.opts.hadoophome = self.cfg.hadoophome
-        if self.opts.confdir is None:
-            self.opts.confdir = os.path.join('/tmp', 'hod', pwd.getpwuid(os.getuid())[0])
-        self.opts.make_cfg()
+        self.run_cfg()
+        if self.basedir is None:
+            self.basedir = os.path.join('/tmp', 'hod', pwd.getpwuid(os.getuid())[0], self.name)
+        self.make_cfg()
 
     def prepare_env(self):
         """prepare the environment: collect the parameters and make env vars"""
@@ -54,6 +49,7 @@ class Hadoop(Work):
 
     def do_work(self):
         """Look for required code and prepare all"""
+        self.log.debug("Do work start")
 
         self.prepare_cfg()
         self.prepare_env()
@@ -78,3 +74,4 @@ class Hadoop(Work):
         self.barrier("Going to run post_stop all")
         self.post_stop_all()
 
+        self.log.debug("Do work end")

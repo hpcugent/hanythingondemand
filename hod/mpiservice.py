@@ -111,7 +111,7 @@ class MpiService:
             others = self.who_is_out_there(newcomm)
             self.log.debug("Others found %s; based on %s" % (others, mykeys[dimind]))
             if mykeys[dimind] == others:
-                self.log.error("Others %s in comm matches based input %s. Adding to topocomm." % (others, mykeys[dimind]))
+                self.log.debug("Others %s in comm matches based input %s. Adding to topocomm." % (others, mykeys[dimind]))
                 self.topocomm.append(newcomm)
             else:
                 self.log.error("Others %s in comm don't match based input %s. Adding COMM_NULL to topocomm." % (others, mykeys[dimind])) ## TODO is adding COMM_NULL a good idea?
@@ -143,7 +143,7 @@ class MpiService:
             self.log.debug("Stop disconnect")
             comm.Disconnect()
 
-    def stop(self):
+    def stop_service(self):
         """End all communicators"""
         if self.topocomm is not None:
             self.log.debug("Stopping topocomm")
@@ -216,14 +216,17 @@ class MpiService:
 
 
         """Based on initial dist, create the groups and communicators and map with work"""
+        self.log.debug("Starting the distribution.")
         for w in self.dists:
             w_type = w[0]
             w_ranks = w[1]
 
-            self.log.debug("newcomm for ranks %s" % (w_ranks))
+            self.log.debug("newcomm for ranks %s for work %s" % (w_ranks, w_type))
             newcomm = self.make_comm_group(w_ranks)
 
-            if not newcomm == MPI.COMM_NULL:
+            if newcomm == MPI.COMM_NULL:
+                self.log.debug("No work %s for this rank %s" % (w_type, self.rank))
+            else:
                 self.tempcomm.append(newcomm)
 
                 self.log.debug("work %s for ranks %s" % (w_type.__name__, w_ranks))

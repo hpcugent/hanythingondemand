@@ -64,7 +64,7 @@ class Slave:
 
         self.log.debug("Completed workinit")
 
-    def stop(self):
+    def stop_script(self):
         """Stop this slave"""
         self.log.debug("Stop communicator %s stopwithbarrier %s intracommunicator %s stopwithintrabarrier %s" % (self.comm, self.stopwithbarrier, self.intracomm, self.stopwithintrabarrier))
         #self.comm.Disconnect()
@@ -88,7 +88,7 @@ class Slave:
         except:
             self.log.exception("go failed to run.")
 
-        self.stop()
+        self.stop_script()
 
         self.log.debug("End go")
 
