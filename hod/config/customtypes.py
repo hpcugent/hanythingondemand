@@ -29,10 +29,13 @@ class HostnamePort:
 class Directories:
     """Directories"""
     def __init__(self, dirs=None):
-        if type(dirs) == str:
+        self.kindoflist = []
+        if type(dirs) in (str,) or dirs is None:
             dirs = [dirs]
         if type(dirs) in (list, tuple,):
-            self.kindoflist = dirs
+            self.kindoflist = list(dirs)
+        elif type(dirs) in (Directories,):
+            self.kindoflist = dirs.kindoflist
 
     def __str__(self):
         """Hadoop expects mulitple directoris in comma-separated list"""
@@ -46,6 +49,9 @@ class Directories:
 
     def __contains__(self, d):
         return d in self.kindoflist
+
+    def __iter__(self):
+        return self.kindoflist.__iter__()
 
 class Arguments(Directories):
     """Arguments (space separated)"""

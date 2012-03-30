@@ -2,13 +2,12 @@
 Mapred config and options
 """
 
-from hod.config.types import *
+from hod.config.customtypes import *
 from hod.config.hadoopopts import HadoopOpts
 from hod.config.hadoopcfg import HadoopCfg
 
 MAPRED_OPTS = {
     'mapred.job.tracker' : [HostnamePort(':9000'), 'The host and port that the MapReduce job tracker runs at.  If "local", then jobs are run in-process as a single map and reduce task.'],
-    'mapred.job.tracker.http.address': [HostnamePort(':50030'), 'The job tracker http server address and port the server will listen on. If the port is 0 then the server will start on a free port.'],
     'mapred.local.dir' : [Directories([None]), 'The local directory where MapReduce stores intermediate data files. May be a comma-separated list of kindoflist on different devices in order to spread disk i/o. Directories that do not exist are ignored.'],
     'mapred.map.tasks' : [None, 'As a rule of thumb, use 10x the number of slaves (i.e., number of TaskTrackers).'],
     'mapred.reduce.tasks' : [None, 'As a rule of thumb, use 2x the number of slave processors (i.e., number of TaskTrackers).'],
@@ -24,6 +23,9 @@ MAPRED_MEMORY_OPTS = {
     'mapred.tasktracker.pmem.reserved':'A number, in bytes, that represents an offset. The total physical memory (RAM) on the machine, minus this offset, is the recommended RAM node-limit. The RAM node-limit is a hint to a Scheduler to scheduler only so many tasks such that the sum total of their RAM requirements does not exceed this limit. RAM usage is not monitored by a TT.',
 }
 
+MAPRED_HTTP_OPTS = {
+    'mapred.job.tracker.http.address': [HostnamePort(':50030'), 'The job tracker http server address and port the server will listen on. If the port is 0 then the server will start on a free port.'],
+}
 
 ## mapred taskset.cfg opts for LinuxTaskController 
 ## not for xml
@@ -47,8 +49,8 @@ class MapredCfg(HadoopCfg):
 
 class MapredOpts(MapredCfg, HadoopOpts):
     """Mapred options"""
-    def __init__(self):
-        HadoopOpts.__init__(self)
+    def __init__(self, shared=None, basedir=None):
+        HadoopOpts.__init__(self, shared=shared, basedir=basedir)
         MapredCfg.__init__(self)
 
     def init_defaults(self):
@@ -56,7 +58,4 @@ class MapredOpts(MapredCfg, HadoopOpts):
         self.log.debug("Adding init defaults.")
         self.add_from_opts_dict(MAPRED_OPTS)
 
-    def set_service_defaults(self, mis):
-        """Set service specific default"""
-        self.log.debug("Setting servicedefaults for %s" % mis)
 

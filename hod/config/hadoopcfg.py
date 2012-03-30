@@ -28,18 +28,21 @@ class HadoopCfg:
         self.javahome = None
 
         self.name = 'all' ## default task start-all.sh, stop-all.sh
+        self.daemonname = 'hadoop'
+
         self.start_script = None
         self.stop_script = None
+        self.daemon_script = None
 
         self.extrasearchpaths = []
 
-    def run_cfg(self):
+    def basic_cfg(self):
         """Perform configuration gathering"""
         ## some default initialisation
         self.log.debug("Starting cfg preparation for name %s" % self.name)
         self.prep_java()
         self.prep_hadoop()
-        self.locate_start_stop()
+        self.locate_start_stop_daemon()
 
     def which_exe(self, exe, showall=False, stripbin=False):
         """Locate executable exe (similar to which). If all is True, return list of all found executables.
@@ -73,8 +76,8 @@ class HadoopCfg:
         """Add value to (non-)existing variable"""
         vals = os.environ.get(variable, '').split(':')
         if not vals[0]:
-            vals.pop(0) ## empty
-        vals.insert(0, value)
+            vals.pop(0) ## empty due to empty string
+        vals.insert(0, "%s" % value) ## to string due to derived types
         newvalue = ':'.join(vals)
         os.environ[variable] = newvalue
         self.log.debug("set new value of variable %s to %s" % (variable, newvalue))
@@ -179,30 +182,38 @@ class HadoopCfg:
         self.which_hadoop()
         self.hadoop_version()
 
-    def locate_start_stop(self):
-        """Try to locate the start and stop scripts"""
+    def locate_start_stop_daemon(self):
+        """Try to locate the start, stop and daemon scripts"""
         startname = "start-%s.sh" % self.name
         stopname = "stop-%s.sh" % self.name
+        daemonname = "%s-daemon.sh" % self.daemonname
 
         searchpaths = [os.path.join(self.hadoophome, 'sbin'), os.path.join(self.hadoophome, 'bin')] + self.extrasearchpaths
 
         for path in searchpaths:
             fn = os.path.join(path, startname)
-            if os.path.isfile(fn):
+            if not self.start_script and os.path.isfile(fn):
                 self.start_script = fn
                 self.log.debug("Found start_script %s for name %s" % (self.start_script, self.name))
-                break
-        if self.start_script is None:
-            self.log.error("start_script for name %s not found in paths %s" % (self.name, searchpaths))
 
-        for path in searchpaths:
             fn = os.path.join(path, stopname)
-            if os.path.isfile(fn):
+            if not self.stop_script and os.path.isfile(fn):
                 self.stop_script = fn
                 self.log.debug("Found stop_script %s for name %s" % (self.stop_script, self.name))
-                break
+
+            fn = os.path.join(path, daemonname)
+            if not self.daemon_script and os.path.isfile(fn):
+                self.daemon_script = fn
+                self.log.debug("Found daemon_script %s for name %s daemonname %s" % (self.daemon_script, self.name, self.daemonname))
+
         if self.start_script is None:
-            self.log.error("start_script for name %s not found in paths %s" % (self.name, searchpaths))
+            self.log.error("start_script %s for name %s not found in paths %s" % (startname , self.name, searchpaths))
+
+        if self.start_script is None:
+            self.log.error("start_script %s for name %s not found in paths %s" % (stopname, self.name, searchpaths))
+
+        if self.daemon_script is None:
+            self.log.error("daemon_script %s for name %s daemonname %s not found in paths %s" % (daemonname, self.name, self.daemonname, searchpaths))
 
     def is_version_ok(self, req=None):
         """Given a requirement req, check if current version is sufficient"""

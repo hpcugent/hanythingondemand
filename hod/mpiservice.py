@@ -51,6 +51,7 @@ class MpiService:
             self.barrier('Start ')
 
         ## init all nodes from original COMM_WORLD
+        self.thisnode = Node()
         self.collect_nodes()
 
         self.dists = None
@@ -66,12 +67,27 @@ class MpiService:
 
     def collect_nodes(self):
         """Collect local Node info and distribute it over all nodes"""
-        thisnode = Node()
-        descr = thisnode.go()
-        self.log.debug("Got Node %s" % thisnode)
+        descr = self.thisnode.go()
+        self.log.debug("Got Node %s" % self.thisnode)
 
         self.allnodes = self.comm.alltoall([descr] * self.size)
         self.log.debug("Got allnodes %s" % (self.allnodes))
+
+        ## TODO proper sanity check to see if all nodes have similar network (ie that the netmask of the selected index can reach the other indices)
+        self.log.debug("Sanity check: do all nodes have same network adapters?")
+        is_ok = True
+        for intf in descr['network']:
+            dev = intf[2]
+            alldevs = [[y[2] for y in x['network']] for x in self.allnodes]
+            for rnk in range(self.size):
+                if not dev in alldevs[rnk]:
+                    self.log.error("no dev %s found in alldevs %s of rank %s" % (dev, alldevs[rnk], rnk))
+                    is_ok = False
+
+        if is_ok:
+            self.log.debug("Sanity check ok")
+        else:
+            self.log.error("Sanity check failed")
 
         self.make_topology_comm()
 
@@ -217,9 +233,12 @@ class MpiService:
 
         """Based on initial dist, create the groups and communicators and map with work"""
         self.log.debug("Starting the distribution.")
-        for w in self.dists:
-            w_type = w[0]
-            w_ranks = w[1]
+        for wrk in self.dists:
+            w_type = wrk[0]
+            w_ranks = wrk[1]
+            w_shared = None
+            if len(wrk) == 3:
+                w_shared = wrk[2]
 
             self.log.debug("newcomm for ranks %s for work %s" % (w_ranks, w_type))
             newcomm = self.make_comm_group(w_ranks)
@@ -230,7 +249,7 @@ class MpiService:
                 self.tempcomm.append(newcomm)
 
                 self.log.debug("work %s for ranks %s" % (w_type.__name__, w_ranks))
-                tmp = w_type(w_ranks)
+                tmp = w_type(w_ranks, w_shared)
                 tmp.run(newcomm)
 
 

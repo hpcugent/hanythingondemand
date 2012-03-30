@@ -2,9 +2,11 @@
 HDFS config and options
 """
 
-from hod.config.types import *
+from hod.config.customtypes import *
 from hod.config.hadoopopts import HadoopOpts
 from hod.config.hadoopcfg import HadoopCfg
+
+import os
 
 ## namenode is set in core
 HDFS_OPTS = {
@@ -14,9 +16,12 @@ HDFS_OPTS = {
     'dfs.data.dir':[Directories([None]), 'Determines where on the local filesystem an DFS data node should store its blocks. If this is a comma-delimited list of kindoflist, then data will be stored in all named kindoflist, typically on different devices. Directories that do not exist are ignored. def ${hadoop.tmp.dir}/dfs/data'],
 
     'dfs.datanode.address':[HostnamePort(':50090'), 'The address where the datanode server will listen to. If the port is 0 then the server will start on a free port.'],
-    'dfs.datanode.http.address':[HostnamePort(':50075'), 'The datanode http server address and port. If the port is 0 then the server will start on a free port.'],
     'dfs.datanode.ipc.address':[HostnamePort(':50020'), 'The datanode ipc server address and port. If the port is 0 then the server will start on a free port.'],
+}
+
+HDFS_HTTP_OPTS = {
     'dfs.namenode.http-address':[HostnamePort(':50070'), 'The address and the base port where the dfs namenode web ui will listen on. If the port is 0 then the server will start on a free port.'],
+    'dfs.datanode.http.address':[HostnamePort(':50075'), 'The datanode http server address and port. If the port is 0 then the server will start on a free port.'],
 }
 
 HDFS_ENV_OPTS = {
@@ -33,17 +38,13 @@ class HdfsCfg(HadoopCfg):
 
 class HdfsOpts(HdfsCfg, HadoopOpts):
     """Hdfs options"""
-    def __init__(self):
-        HadoopOpts.__init__(self)
+    def __init__(self, shared=None, basedir=None):
+        HadoopOpts.__init__(self, shared=shared, basedir=basedir)
         HdfsCfg.__init__(self)
 
     def init_defaults(self):
         """Create the default list of params and description"""
         self.log.debug("Adding init defaults.")
         self.add_from_opts_dict(HDFS_OPTS)
-
-    def set_service_defaults(self, mis):
-        """Set service specific default"""
-        self.log.debug("Setting servicedefaults for %s" % mis)
 
 

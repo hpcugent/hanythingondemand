@@ -24,6 +24,11 @@ else
 fi
 
 export JAVA_HOME=/usr/lib/jvm/java
-export PATH=/home/stdweird/hadoop/cdh4b1/hadoop-0.23.0-cdh4b1/bin:$PATH
+
+# yarn
+#export PATH=$HOME/hadoop/cdh4b1/hadoop-0.23.0-cdh4b1/bin:$PATH
+# MR1
+export PATH=$HOME/hadoop/cdh3u3/hadoop-0.20.2-cdh3u3/bin:$PATH
+
 
 mpirun -np $NP python $HODPYTHONPATH/hod/hodproc.py
