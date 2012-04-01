@@ -456,6 +456,14 @@ class HadoopOpts(HadoopCfg):
                 self.log.debug("Run check on env_param %s instance %s" % (param, val))
                 val.check()
 
+    def pre_run_any_service(self):
+        """To be run before any service start/wait/stop"""
+        self.log.debug("set HADOOP_CONF_DIR in environment to %s" % self.confdir)
+        varname = 'HADOOP_CONF_DIR'
+        varvalue = self.confdir
+        self.setenv(varname, varvalue)
+        self.env_params.update({varname:varvalue})
+
     def make_opts_env_cfg(self):
         """Make the cfg file"""
         self.prep_conf_dir()
@@ -464,12 +472,6 @@ class HadoopOpts(HadoopCfg):
         self.set_defaults()  ## set the default on missing values in params
 
         self.params_env_sanity_check()
-
-        self.log.debug("set HADOOP_CONF_DIR in environment")
-        varname = 'HADOOP_CONF_DIR'
-        varvalue = self.confdir
-        self.setenv(varname, varvalue)
-        self.env_params.update({varname:varvalue})
 
         self.log.debug("start writing files")
         self.gen_conf_xml_new() ## write xml files

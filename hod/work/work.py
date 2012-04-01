@@ -1,7 +1,7 @@
 from vsc import fancylogger
 fancylogger.setLogLevelDebug()
 
-import time
+import time, os
 
 from hod.mpiservice import MpiService
 
@@ -17,8 +17,16 @@ class Work(MpiService):
 
         self.commands = {} ## dict with command : list of ranks
 
-        self.work_max_age = 300
+        self.work_max_age = 3600
         self.work_start_time = time.time()
+
+        self.controldir = '/tmp'
+
+    def pre_run_any_service(self):
+        """To be run before any service"""
+
+    def post_run_any_service(self):
+        """To be run before any service"""
 
     def run(self, comm):
         """Setup MPI comm and do_work"""
@@ -74,21 +82,43 @@ class Work(MpiService):
 
     def do_work_start(self):
         """Start the work"""
+        self.pre_run_any_service()
         self.barrier("Going to start work on master only")
         if self.rank == self.masterrank:
             self.start_work_service_master()
 
         self.barrier("Going to start work on all")
         self.start_work_service_all()
+        self.post_run_any_service()
 
     def do_work_wait(self):
+        self.pre_run_any_service()
         self.barrier("Going to wait work on all. Return True when all is over")
+
         ans = self.work_wait() ## True when wait is over
 
+        ## override mechanisms
+        force_fn = os.path.join(self.controldir, 'force_stop')
+        if os.path.isfile(force_fn):
+            self.log.warn("Force stop detected. work_wait was %s. return True" % ans)
+            return True
+        else:
+            self.log.debug("No force stop file %s found" % force_fn)
+
+        force_fn = os.path.join(self.controldir, 'force_continue')
+        if os.path.isfile(force_fn):
+            self.log.warn("Force continue detected. work_wait was %s. return False" % ans)
+            return False
+        else:
+            self.log.debug("No force continue file %s found" % force_fn)
+
+        self.post_run_any_service()
         return ans
 
     def do_work_stop(self):
         """Start the work"""
+        self.pre_run_any_service()
+
         self.barrier("Going to stop work on all")
         self.stop_work_service_all()
 
@@ -96,6 +126,7 @@ class Work(MpiService):
         if self.rank == self.masterrank:
             self.stop_work_service_master()
 
+        self.post_run_any_service()
 
 
 

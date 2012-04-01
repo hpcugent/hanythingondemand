@@ -44,4 +44,5 @@ class Hadoop(Work, HadoopOpts):
         ## make the cfg
         self.make_opts_env_cfg()
 
-
+        ## set the controldir to the confdir
+        self.controldir = self.confdir

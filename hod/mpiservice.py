@@ -277,6 +277,9 @@ class MpiService:
 
                     self.log.debug("Removing %s from active_work" % act_work)
                     self.active_work.remove(act_work)
-            time.sleep(self.wait_iter_sleep)
-
-        self.log.debug("No more active work.")
+            if len(self.active_work):
+                self.log.debug('Still %s active work left. sleeping %s seconds' % (len(self.active_work), self.wait_iter_sleep))
+                time.sleep(self.wait_iter_sleep)
+            else:
+                self.log.debug('No more active work, not going to sleep.')
+        self.log.debug("No more active work left.")
