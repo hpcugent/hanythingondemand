@@ -7,7 +7,7 @@ http: // hadoop.apache.org / common / docs / current / core - default.html
 http: // hadoop.apache.org / common / docs / current / cluster_setup.html
 """
 
-from hod.config.customtypes import *
+from hod.config.customtypes import HostnamePort, HdfsFs, Directories, Arguments
 import os, shutil, re
 from xml.dom import getDOMImplementation
 
@@ -18,7 +18,7 @@ from hod.config.hadoopcfg import HadoopCfg
 
 
 CORE_OPTS = {
-    'fs.default.name' : [HostnamePort(':8020'), 'The name of the default file system.  A URI whose scheme and authority determine the FileSystem implementation.  The uris scheme determines the config property (fs.SCHEME.impl) naming ' + \
+    'fs.default.name' : [HdfsFs(':8020'), 'The name of the default file system.  A URI whose scheme and authority determine the FileSystem implementation.  The uris scheme determines the config property (fs.SCHEME.impl) naming ' + \
                         'the FileSystem implementation class.  The uris authority is used to determine the host, port, etc. for a filesystem.'],
     'hadoop.tmp.dir' : [Directories([None]), 'Is used as the base for temporary kindoflist locally, and also in HDFS'],
 }
@@ -72,7 +72,7 @@ class HadoopOpts(HadoopCfg):
         self.logdir = None ##
         self.piddir = None ##
 
-        self.default_fsdefault = HostnamePort(':8020')  ## default namenode
+        self.default_fsdefault = HdfsFs(':8020')  ## default namenode
 
         self.envfilename = None ## will default to 'daemonname'-env.sh
 
@@ -438,23 +438,37 @@ class HadoopOpts(HadoopCfg):
         except OSError:
             self.log.exception("Failed to write env_params file %s with content %s" % (envfn, content))
 
+    def params_env_sanity_check(self):
+        """Run sanity check on params and env variables"""
+        self.log.debug("params sanity check")
+        self.check_params_or_env() ## sanity check
+        self.log.debug("env_params sanity check")
+        self.check_params_or_env(check_env=True)
 
-    def make_cfg(self):
+        ## more detailed checks
+        for param, val in self.params.items():
+            if type(val) in (Directories,):
+                self.log.debug("Run check on param %s instance %s" % (param, val))
+                val.check()
+
+        for param, val in self.env_params.items():
+            if type(val) in (Directories,):
+                self.log.debug("Run check on env_param %s instance %s" % (param, val))
+                val.check()
+
+    def make_opts_env_cfg(self):
         """Make the cfg file"""
         self.prep_conf_dir()
 
         self.log.debug("make_cfg Making the config files")
         self.set_defaults()  ## set the default on missing values in params
 
-        self.log.debug("params sanity check")
-        self.check_params_or_env() ## sanity check
-        self.log.debug("env_params sanity check")
-        self.check_params_or_env(check_env=True)
+        self.params_env_sanity_check()
 
         self.log.debug("set HADOOP_CONF_DIR in environment")
         varname = 'HADOOP_CONF_DIR'
         varvalue = self.confdir
-        self.addenv(varname, varvalue)
+        self.setenv(varname, varvalue)
         self.env_params.update({varname:varvalue})
 
         self.log.debug("start writing files")

@@ -2,6 +2,8 @@ from mpi4py import MPI
 
 from hod.node import Node
 
+import time
+
 MASTERRANK = 0
 
 from vsc import fancylogger
@@ -23,6 +25,8 @@ class MpiService:
         self.barriercounter = 0
 
         self.stopwithbarrier = True
+
+        self.wait_iter_sleep = 60 ## run through all active work, then wait wait_iter_sleep seconds
 
         self.allnodes = None ## Node info per rank
         self.topocomm = None
@@ -233,6 +237,7 @@ class MpiService:
 
         """Based on initial dist, create the groups and communicators and map with work"""
         self.log.debug("Starting the distribution.")
+        self.active_work = []
         for wrk in self.dists:
             w_type = wrk[0]
             w_ranks = wrk[1]
@@ -250,6 +255,28 @@ class MpiService:
 
                 self.log.debug("work %s for ranks %s" % (w_type.__name__, w_ranks))
                 tmp = w_type(w_ranks, w_shared)
-                tmp.run(newcomm)
+                self.log.debug("work %s begin" % (w_type.__name__))
+                tmp.work_begin(newcomm)
+                self.log.debug("work %s start" % (w_type.__name__))
+                tmp.do_work_start()
+                ## adding started work
+                self.active_work.append(tmp)
 
+        ## all work is started now
+        while len(self.active_work):
+            self.log.debug("amount of active work %s" % (len(self.active_work)))
+            for act_work in self.active_work:
 
+                cleanup = act_work.do_work_wait() ## wait returns wheter or not to cleanup
+                self.log.debug("wait for work %s returned cleanup %s" % (act_work.__class__.__name__, cleanup))
+                if cleanup:
+                    self.log.debug("work %s stop" % (act_work.__class__.__name__))
+                    act_work.do_work_stop()
+                    self.log.debug("work %s end" % (act_work.__class__.__name__))
+                    act_work.work_end()
+
+                    self.log.debug("Removing %s from active_work" % act_work)
+                    self.active_work.remove(act_work)
+            time.sleep(self.wait_iter_sleep)
+
+        self.log.debug("No more active work.")

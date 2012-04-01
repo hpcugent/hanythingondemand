@@ -27,9 +27,6 @@ class Hadoop(Work, HadoopOpts):
         else:
             self.log.error("namenode %s cannot be reached by any of the local interfaces %s" % (nn, self.thisnode.network))
 
-    def prepare_location(self):
-        """prepare the location: make directories etc"""
-
     def prepare_extra_work_cfg(self):
         """Add some custom parameters"""
 
@@ -45,53 +42,6 @@ class Hadoop(Work, HadoopOpts):
             self.log.error("Primary nameserver still not set.")
 
         ## make the cfg
-        self.make_cfg()
+        self.make_opts_env_cfg()
 
-    def start_service_master(self):
-        """Start the Hadoop service"""
 
-    def post_start_master(self):
-        """Run after start_service_master"""
-
-    def post_start_all(self):
-        """Run after start_service"""
-
-    def stop_service_master(self):
-        """Stop the Hadoop service"""
-
-    def post_stop_master(self):
-        """Run after start_service_master"""
-
-    def post_stop_all(self):
-        """Run after start_service"""
-
-    def wait(self):
-        """What to do between start and stop (and how stop is triggered."""
-
-    def do_work(self):
-        """Look for required code and prepare all"""
-        self.log.debug("Do work start")
-
-        self.prepare_work_cfg()
-        self.prepare_location()
-
-        self.barrier("Going to run master only")
-        if self.rank == self.masterrank:
-            self.start_service_master()
-            self.post_start_master()
-
-        self.barrier("Going to run post_start all")
-        self.post_start_all()
-
-        self.barrier("Going to wait all")
-        self.wait()
-
-        self.barrier("Going to stop ")
-        if self.rank == self.masterrank:
-            self.stop_service_master()
-            self.post_stop_master()
-
-        self.barrier("Going to run post_stop all")
-        self.post_stop_all()
-
-        self.log.debug("Do work end")

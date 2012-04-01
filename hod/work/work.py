@@ -1,6 +1,8 @@
 from vsc import fancylogger
 fancylogger.setLogLevelDebug()
 
+import time
+
 from hod.mpiservice import MpiService
 
 class Work(MpiService):
@@ -15,18 +17,87 @@ class Work(MpiService):
 
         self.commands = {} ## dict with command : list of ranks
 
+        self.work_max_age = 300
+        self.work_start_time = time.time()
+
     def run(self, comm):
         """Setup MPI comm and do_work"""
+        self.work_begin(comm)
+        self.do_work()
+        self.work_end()
+
+    def prepare_work_cfg(self):
+        """prepare any config"""
+        self.log.error("Not implemented.")
+
+    def work_begin(self, comm):
+        """Prepartion of work, previous to start"""
         self.init_comm(comm, startwithbarrier=True)
 
         self.log.debug("run do_work")
-        self.do_work()
 
+        self.prepare_work_cfg()
+
+    def work_end(self):
+        """Cleanup work"""
         self.stop_service()
 
+    def start_work_service_master(self):
+        """Start service on master"""
+        self.log.error("Not implemented.")
+
+    def start_work_service_all(self):
+        """Run start_service on all"""
+        self.log.error("Not implemented.")
+
+    def stop_work_service_master(self):
+        """Stop the Hadoop service"""
+
+    def stop_work_service_all(self):
+        """Run after start_service"""
+        self.log.error("Not implemented.")
+
+    def work_wait(self):
+        """What to do between start and stop (and how stop is triggered). Returns True is the wait is over"""
+        now = time.time()
+        if (now - self.work_start_time) > self.work_max_age:
+            self.log.debug("Work started at %s, now is %s, which is more then max_age %s" % (time.localtime(self.work_start_time), time.localtime(now), self.work_max_age))
+            return True ## wait is over
+
     def do_work(self):
-        """Actually do something. To be implemented by derivative classes"""
-        self.log.error("No Work implemented.")
+        """Look for required code and prepare all"""
+        self.log.debug("Do work start")
+        self.do_work_start()
+        self.do_work_wait()
+        self.do_work_stop()
+        self.log.debug("Do work end")
+
+    def do_work_start(self):
+        """Start the work"""
+        self.barrier("Going to start work on master only")
+        if self.rank == self.masterrank:
+            self.start_work_service_master()
+
+        self.barrier("Going to start work on all")
+        self.start_work_service_all()
+
+    def do_work_wait(self):
+        self.barrier("Going to wait work on all. Return True when all is over")
+        ans = self.work_wait() ## True when wait is over
+
+        return ans
+
+    def do_work_stop(self):
+        """Start the work"""
+        self.barrier("Going to stop work on all")
+        self.stop_work_service_all()
+
+        self.barrier("Going to stop work on master only")
+        if self.rank == self.masterrank:
+            self.stop_work_service_master()
+
+
+
 
 class SleepWork(Work):
     def do_work(self):

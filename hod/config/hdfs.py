@@ -42,6 +42,8 @@ class HdfsOpts(HdfsCfg, HadoopOpts):
         HadoopOpts.__init__(self, shared=shared, basedir=basedir)
         HdfsCfg.__init__(self)
 
+        self.format_hdfs = True
+
     def init_defaults(self):
         """Create the default list of params and description"""
         self.log.debug("Adding init defaults.")

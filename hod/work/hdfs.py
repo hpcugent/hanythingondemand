@@ -2,7 +2,8 @@ from hod.work.work import Work
 from hod.work.hadoop import Hadoop
 from hod.config.hdfs import HdfsOpts
 
-from hod.config.customtypes import *
+from hod.config.customtypes import HostnamePort, Directories
+from hod.commands.hadoop import NameNode, DataNode, FormatHdfs
 
 from vsc import fancylogger
 fancylogger.setLogLevelDebug()
@@ -45,4 +46,36 @@ class Hdfs(HdfsOpts, Hadoop):
         else:
             self.log.warn("Variable %s not found in service defaults" % mis) ## TODO is warn enough?
             return True ## not_mis_found
+
+    def start_work_service_master(self):
+        """Start service on master"""
+        if self.format_hdfs:
+            self.log.debug("Formatting HDFS")
+            formatcommand = FormatHdfs()
+            formatcommand.run()
+        else:
+            self.log.debug("No HDFS format")
+
+        self.log.error("Start namenode service master.")
+        command = NameNode(self.daemon_script, start=True)
+        command.run()
+
+    def start_work_service_all(self):
+        """Run start_service on all"""
+        self.log.error("Start datanode service on all.")
+        command = DataNode(self.daemon_script, start=True)
+        command.run()
+
+    def stop_work_service_master(self):
+        """Stop service on master"""
+        self.log.error("Stop namenode service master.")
+        command = NameNode(self.daemon_script, start=False)
+        command.run()
+
+
+    def stop_work_service_all(self):
+        """Run start_service on all"""
+        self.log.error("Stop datanode service on all.")
+        command = DataNode(self.daemon_script, start=False)
+        command.run()
 

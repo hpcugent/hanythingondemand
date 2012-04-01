@@ -102,7 +102,7 @@ class Node:
                 return intf
         self.log.error("ip %s can not be reached by any of the intfs of %s" % (ip, self.network))
 
-    def get_network(self, cidrmask=None, domainmask=None, hostmask=None, devmask=None, cidrordomainmask=None, inputtxt='', up=True, ign_loop=True):
+    def get_network(self, cidrmask=None, domainmask=None, hostmask=None, devmask=None, cidrordomainmask=None, inputtxt='', up=True, ign_loop=False):
         """
         Get first matching IP. Input is from 'ip addr show'
         - up: Boolean, interface up
@@ -207,16 +207,24 @@ class Node:
 
         ## final selection prefer non-vlan
         vlan_reg = re.compile("^(.*)\.\d+$")
+        loopback_reg = re.compile("^(lo)\d*$")
         for intf in self.network:
-            if not vlan_reg.search(intf[2]):
+            if not (vlan_reg.search(intf[2]) or loopback_reg.search(intf[2])):
                 if not intf in nw:
-                    self.log.debug("Added intf %s as non-vlan interface" % intf)
+                    self.log.debug("Added intf %s as non-vlan or non-loopback interface" % intf)
+                    nw.append(intf)
+
+        ## add remainder non-loopback
+        for intf in self.network:
+            if not loopback_reg.search(intf[2]):
+                if not intf in nw:
+                    self.log.debug("Added intf %s as remaining non-loopback interface" % intf)
                     nw.append(intf)
 
         ## add remainder
         for intf in self.network:
             if not intf in nw:
-                self.log.debug("Added intf %s as remaining interface" % intf)
+                self.log.debug("Added intf %s as remaining  interface" % intf)
                 nw.append(intf)
 
         self.network = nw

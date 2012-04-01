@@ -6,7 +6,7 @@ from hod.work.work import TestWorkA, TestWorkB
 from hod.work.mapred import Mapred
 from hod.work.hdfs import Hdfs
 
-from hod.config.customtypes import HostnamePort
+from hod.config.customtypes import HostnamePort, HdfsFs
 
 from vsc import fancylogger
 fancylogger.setLogLevelDebug()
@@ -48,7 +48,7 @@ class HadoopMaster(MpiService):
 
         ## namenode on rank 0, jobtracker of last one
         nn_rank, hdfs_ranks = self.select_hdfs_ranks()
-        nn_param = [HostnamePort("%s:8020" % self.allnodes[nn_rank]['network'][network_index][0]),
+        nn_param = [HdfsFs("%s:8020" % self.allnodes[nn_rank]['network'][network_index][0]),
                   'Namenode on rank %s network_index %s' % (nn_rank, network_index)]
 
         jt_rank, mapred_ranks = self.select_mapred_ranks()

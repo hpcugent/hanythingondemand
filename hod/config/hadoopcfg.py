@@ -80,12 +80,13 @@ class HadoopCfg:
         vals.insert(0, "%s" % value) ## to string due to derived types
         newvalue = ':'.join(vals)
         os.environ[variable] = newvalue
-        self.log.debug("set new value of variable %s to %s" % (variable, newvalue))
+        self.log.debug("addenv: set new value of variable %s to %s after adding %s" % (variable, newvalue, value))
 
     def setenv(self, variable, value):
         """Set (ie override if needed) variable to value"""
+        prevvalue = os.environ.get(variable, '')
         os.environ[variable] = value
-        self.log.debug("set new value of variable %s to %s" % (variable, value))
+        self.log.debug("setenv: set new value of variable %s to %s (previous: %s)" % (variable, value, prevvalue))
 
     def which_java(self):
         """Locate java and/or JAVA_HOME"""
