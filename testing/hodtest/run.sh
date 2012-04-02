@@ -4,7 +4,8 @@
 
 module load mpich2-x86_64
 
-NP=${NPP:-4} 
+## run 1 process per node to start local cluster
+NP=${NPP:-1} 
 
 basedir=`dirname $(readlink -m $0)`
 HODPYTHONPATH=$basedir/../../

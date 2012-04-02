@@ -49,6 +49,7 @@ class Hdfs(HdfsOpts, Hadoop):
 
     def start_work_service_master(self):
         """Start service on master"""
+        self.set_niceness(1, 2, 0)
         if self.format_hdfs:
             self.log.debug("Formatting HDFS")
             formatcommand = FormatHdfs()
@@ -62,6 +63,7 @@ class Hdfs(HdfsOpts, Hadoop):
 
     def start_work_service_all(self):
         """Run start_service on all"""
+        self.set_niceness(5, 2, 3)
         self.log.error("Start datanode service on all.")
         command = DataNode(self.daemon_script, start=True)
         command.run()

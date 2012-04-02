@@ -55,10 +55,12 @@ HADOOP_ENV_OPTS = {
     'HADOOP_CONF_DIR': [None, 'The directory where the config files are located. Default is HADOOP_PREFIX/conf.'],
     'HADOOP_LOG_DIR': [None, 'The directory where the daemons log files are stored. They are automatically created if they dont exist.'],
     'HADOOP_PID_DIR': [None, 'The directory where the daemons pid files are stored. They are automatically created if they dont exist.'],
-    'HADOOP_NICENESS' : [0, 'Run the daemons with nice factor.'],
     'HADOOP_HEAPSIZE': [1000, 'The maximum amount of heapsize to use, in MB e.g. 1000MB. This is used to configure the heap size for the hadoop daemon. By default, the value is 1000MB.'],
 }
 
+## Don't set the niceness
+##     'HADOOP_NICENESS' : [0, 'Run the daemons with nice factor.'],
+##
 
 class HadoopOpts(HadoopCfg):
     """Hadoop options class. Determine optimal default values and other explicit settings"""
@@ -458,11 +460,29 @@ class HadoopOpts(HadoopCfg):
 
     def pre_run_any_service(self):
         """To be run before any service start/wait/stop"""
-        self.log.debug("set HADOOP_CONF_DIR in environment to %s" % self.confdir)
         varname = 'HADOOP_CONF_DIR'
         varvalue = self.confdir
+        self.log.debug("set %s in environment to %s" % (varname, varvalue))
         self.setenv(varname, varvalue)
-        self.env_params.update({varname:varvalue})
+
+    def set_niceness(self, nicelevel=5, ioniceclass=2, ionicelevel=9):
+        """Set the HADOOP_NICENESS. (Due to bug in HADOOP_NICENESS in start scripts, this actually works"""
+        ionice = self.which_exe('ionice')
+        if ionice:
+            ionice_opt = [ionice, '-c', "%d" % ioniceclass]
+            if ioniceclass in (2, 3,):
+                ionice_opt += ['-n', '%d' % ionicelevel]
+            else:
+                self.log.debug("ioniceclass %s not 2 or 3; ignoring ionicelevel %s" % (ioniceclass, ionicelevel))
+            self.log.debug('ionice found, running with %s' % ionice_opt)
+        else:
+            ionice_opt = []
+            self.log.warn('ionice not found, ignoring ionice options')
+        varname = 'HADOOP_NICENESS'
+        varvalue = " ".join(["%d" % nicelevel] + ionice_opt)
+        self.log.debug("set %s in environment to %s" % (varname, varvalue))
+        self.setenv(varname, varvalue)
+
 
     def make_opts_env_cfg(self):
         """Make the cfg file"""
