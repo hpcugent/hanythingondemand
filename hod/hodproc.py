@@ -5,8 +5,10 @@ from hod.mpiservice import MpiService, MASTERRANK
 from hod.work.work import TestWorkA, TestWorkB
 from hod.work.mapred import Mapred
 from hod.work.hdfs import Hdfs
+from hod.work.client import Client
 
-from hod.config.customtypes import HostnamePort, HdfsFs
+
+from hod.config.customtypes import HostnamePort, HdfsFs, ParamsDescr
 
 from vsc import fancylogger
 fancylogger.setLogLevelDebug()
@@ -33,8 +35,29 @@ class HadoopMaster(MpiService):
 
     def distribution(self):
         """Master makes the distribution"""
-        ## example part one on half one, part 2 on second half (make sure one is always started)
         self.dists = []
+
+        self.distribution_HDFS_Mapred()
+
+        ## generate client configs
+        self.make_client()
+
+    def make_client(self):
+        """Create the client configs"""
+
+        ## local client config
+        shared_localclient = {'socks':False}
+        client_ranks = [0] ## only on one rank
+        self.dists.append([Client, client_ranks, shared_localclient])
+
+        ## client with socks access
+        shared_socksclient = {'socks':True}
+        client_ranks = [0] ## only on one rank
+        self.dists.append([Client, client_ranks, shared_socksclient])
+
+
+    def distribution_HDFS_Mapred(self):
+        """The HDFS+MR1 distribution"""
 
         ## 4 things to start
         ## HDFS config
@@ -56,12 +79,14 @@ class HadoopMaster(MpiService):
                     'Jobtracker on rank %s network_index %s' % (jt_rank, network_index)]
 
 
-        shared = {'params':{'fs.default.name':nn_param }}
-        self.dists.append([Hdfs, hdfs_ranks, shared])
+        sharedhdfs = {'params':ParamsDescr({'fs.default.name':nn_param })}
+        self.dists.append([Hdfs, hdfs_ranks, sharedhdfs])
 
 
-        shared['params'].update({'mapred.job.tracker':jt_param})
-        self.dists.append([Mapred, mapred_ranks, shared])
+        sharedmapred = {'params':ParamsDescr({'mapred.job.tracker':jt_param})}
+        sharedmapred['params'].update(sharedhdfs['params'])
+        self.dists.append([Mapred, mapred_ranks, sharedmapred])
+
 
 
     def select_network(self):
@@ -76,16 +101,28 @@ class HadoopMaster(MpiService):
     def select_hdfs_ranks(self):
         """return namenode rank and all datanode ranks"""
         allranks = range(self.size)
-        nn_rank = allranks[0]
-        self.log.debug("Simple hdfs distribution: nn is first of allranks and all ranks are datanode: %s, %s" % (nn_rank, allranks))
-        return nn_rank, allranks
+        rank = allranks[0]
+
+        ## set jt_rank as first rank
+        oldindex = allranks.index(rank)
+        val = allranks.pop(oldindex)
+        allranks.insert(rank, val)
+
+        self.log.debug("Simple hdfs distribution: nn is first of allranks and all slaves are datanode: %s, %s" % (rank, allranks))
+        return rank, allranks
 
     def select_mapred_ranks(self):
         """return jobtracker rank and all tasktracker ranks"""
         allranks = range(self.size)
-        jt_rank = allranks[-1]
-        self.log.debug("Simple mapred distribution: jt is last of allranks and all ranks are tasktracker: %s , %s" % (jt_rank, allranks))
-        return jt_rank, allranks
+        rank = allranks[0]
+
+        ## set jt_rank as first rank
+        oldindex = allranks.index(rank)
+        val = allranks.pop(oldindex)
+        allranks.insert(rank, val)
+
+        self.log.debug("Simple mapred distribution: jt is first of allranks and all slaves are tasktracker: %s , %s" % (rank, allranks))
+        return rank, allranks
 
 if __name__ == '__main__':
     from mpi4py import MPI
@@ -96,10 +133,6 @@ if __name__ == '__main__':
         serv = Slave()
 
     try:
-        import time
-
-        time.sleep(1)
-
         serv.run_dist()
 
         serv.stop_service()

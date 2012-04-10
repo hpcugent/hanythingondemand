@@ -50,15 +50,15 @@ class Mapred(MapredOpts, Hadoop):
 
     def start_work_service_master(self):
         """Start service on master"""
-        self.set_niceness(4, 2, 3)
+        self.set_niceness(4, 2, 3, 'socket:0')
         self.log.error("Start jobtracker service master.")
         command = Jobtracker(self.daemon_script, start=True)
         command.run()
 
 
-    def start_work_service_all(self):
+    def start_work_service_slaves(self):
         """Run start_service on all"""
-        self.set_niceness(15, 2, 9)
+        self.set_niceness(15, 2, 7)
         self.log.error("Start tasktracker service on all.")
         command = Tasktracker(self.daemon_script, start=True)
         command.run()
@@ -70,7 +70,7 @@ class Mapred(MapredOpts, Hadoop):
         command.run()
 
 
-    def stop_work_service_all(self):
+    def stop_work_service_slaves(self):
         """Run start_service on all"""
         self.log.error("Stop tasktracker service on all.")
         command = Tasktracker(self.daemon_script, start=False)

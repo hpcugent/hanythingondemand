@@ -2,30 +2,40 @@
 Mapred config and options
 """
 
-from hod.config.customtypes import *
+from hod.config.customtypes import HostnamePort, Directories, Arguments, ParamsDescr, UserGroup
 from hod.config.hadoopopts import HadoopOpts
 from hod.config.hadoopcfg import HadoopCfg
 
-MAPRED_OPTS = {
+MAPRED_OPTS = ParamsDescr({
     'mapred.job.tracker' : [HostnamePort(':9000'), 'The host and port that the MapReduce job tracker runs at.  If "local", then jobs are run in-process as a single map and reduce task.'],
     'mapred.local.dir' : [Directories([None]), 'The local directory where MapReduce stores intermediate data files. May be a comma-separated list of kindoflist on different devices in order to spread disk i/o. Directories that do not exist are ignored.'],
     'mapred.map.tasks' : [None, 'As a rule of thumb, use 10x the number of slaves (i.e., number of TaskTrackers).'],
     'mapred.reduce.tasks' : [None, 'As a rule of thumb, use 2x the number of slave processors (i.e., number of TaskTrackers).'],
+    'mapred.child.java.opts' : [Arguments(), 'General java options passed to each task JVM'],
+
+    'mapred.job.reuse.jvm.num.tasks':[1, 'Reuse the JVM between tasks'], ## from myhadoop
 
     'mapred.task.tracker.task-controller':'Fully qualified class name of the task controller class. Currently there are two implementations of task controller in the Hadoop system, DefaultTaskController and LinuxTaskController. Refer to the class names mentioned above to determine the value to set for the class of choice.',
-}
+})
 
-MAPRED_MEMORY_OPTS = {
+MAPRED_SECURITY_SERVICE = ParamsDescr({
+    'security.inter.tracker.protocol.acl':[UserGroup(), 'ACL for InterTrackerProtocol, used by the tasktrackers to communicate with the jobtracker.'],
+    'security.job.submission.protocol.acl':[UserGroup(), 'ACL for JobSubmissionProtocol, used by job clients to communciate with the jobtracker for job submission, querying job status etc.'],
+    'security.task.umbilical.protocol.acl':[UserGroup(), 'ACL for TaskUmbilicalProtocol, used by the map and reduce tasks to communicate with the parent tasktracker.'],
+})
+
+
+MAPRED_MEMORY_OPTS = ParamsDescr({
     'mapred.tasktracker.vmem.reserved':'A number, in bytes, that represents an offset. The total VMEM on the machine, minus this offset, is the VMEM node - limit for all tasks, and their descendants, spawned by the TT.',
     'mapred.task.default.maxvmem':'A number, in bytes, that represents the default VMEM task - limit associated with a task. Unless overridden by a jobs setting, this number defines the VMEM task-limit.',
     'mapred.task.limit.maxvmem':'A number, in bytes, that represents the upper VMEM task-limit associated with a task. Users, when specifying a VMEM task-limit for their tasks, should not specify a limit which exceeds this amount.',
     'mapred.tasktracker.taskmemorymanager.monitoring-interval':'The time interval, in milliseconds, between which the TT checks for any memory violation. The default value is 5000 msec (5 seconds).',
     'mapred.tasktracker.pmem.reserved':'A number, in bytes, that represents an offset. The total physical memory (RAM) on the machine, minus this offset, is the recommended RAM node-limit. The RAM node-limit is a hint to a Scheduler to scheduler only so many tasks such that the sum total of their RAM requirements does not exceed this limit. RAM usage is not monitored by a TT.',
-}
+})
 
-MAPRED_HTTP_OPTS = {
+MAPRED_HTTP_OPTS = ParamsDescr({
     'mapred.job.tracker.http.address': [HostnamePort(':50030'), 'The job tracker http server address and port the server will listen on. If the port is 0 then the server will start on a free port.'],
-}
+})
 
 ## mapred taskset.cfg opts for LinuxTaskController 
 ## not for xml
@@ -36,10 +46,10 @@ MAPRED_HTTP_OPTS = {
 #}
 
 
-MAPRED_ENV_OPTS = {
+MAPRED_ENV_OPTS = ParamsDescr({
     'HADOOP_JOBTRACKER_OPTS':[Arguments(), ''],
     'HADOOP_TASKTRACKER_OPTS':[Arguments(), ''],
-}
+})
 
 class MapredCfg(HadoopCfg):
     """Mapred MR1 cfg"""
@@ -57,5 +67,9 @@ class MapredOpts(MapredCfg, HadoopOpts):
         """Create the default list of params and description"""
         self.log.debug("Adding init defaults.")
         self.add_from_opts_dict(MAPRED_OPTS)
+
+    def init_security_defaults(self):
+        """Add security options"""
+        self.add_from_opts_dict(MAPRED_SECURITY_SERVICE)
 
 

@@ -49,9 +49,15 @@ class Hdfs(HdfsOpts, Hadoop):
 
     def start_work_service_master(self):
         """Start service on master"""
-        self.set_niceness(1, 2, 0)
+        self.set_niceness(1, 2, 0, 'socket:0')
         if self.format_hdfs:
             self.log.debug("Formatting HDFS")
+            name_dir = self.params.get('dfs.name.dir', None)
+            if name_dir:
+                dest_dir = "%s.renamebeforeformat" % name_dir
+                self.log.debug('Namedir %s found during format. Going to rename it to %s.' % (name_dir, dest_dir))
+                os.rename("%s" % name_dir, dest_dir)
+
             formatcommand = FormatHdfs()
             formatcommand.run()
         else:
@@ -61,9 +67,9 @@ class Hdfs(HdfsOpts, Hadoop):
         command = NameNode(self.daemon_script, start=True)
         command.run()
 
-    def start_work_service_all(self):
+    def start_work_service_slaves(self):
         """Run start_service on all"""
-        self.set_niceness(5, 2, 3)
+        self.set_niceness(5, 2, 3, 'socket:0')
         self.log.error("Start datanode service on all.")
         command = DataNode(self.daemon_script, start=True)
         command.run()
@@ -75,7 +81,7 @@ class Hdfs(HdfsOpts, Hadoop):
         command.run()
 
 
-    def stop_work_service_all(self):
+    def stop_work_service_slaves(self):
         """Run start_service on all"""
         self.log.error("Stop datanode service on all.")
         command = DataNode(self.daemon_script, start=False)

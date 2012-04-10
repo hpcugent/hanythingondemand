@@ -7,6 +7,8 @@
 
 module load Python
 module load Hadoop
+module unload Java
+module load Java/1.7.0_3
 
 cd $PBS_O_WORKDIR
 
@@ -39,6 +41,12 @@ fi
 #export PATH=$HOME/hadoop/cdh4b1/hadoop-0.23.0-cdh4b1/bin:$PATH
 # MR1
 
+output=$PWD/hod.log.$PBS_JOBID
+
+## use java opts for jdk7 for sdp
+#export LD_PRELOAD=libsdp.so
 
 
-mympirun --hybrid=1 python $HODPYTHONPATH/hod/hodproc.py
+
+
+mympirun --output=$output --variablesprefix=HADOOP,JAVA,HOD,YARN,HBASE,MAPRED,HDFS --hybrid=1 python $HODPYTHONPATH/hod/hodproc.py

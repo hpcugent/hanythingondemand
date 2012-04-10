@@ -32,6 +32,11 @@ class MpiService:
         self.topocomm = None
         self.tempcomm = []
 
+        self.active_work = []
+
+        self.dists = None
+        self.thisnode = None
+
         if initcomm:
             self.log.debug("Going to initialise the __init__ default communicators")
             self.init_comm()
@@ -235,15 +240,15 @@ class MpiService:
             self.spread()
 
 
-        """Based on initial dist, create the groups and communicators and map with work"""
+        # Based on initial dist, create the groups and communicators and map with work
         self.log.debug("Starting the distribution.")
-        self.active_work = []
         for wrk in self.dists:
             w_type = wrk[0]
             w_ranks = wrk[1]
-            w_shared = None
+            ## pass any existing previous work
+            w_shared = {'active_work':[ {'params':x.params, 'env_params':x.env_params, 'work_name':x.__class__.__name__} for x in self.active_work ]}
             if len(wrk) == 3:
-                w_shared = wrk[2]
+                w_shared.update(wrk[2])
 
             self.log.debug("newcomm for ranks %s for work %s" % (w_ranks, w_type))
             newcomm = self.make_comm_group(w_ranks)
@@ -253,14 +258,17 @@ class MpiService:
             else:
                 self.tempcomm.append(newcomm)
 
-                self.log.debug("work %s for ranks %s" % (w_type.__name__, w_ranks))
+                self.log.debug("work %s for ranks %s shared %s" % (w_type.__name__, w_ranks, w_shared))
                 tmp = w_type(w_ranks, w_shared)
                 self.log.debug("work %s begin" % (w_type.__name__))
                 tmp.work_begin(newcomm)
-                self.log.debug("work %s start" % (w_type.__name__))
-                tmp.do_work_start()
                 ## adding started work
                 self.active_work.append(tmp)
+
+
+        for act_work in self.active_work:
+            self.log.debug("work %s start" % (act_work.__class__.__name__))
+            act_work.do_work_start()
 
         ## all work is started now
         while len(self.active_work):

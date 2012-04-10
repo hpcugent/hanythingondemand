@@ -36,6 +36,7 @@ class HdfsFs(HostnamePort):
 class KindOfList:
     def __init__(self, kol=None):
         self.kindoflist = []
+        self.str_sepa = ',' ## default comma-separated
         if type(kol) in (str,) or kol is None:
             kol = [kol]
 
@@ -53,18 +54,62 @@ class KindOfList:
     def __iter__(self):
         return self.kindoflist.__iter__()
 
+    def __add__(self, y):
+        ## strip None first
+        no_nones = [x for x in self.kindoflist if not x is None]
+        if hasattr(y, 'kindoflist'):
+            self.kindoflist = no_nones + y.kindoflist
+        else:
+            self.kindoflist = no_nones + y
+
+    def __iadd__(self, y):
+        self.__add__(y)
+        return self
+
+    def __str__(self):
+        d = self.kindoflist
+        if d is None:
+            d = []
+        return self.str_sepa.join(["%s" % x for x in d if not x is None])
+
+
+class UserGroup:
+    def __init__(self, users=None, groups=None):
+        self.users = KindOfList(users)
+        self.groups = KindOfList(groups)
+
+    def add_users(self, users):
+        """Add users"""
+        if type(users) in (str,):
+            users = [users]
+        self.users += users
+
+    def add_groups(self, groups):
+        if type(groups) in (str,):
+            groups = [groups]
+        self.groups += groups
+
+    def __str__(self):
+        """space separated list of comma-separated list of users and groups"""
+        txt = []
+        users_txt = "%s" % self.users
+        grp_txt = "%s" % self.users
+        if len(users_txt) > 0:
+            txt.append(users_txt)
+        if len(grp_txt) > 0:
+            txt.append(grp_txt)
+        return ' '.join(txt)
+
+    def __contains__(self, d):
+        ## OR logic
+        return (d in self.users) or (d in self.groups)
+
+
 class Directories(KindOfList):
     """Directories"""
     def __init__(self, dirs=None):
         KindOfList.__init__(self, dirs)
         self.perms = stat.S_IRWXU
-
-    def __str__(self):
-        """Hadoop expects mulitple directoris in comma-separated list"""
-        ds = self.kindoflist
-        if ds is None:
-            ds = []
-        return ','.join(["%s" % d for d in ds]) ## deal with None as element in list
 
 
     def check(self):
@@ -76,8 +121,25 @@ class Directories(KindOfList):
 
 class Arguments(KindOfList):
     """Arguments (space separated)"""
+    def __init__(self, args=None):
+        KindOfList.__init__(self, args)
+        self.str_sepa = ' '
+
+class Params(dict):
+    """dict with improved __str__"""
     def __str__(self):
-        d = self.kindoflist
-        if d is None:
-            d = []
-        return ' '.join(d)
+        tmp = {}
+        for k, v in self.items():
+            tmp[k] = "%s" % v
+        return "%s" % tmp
+
+class ParamsDescr(dict):
+    """dict with improved __str__"""
+    def __str__(self):
+        tmp = {}
+        for k, v in self.items():
+            if type(v) in (list, tuple,):
+                tmp[k] = ["%s" % x for x in v]
+            else:
+                tmp[k] = "%s" % v
+        return "%s" % tmp

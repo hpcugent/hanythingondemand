@@ -7,8 +7,8 @@ http: // hadoop.apache.org / common / docs / current / core - default.html
 http: // hadoop.apache.org / common / docs / current / cluster_setup.html
 """
 
-from hod.config.customtypes import HostnamePort, HdfsFs, Directories, Arguments
-import os, shutil, re
+from hod.config.customtypes import HostnamePort, HdfsFs, Directories, Arguments, Params, ParamsDescr, UserGroup
+import os, shutil, re, pwd
 from xml.dom import getDOMImplementation
 
 from vsc import fancylogger
@@ -17,16 +17,44 @@ fancylogger.setLogLevelDebug()
 from hod.config.hadoopcfg import HadoopCfg
 
 
-CORE_OPTS = {
-    'fs.default.name' : [HdfsFs(':8020'), 'The name of the default file system.  A URI whose scheme and authority determine the FileSystem implementation.  The uris scheme determines the config property (fs.SCHEME.impl) naming ' + \
+CORE_OPTS = ParamsDescr({
+    'fs.default.name' : [HdfsFs(':8020'), 'FINAL The name of the default file system.  A URI whose scheme and authority determine the FileSystem implementation.  The uris scheme determines the config property (fs.SCHEME.impl) naming ' + \
                         'the FileSystem implementation class.  The uris authority is used to determine the host, port, etc. for a filesystem.'],
-    'hadoop.tmp.dir' : [Directories([None]), 'Is used as the base for temporary kindoflist locally, and also in HDFS'],
-}
+    'hadoop.tmp.dir' : [Directories([None]), 'FINAL Is used as the base for temporary kindoflist locally, and also in HDFS'],
+
+    'dfs.replication' : [1, 'FINAL Default block replication. The actual number of replications can be specified when the file is created. The default is used if replication is not specified in create time.'],
 
 
+    'fs.inmemory.size.mb':[200, 'Larger amount of memory allocated for the in-memory filesystem used to merge map-outputs at the reduces.'],
+    'io.file.buffer.size':[128 * 1024, 'Size of read/write buffer used in SequenceFiles. (default 4kB)'],
+    'io.sort.factor':[50, 'More streams merged at once while sorting files. (default 10)'],
+    'io.sort.mb':[200, 'Higher memory - limit while sorting data. (default 100)'],
+    'hadoop.rpc.socket.factory.class.default':['org.apache.hadoop.net.StandardSocketFactory', 'FINAL Force standard sockets for non-clients'],
+})
+
+CORE_SECURITY_SERVICE = ParamsDescr({
+    'security.refresh.policy.protocol.acl':[UserGroup(), 'ACL for RefreshAuthorizationPolicyProtocol, used by the dfsadmin and mradmin commands to refresh the security policy in-effect.'],
+})
+
+
+MYHADOOP_OPTS = ParamsDescr({
+    'io.file.buffer.size': [128 * 1024, 'Size of read/write buffer'],
+    'fs.inmemory.size.mb': [650, 'Size of in-memory FS for merging outputs'],
+    'io.sort.mb': [ 650, 'Memory limit for sorting data'],
+
+    #'dfs.replication': [ 2, 'Number of times data is replicated'],
+    'dfs.block.size': [ 128 * 1024 * 1024, 'HDFS block size in bytes'],
+    'dfs.datanode.handler.count':[ 64, 'Number of handlers to serve block requests'],
+
+    'mapred.reduce.parallel.copies': [ 4, 'Number of parallel copies run by reducers'],
+    'mapred.tasktracker.map.tasks.maximum':[ 4, 'Max map tasks to run simultaneously'],
+    'mapred.tasktracker.reduce.tasks.maximum':[ 2, 'Max reduce tasks to run simultaneously'],
+    'mapred.job.reuse.jvm.num.tasks':[1, 'Reuse the JVM between tasks'],
+    'mapred.child.java.opts':[ Arguments('-Xmx1024m'), 'Large heap size for child JVMs'],
+})
 ## tuned options for sort900 benchmark
-SORT900_OPTS = {
-    'dfs.block.size':[134217728, 'HDFS blocksize of 128MB for large file-systems.'],
+SORT900_OPTS = ParamsDescr({
+    'dfs.block.size':[128 * 1024 * 1024, 'HDFS blocksize of 128MB for large file-systems.'],
     'dfs.namenode.handler.count':  [40, 'More NameNode server threads to handle RPCs from large number of DataNodes.'],
 
     'mapred.reduce.parallel.copies':[20, 'Higher number of parallel copies run by reduces to fetch outputs from very large number of maps.'],
@@ -36,27 +64,28 @@ SORT900_OPTS = {
     'io.sort.mb':[200, 'Higher memory - limit while sorting data.'],
 
     'fs.inmemory.size.mb':[200, 'Larger amount of memory allocated for the in-memory filesystem used to merge map-outputs at the reduces.'],
-    'io.file.buffer.size':[131072, 'Size of read/write buffer used in SequenceFiles.'],
-}
+    'io.file.buffer.size':[128 * 1024, 'Size of read/write buffer used in SequenceFiles.'],
+})
 
 ## more tuning for the sort1400 benchmark
-SORT1400_OPTS = {
+SORT1400_OPTS = ParamsDescr({
     'mapred.job.tracker.handler.count':[60, 'More JobTracker server threads to handle RPCs from large number of TaskTrackers.'],
     'mapred.reduce.parallel.copies':[50, ' '],
     'tasktracker.http.threads':[50, 'More worker threads for the TaskTrackers http server. The http server is used by reduces to fetch intermediate map-outputs.'],
     'mapred.map.child.java.opts':[Arguments(['-Xmx512M']), 'Larger heap-size for child jvms of maps.'],
     'mapred.reduce.child.java.opts':[Arguments(['-Xmx1024M']), 'Larger heap-size for child jvms of reduces.'],
-}
+})
 
 
 #For example, To configure Namenode to use parallelGC, the following statement should be added in hadoop-env.sh :
 #export HADOOP_NAMENODE_OPTS="-XX:+UseParallelGC ${HADOOP_NAMENODE_OPTS}"
-HADOOP_ENV_OPTS = {
+HADOOP_ENV_OPTS = ParamsDescr({
     'HADOOP_CONF_DIR': [None, 'The directory where the config files are located. Default is HADOOP_PREFIX/conf.'],
     'HADOOP_LOG_DIR': [None, 'The directory where the daemons log files are stored. They are automatically created if they dont exist.'],
     'HADOOP_PID_DIR': [None, 'The directory where the daemons pid files are stored. They are automatically created if they dont exist.'],
     'HADOOP_HEAPSIZE': [1000, 'The maximum amount of heapsize to use, in MB e.g. 1000MB. This is used to configure the heap size for the hadoop daemon. By default, the value is 1000MB.'],
-}
+    'HADOOP_OPTS':[Arguments('-server'), 'Java options for all hadoop processes (-server should be default)']
+})
 
 ## Don't set the niceness
 ##     'HADOOP_NICENESS' : [0, 'Run the daemons with nice factor.'],
@@ -78,33 +107,68 @@ class HadoopOpts(HadoopCfg):
 
         self.envfilename = None ## will default to 'daemonname'-env.sh
 
-        self.params = {} ## these will become the default params
-        self.description = {} ## description info for the parameters (if any)
+        self.params = Params() ## these will become the default params
+        self.description = Params() ## description info for the parameters (if any)
 
-        self.env_params = {} ## shell env_params file
-        self.env_description = {} ## shell env_params file
+        self.env_params = Params() ## shell env_params file
+        self.env_description = Params() ## shell env_params file
+
+
+        self.security = True
+        self.allowed_user = None
+        self.allowed_groups = None
+
 
         self.set_default_funcs = [self.set_core_service_defaults, self.set_service_defaults]
 
-        self.init_core_defaults(shared)
+
+        ## run intialisation
+        self.init_core_defaults()
+
+        if self.security:
+            self.log.debug("Setting core security related options")
+            self.init_core_security_defaults()
+        else:
+            self.log.debug("Not setting core security options")
 
         self.tuning = self.basic_tuning()
 
         self.init_defaults()
 
-    def init_core_defaults(self, shared):
+        if self.security:
+            self.log.debug("Setting security related options")
+            self.init_security_defaults()
+        else:
+            self.log.debug("Not setting security options")
+
+
+        self.init_core_defaults_shared(shared) ## add the shared last (will override through update)
+
+    def init_core_defaults(self):
         """Create the core default list of params and description"""
-        if shared is None:
-            shared = {}
         self.log.debug("Adding init core defaults")
         self.add_from_opts_dict(CORE_OPTS)
-        self.log.debug("Adding init shared core params")
-        self.add_from_opts_dict(shared.get('params', {}))
 
         self.log.debug("Adding init core env_params. Adding HADOOP_ENV_OPTS %s" % HADOOP_ENV_OPTS)
         self.add_from_opts_dict(HADOOP_ENV_OPTS, update_env=True)
+
+    def init_core_security_defaults(self):
+        """Add core security options"""
+        self.add_from_opts_dict(CORE_SECURITY_SERVICE)
+
+    def init_security_defaults(self):
+        """Add security options"""
+        self.log.debug("init security defaults not implemented")
+
+    def init_core_defaults_shared(self, shared):
+        """Create the core default list of params and description"""
+        if shared is None:
+            shared = {}
+        self.log.debug("Adding init shared core params")
+        self.add_from_opts_dict(shared.get('params', ParamsDescr({})))
+
         self.log.debug("Adding init shared core env_params")
-        self.add_from_opts_dict(shared.get('env_params', {}))
+        self.add_from_opts_dict(shared.get('env_params', ParamsDescr({})), update_env=True)
 
     def init_defaults(self):
         """Create the default list of params and description"""
@@ -139,6 +203,13 @@ class HadoopOpts(HadoopCfg):
             else:
                 self.log.debug("%s not set. using %s" % (mis, self.default_fsdefault))
                 self.params[mis] = "%s" % self.default_fsdefault
+        elif mis.startswith('security.') and mis.endswith('.protocol.acl'):
+            ## security protocol acl (ie a USerGroup
+            tmpuser = pwd.getpwuid(os.getuid())
+            self.log.debug("core security defaults: None found in mis %s (value %s)." % (mis, self.params[mis]))
+            if None in self.params[mis].users:
+                self.log.debug("None found in mis %s users. Adding user %s" % (mis, tmpuser))
+                self.params[mis].add_user(tmpuser)
 
         elif mis in ('HADOOP_LOG_DIR',):
             self.log.debug("%s not set. using logdir %s" % (mis, self.logdir))
@@ -149,6 +220,8 @@ class HadoopOpts(HadoopCfg):
         elif mis in ('HADOOP_CONF_DIR',):
             self.log.debug("%s not set. using confdir %s" % (mis, self.confdir))
             self.env_params[mis] = self.confdir
+        elif mis in ('HADOOP_OPTS',):
+            self.log.debug("%s not set. using nothing (value is %s)" % (mis, self.env_params[mis]))
         else:
             self.log.warn("Variable %s not found in core service defaults" % mis) ## TODO is warn enough?
             return True ## not_mis_found
@@ -158,11 +231,42 @@ class HadoopOpts(HadoopCfg):
         self.log.warn("Setting servicedefaults. Not implemented here. Skipping %s" % mis)
         return True ## not_mis_found
 
+    def add_param(self, name, value, is_env=False):
+        """Add value to name (adding, not overriding)"""
+        whattxt = "name %s value %s (type %s)" % (name, value, value.__class__.__name__)
+        if is_env:
+            where = self.env_params
+            self.log.debug("Adding to environment params %s" % whattxt)
+        else:
+            where = self.params
+            self.log.debug("Adding to params %s" % whattxt)
+
+        if where.has_key(name):
+            self.log.debug("Previous value %s (type %s)" % (where[name], where[name].__class__.__name__))
+            where[name] += value
+            self.log.debug("Added value %s (previous found). New value %s  (type %s)" % (value, where[name], where[name].__class__.__name__))
+        else:
+            where[name] = value
+            self.log.debug("Add: set value %s (no previous found). New value %s (type %s)" % (value, where[name], where[name].__class__.__name__))
+
+    def set_param(self, name, value, is_env=False):
+        """Set value to name (adding, not overriding)"""
+        if is_env:
+            where = self.env_params
+            self.log.debug("Setting to environment params name %s value %s" % (name, value))
+        else:
+            where = self.params
+            self.log.debug("Setting to params %s value %s" % (name, value))
+
+        where[name] = value
+        self.log.debug("Set value %s. New value %s" % (value, where[name]))
+
+
     def add_from_opts_dict(self, optsdict, update_env=False):
         """Parse an opts dictionary and update params and description (overrides values!)"""
         self.log.debug("add_from_opts_dict optsdict %s" % optsdict)
-        params = {}
-        description = {}
+        params = Params()
+        description = Params()
         for k, v in optsdict.items():
             if type(v) in (list, tuple,):
                 if len(v) == 2:
@@ -180,7 +284,6 @@ class HadoopOpts(HadoopCfg):
         if update_env:
             self.env_params.update(params)
             self.env_description.update(description)
-            self.log.debug("New env params %s and env description %s" % (self.env_params, self.env_description))
         else:
             self.params.update(params)
             self.description.update(description)
@@ -203,7 +306,7 @@ class HadoopOpts(HadoopCfg):
             except TypeError:
                 is_not_ok = None is v
             if is_not_ok:
-                self.log.debug("None found for %s %s with value %s" % (typ, k, v))
+                self.log.debug("None found for %s %s with value %s (type %s)" % (typ, k, v, v.__class__.__name__))
                 tocheck.append(k)
         if tocheck:
             if do_error:
@@ -215,7 +318,7 @@ class HadoopOpts(HadoopCfg):
 
     def basic_tuning(self):
         """Some basic tuning options to add"""
-        s1400 = {}
+        s1400 = ParamsDescr()
         s1400.update(SORT900_OPTS)
         s1400.update(SORT1400_OPTS)
         self.tuning = {'sort900' : SORT900_OPTS,
@@ -422,7 +525,7 @@ class HadoopOpts(HadoopCfg):
                 line = '# export %s ## %s' % (variable, comment)
                 txt.append(line)
             line = 'export %s="%s"' % (variable, value)
-            self.log.debug("add to env_params %s %s" % (variable, value))
+            self.log.debug("add to env_params conf file variable %s value %s (type %s)" % (variable, value, value.__class__.__name__))
             txt.append(line)
 
         txt += [''] ## end with newline
@@ -449,13 +552,13 @@ class HadoopOpts(HadoopCfg):
 
         ## more detailed checks
         for param, val in self.params.items():
-            if type(val) in (Directories,):
-                self.log.debug("Run check on param %s instance %s" % (param, val))
+            if val.__class__.__name__ in ('Directories',):
+                self.log.debug("Run check on param %s instance %s (type %s)" % (param, val, val.__class__.__name__))
                 val.check()
 
         for param, val in self.env_params.items():
-            if type(val) in (Directories,):
-                self.log.debug("Run check on env_param %s instance %s" % (param, val))
+            if val.__class__.__name__ in ('Directories',):
+                self.log.debug("Run check on env_param %s instance %s (type %s)" % (param, val, val.__class__.__name__))
                 val.check()
 
     def pre_run_any_service(self):
@@ -465,7 +568,7 @@ class HadoopOpts(HadoopCfg):
         self.log.debug("set %s in environment to %s" % (varname, varvalue))
         self.setenv(varname, varvalue)
 
-    def set_niceness(self, nicelevel=5, ioniceclass=2, ionicelevel=9):
+    def set_niceness(self, nicelevel=5, ioniceclass=2, ionicelevel=9, hwlocbindopts=None):
         """Set the HADOOP_NICENESS. (Due to bug in HADOOP_NICENESS in start scripts, this actually works"""
         ionice = self.which_exe('ionice')
         if ionice:
@@ -478,22 +581,40 @@ class HadoopOpts(HadoopCfg):
         else:
             ionice_opt = []
             self.log.warn('ionice not found, ignoring ionice options')
+
+        hwlocbind = self.which_exe('hwloc-bind')
+        if hwlocbind:
+            if hwlocbindopts:
+                if type(hwlocbindopts) == str:
+                    hwlocbindopts = [hwlocbindopts]
+                hwloc_opt = [hwlocbind] + hwlocbindopts
+                self.log.debug('hwlocbind found, running with %s' % hwloc_opt)
+            else:
+                hwloc_opt = []
+                self.log.debug("hwloc-bind found, but not opts set")
+        else:
+            hwloc_opt = []
+            self.log.warn('hwloc-bind not found, ignoring hwlocbind options')
+
         varname = 'HADOOP_NICENESS'
-        varvalue = " ".join(["%d" % nicelevel] + ionice_opt)
+        varvalue = " ".join(["%d" % nicelevel] + ionice_opt + hwloc_opt)
         self.log.debug("set %s in environment to %s" % (varname, varvalue))
         self.setenv(varname, varvalue)
 
 
-    def make_opts_env_cfg(self):
-        """Make the cfg file"""
+    def make_opts_env_defaults(self):
+        """Set the defaults"""
+        self.log.debug("Prepare configdir")
         self.prep_conf_dir()
 
-        self.log.debug("make_cfg Making the config files")
         self.set_defaults()  ## set the default on missing values in params
+
+    def make_opts_env_cfg(self):
+        """Make the cfg file"""
+        self.log.debug("make_cfg Making the config files")
 
         self.params_env_sanity_check()
 
         self.log.debug("start writing files")
         self.gen_conf_xml_new() ## write xml files
         self.gen_conf_env() ## create the env.sh file
-

@@ -17,7 +17,7 @@ class Work(MpiService):
 
         self.commands = {} ## dict with command : list of ranks
 
-        self.work_max_age = 3600
+        self.work_max_age = 3600 * 71
         self.work_start_time = time.time()
 
         self.controldir = '/tmp'
@@ -51,7 +51,11 @@ class Work(MpiService):
         self.stop_service()
 
     def start_work_service_master(self):
-        """Start service on master"""
+        """Start service on master only"""
+        self.log.error("Not implemented.")
+
+    def start_work_service_slaves(self):
+        """Start service on slaves only"""
         self.log.error("Not implemented.")
 
     def start_work_service_all(self):
@@ -59,7 +63,12 @@ class Work(MpiService):
         self.log.error("Not implemented.")
 
     def stop_work_service_master(self):
-        """Stop the Hadoop service"""
+        """Stop the Hadoop service on master only"""
+        self.log.error("Not implemented.")
+
+    def stop_work_service_slaves(self):
+        """Stop the Hadoop service on slaves only"""
+        self.log.error("Not implemented.")
 
     def stop_work_service_all(self):
         """Run after start_service"""
@@ -83,10 +92,12 @@ class Work(MpiService):
     def do_work_start(self):
         """Start the work"""
         self.pre_run_any_service()
-        self.barrier("Going to start work on master only")
+        self.barrier("Going to start work on master only and on slaves only")
         if self.rank == self.masterrank:
             self.start_work_service_master()
-
+        if self.rank != self.masterrank or self.size == 1:
+            ## slaves and in case there is only one node (master=slave)
+            self.start_work_service_slaves()
         self.barrier("Going to start work on all")
         self.start_work_service_all()
         self.post_run_any_service()
@@ -122,10 +133,12 @@ class Work(MpiService):
         self.barrier("Going to stop work on all")
         self.stop_work_service_all()
 
-        self.barrier("Going to stop work on master only")
+        self.barrier("Going to stop work on master only and on lsaves only")
         if self.rank == self.masterrank:
             self.stop_work_service_master()
-
+        if self.rank != self.masterrank or self.size == 1:
+            ## slaves and in case there is only one node (master=slave)
+            self.stop_work_service_slaves()
         self.post_run_any_service()
 
 

@@ -116,3 +116,28 @@ class JavaVersion(JavaCommand):
         newout = out + "\n" + err
         self.log.debug("cmd %s: %s" % (self.command, newout))
         return newout, err
+
+class GenerateSshKey(Command):
+    """Create a public/private key pair"""
+    def __init__(self, key_location):
+        Command.__init__(self)
+        self.command = ['/usr/bin/ssh-keygen', '-t', 'rsa', '-b', '2048', '-N', '""', '-f', key_location]
+
+class RunSshd(Command):
+    def __init__(self, cfg_location):
+        Command.__init__(self)
+        self.command = ['/usr/sbin/sshd', '-f', cfg_location]
+
+class KillPidFile(Command):
+    def __init__(self, pid_fn):
+        Command.__init__(self)
+        self.pid_fn = pid_fn
+
+    def run(self):
+        fh = open(self.pid_fn)
+        pid = fh.read().strip()
+        fh.close()
+
+        self.command = ['kill', pid]
+        Command.run(self)
+
