@@ -19,6 +19,19 @@ class HadoopVersion(HadoopCommand):
         HadoopCommand.__init__(self, 'version')
 
 
+class HbaseCommand(Command):
+    def __init__(self, opt):
+        Command.__init__(self)
+
+        cmds = ['hbase', opt]
+        self.command = " ".join(cmds)
+
+
+class HbaseVersion(HbaseCommand):
+    def __init__(self):
+        HbaseCommand.__init__(self, 'version')
+
+
 class HadoopDaemon(Command):
     def __init__(self, daemon, hadoopcmd, args=[], start=True, cfg=None):
         Command.__init__(self)
@@ -51,12 +64,28 @@ class DataNode(HadoopDaemon):
         HadoopDaemon.__init__(self, daemon, 'datanode', start=start)
 
 class Jobtracker(HadoopDaemon):
-    """The datanode command"""
+    """The jobtracker command"""
     def __init__(self, daemon, start=True):
         HadoopDaemon.__init__(self, daemon, 'jobtracker', start=start)
 
 class Tasktracker(HadoopDaemon):
-    """The datanode command"""
+    """The tasktracker command"""
     def __init__(self, daemon, start=True):
         HadoopDaemon.__init__(self, daemon, 'tasktracker', start=start)
 
+
+
+class HbaseZooKeeper(HadoopDaemon):
+    """The hbase zookeeper command"""
+    def __init__(self, daemon, start=True):
+        HadoopDaemon.__init__(self, daemon, 'zookeeper', start=start)
+
+class HbaseMaster(HadoopDaemon):
+    """The hbase master command"""
+    def __init__(self, daemon, start=True):
+        HadoopDaemon.__init__(self, daemon, 'master', start=start)
+
+class HbaseRegionServer(HadoopDaemon):
+    """The regionserver command"""
+    def __init__(self, daemon, start=True):
+        HadoopDaemon.__init__(self, daemon, 'regionserver', start=start)

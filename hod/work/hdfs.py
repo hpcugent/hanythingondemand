@@ -19,12 +19,8 @@ class Hdfs(HdfsOpts, Hadoop):
     def set_service_defaults(self, mis):
         """Set service specific default"""
         self.log.debug("Setting servicedefaults for %s" % mis)
-        if mis in ('dfs.name.dir',):
-            tmpdir = os.path.join(self.basedir, 'name')
-            self.log.debug("%s not set. using  %s" % (mis, tmpdir))
-            self.params[mis] = Directories(tmpdir)
-        elif mis in ('dfs.data.dir',):
-            tmpdir = os.path.join(self.basedir, 'data')
+        if mis in ('dfs.name.dir', 'dfs.data.dir',):
+            tmpdir = os.path.join(self.basedir, mis)
             self.log.debug("%s not set. using  %s" % (mis, tmpdir))
             self.params[mis] = Directories(tmpdir)
         elif mis in ('dfs.datanode.address',):
@@ -63,27 +59,27 @@ class Hdfs(HdfsOpts, Hadoop):
         else:
             self.log.debug("No HDFS format")
 
-        self.log.error("Start namenode service master.")
+        self.log.error("Start namenode service on master.")
         command = NameNode(self.daemon_script, start=True)
         command.run()
 
     def start_work_service_slaves(self):
-        """Run start_service on all"""
+        """Run start_service on slaves"""
         self.set_niceness(5, 2, 3, 'socket:0')
-        self.log.error("Start datanode service on all.")
+        self.log.error("Start datanode service on slaves.")
         command = DataNode(self.daemon_script, start=True)
         command.run()
 
     def stop_work_service_master(self):
         """Stop service on master"""
-        self.log.error("Stop namenode service master.")
+        self.log.error("Stop namenode service on master.")
         command = NameNode(self.daemon_script, start=False)
         command.run()
 
 
     def stop_work_service_slaves(self):
-        """Run start_service on all"""
-        self.log.error("Stop datanode service on all.")
+        """Run start_service on slaves"""
+        self.log.error("Stop datanode service on slaves.")
         command = DataNode(self.daemon_script, start=False)
         command.run()
 

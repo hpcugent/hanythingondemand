@@ -246,7 +246,19 @@ class MpiService:
             w_type = wrk[0]
             w_ranks = wrk[1]
             ## pass any existing previous work
-            w_shared = {'active_work':[ {'params':x.params, 'env_params':x.env_params, 'work_name':x.__class__.__name__} for x in self.active_work ]}
+            w_shared = {'active_work':[],
+                        'other_work':{},
+                        }
+
+            for x in self.active_work:
+                act_name = x.__class__.__name__
+                self.log.debug("adding active work from %s attr_to_share %s" % (act_name, x.attrs_to_share))
+                tmpdict = {'work_name':act_name}
+                tmpdict.update(dict([(name, getattr(x, name)) for name in x.attrs_to_share]))
+
+                w_shared['active_work'].append(tmpdict)
+
+
             if len(wrk) == 3:
                 w_shared.update(wrk[2])
 

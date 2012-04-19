@@ -27,8 +27,8 @@ CORE_OPTS = ParamsDescr({
 
     'fs.inmemory.size.mb':[200, 'Larger amount of memory allocated for the in-memory filesystem used to merge map-outputs at the reduces.'],
     'io.file.buffer.size':[128 * 1024, 'Size of read/write buffer used in SequenceFiles. (default 4kB)'],
-    'io.sort.factor':[50, 'More streams merged at once while sorting files. (default 10)'],
-    'io.sort.mb':[200, 'Higher memory - limit while sorting data. (default 100)'],
+    'io.sort.factor':[64, 'More streams merged at once while sorting files. (default 10)'],
+    'io.sort.mb':[256, 'Higher memory - limit while sorting data. (default 100)'],
     'hadoop.rpc.socket.factory.class.default':['org.apache.hadoop.net.StandardSocketFactory', 'FINAL Force standard sockets for non-clients'],
 })
 
@@ -97,6 +97,15 @@ class HadoopOpts(HadoopCfg):
     def __init__(self, shared=None, basedir=None):
         HadoopCfg.__init__(self)
 
+        if shared is None:
+            shared = {}
+        shared.setdefault('other_work', {})
+        shared.setdefault('active_work', {})
+        self.shared_other_work = shared['other_work']  ## config info from other work (active or not)
+        self.log.debug("shared_other_work %s" % self.shared_other_work)
+        self.shared_active_work = shared['active_work']  ## config info from already active work
+        self.log.debug("shared_active_work %s" % self.shared_active_work)
+
         self.basedir = basedir ## opts basedir
 
         self.confdir = None ## configdir (with eg core-site.xml)
@@ -143,6 +152,8 @@ class HadoopOpts(HadoopCfg):
 
 
         self.init_core_defaults_shared(shared) ## add the shared last (will override through update)
+
+        self.attrs_to_share = ['params', 'env_params', 'basedir', 'confdir', 'hadoop', 'hadoophome', 'java', 'javahome']
 
     def init_core_defaults(self):
         """Create the core default list of params and description"""
@@ -204,12 +215,12 @@ class HadoopOpts(HadoopCfg):
                 self.log.debug("%s not set. using %s" % (mis, self.default_fsdefault))
                 self.params[mis] = "%s" % self.default_fsdefault
         elif mis.startswith('security.') and mis.endswith('.protocol.acl'):
-            ## security protocol acl (ie a USerGroup
-            tmpuser = pwd.getpwuid(os.getuid())
+            ## security protocol acl (ie a USerGroup)
+            tmpuser = pwd.getpwuid(os.getuid()).pw_name
             self.log.debug("core security defaults: None found in mis %s (value %s)." % (mis, self.params[mis]))
             if None in self.params[mis].users:
                 self.log.debug("None found in mis %s users. Adding user %s" % (mis, tmpuser))
-                self.params[mis].add_user(tmpuser)
+                self.params[mis].add_users(tmpuser)
 
         elif mis in ('HADOOP_LOG_DIR',):
             self.log.debug("%s not set. using logdir %s" % (mis, self.logdir))
@@ -408,6 +419,7 @@ class HadoopOpts(HadoopCfg):
                                         r'^hadoop\.job\.history', r'^io\.(sort|map)\.'
                                         r'^jobclient\.output\.filter', r'^keep.failed.task.files', ],
                          'hadoop-policy':[r'^security\.'],
+                         'hbase-site':[r'^hbase\.']
                        }
         ## blacklist
         dest2blackreg = {'mapred-site':dest2whitereg['capacity-scheduler'] + dest2whitereg['mapred-queue-acls'],
@@ -568,7 +580,7 @@ class HadoopOpts(HadoopCfg):
         self.log.debug("set %s in environment to %s" % (varname, varvalue))
         self.setenv(varname, varvalue)
 
-    def set_niceness(self, nicelevel=5, ioniceclass=2, ionicelevel=9, hwlocbindopts=None):
+    def set_niceness(self, nicelevel=5, ioniceclass=2, ionicelevel=9, hwlocbindopts=None, varname='HADOOP_NICENESS'):
         """Set the HADOOP_NICENESS. (Due to bug in HADOOP_NICENESS in start scripts, this actually works"""
         ionice = self.which_exe('ionice')
         if ionice:
@@ -596,7 +608,6 @@ class HadoopOpts(HadoopCfg):
             hwloc_opt = []
             self.log.warn('hwloc-bind not found, ignoring hwlocbind options')
 
-        varname = 'HADOOP_NICENESS'
         varvalue = " ".join(["%d" % nicelevel] + ionice_opt + hwloc_opt)
         self.log.debug("set %s in environment to %s" % (varname, varvalue))
         self.setenv(varname, varvalue)
@@ -607,7 +618,10 @@ class HadoopOpts(HadoopCfg):
         self.log.debug("Prepare configdir")
         self.prep_conf_dir()
 
-        self.set_defaults()  ## set the default on missing values in params
+        nr_iter = 3
+        for x in range(nr_iter):
+            self.log.debug("Setting defaults iter %s of %s" % (x, nr_iter))
+            self.set_defaults()  ## set the default on missing values in params
 
     def make_opts_env_cfg(self):
         """Make the cfg file"""

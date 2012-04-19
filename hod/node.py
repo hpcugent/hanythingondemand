@@ -19,6 +19,8 @@ class Node:
 
         self.topology = [0] ## default topology plain set
 
+        self.memory = {}
+
     def __str__(self):
         return "FQDN %s PID %s" % (self.fqdn, self.pid)
 
@@ -34,6 +36,8 @@ class Node:
 
         self.get_topology()
 
+        self.get_memory()
+
         if ret:
             descr = {'fqdn':self.fqdn,
 
@@ -43,6 +47,7 @@ class Node:
                      'cores':self.cores,
                      'usablecores':self.usablecores,
                      'topology':self.topology,
+                     'memory':self.memory,
                      }
             return descr
 
@@ -288,6 +293,35 @@ class Node:
                     ...
         """
         pass
+
+    def get_memory(self):
+        """Extract information about the available memory"""
+        self.memory['meminfo'] = {}
+        re_mem = re.compile(r"^\s*(?P<mem>\d+)(?P<unit>(?:k)B)?\s*$")
+        for line in open('/proc/meminfo').read().replace(' ', '').split('\n'):
+            key = line.split(':')[0].lower().strip()
+            try:
+                value = line.split(':')[1].strip()
+            except IndexError:
+                self.log.error("No :-separated entry for line %s" % line)
+                continue
+            reg = re_mem.search(value)
+            if reg:
+                unit = reg.groupdict()['unit']
+                mem = int(reg.groupdict()['mem'])
+                multi = 1
+                if unit in (None, 'B',):
+                    multi = 1
+                elif unit in ('kB',):
+                    multi = 2 ** 10
+                else:
+                    self.log.error("Unsupported memory unit %s in key %s value %s" % (unit, key, value))
+                self.memory['meminfo'][key] = mem * multi
+            else:
+                self.log.error("Unknown memory entry in key %s value %s" % (key, value))
+
+        self.log.debug("Collected meminfo %s" % self.memory['meminfo'])
+
 
 if __name__ == '__main__':
     n = Node()

@@ -34,14 +34,20 @@ class Mapred(MapredOpts, Hadoop):
                 self.log.debug("%s not set. using  %s" % (mis, val))
             else:
                 self.log.warn("could not set %s. no intf found for namenode")
-        elif mis in ('mapred.map.tasks',):
-            mapfactor = len(self.thisnode.usablecores)
-            tasks = int(len(self.allnodes) * mapfactor)
+        elif mis in ('mapred.map.tasks', 'mapred.tasktracker.map.tasks.maximum',):
+            if mis.endswith('maximum'):
+                tasks = int(len(self.thisnode.usablecores) / 2) ## avg 2 cores per task
+            else:
+                mapfactor = len(self.thisnode.usablecores) * 2 ##
+                tasks = int(len(self.allnodes) * mapfactor)
             self.log.debug("%s not set. using  %s" % (mis, tasks))
             self.params[mis] = tasks
-        elif mis in ('mapred.reduce.tasks',):
+        elif mis in ('mapred.reduce.tasks', 'mapred.tasktracker.reduce.tasks.maximum',):
             mapfactor = 2
-            tasks = int(len(self.allnodes) * mapfactor)
+            if mis.endswith('maximum'):
+                tasks = int(mapfactor * 1.75) ## total number of reduce tasks is maximum*number of nodes
+            else:
+                tasks = int(len(self.allnodes) * mapfactor)
             self.log.debug("%s not set. using  %s" % (mis, tasks))
             self.params[mis] = tasks
         else:
@@ -51,28 +57,28 @@ class Mapred(MapredOpts, Hadoop):
     def start_work_service_master(self):
         """Start service on master"""
         self.set_niceness(4, 2, 3, 'socket:0')
-        self.log.error("Start jobtracker service master.")
+        self.log.error("Start jobtracker service on master.")
         command = Jobtracker(self.daemon_script, start=True)
         command.run()
 
 
     def start_work_service_slaves(self):
-        """Run start_service on all"""
+        """Run start_service on slaves"""
         self.set_niceness(15, 2, 7)
-        self.log.error("Start tasktracker service on all.")
+        self.log.error("Start tasktracker service on slaves.")
         command = Tasktracker(self.daemon_script, start=True)
         command.run()
 
     def stop_work_service_master(self):
         """Stop service on master"""
-        self.log.error("Stop jobtracker service master.")
+        self.log.error("Stop jobtracker service on master.")
         command = Jobtracker(self.daemon_script, start=False)
         command.run()
 
 
     def stop_work_service_slaves(self):
-        """Run start_service on all"""
-        self.log.error("Stop tasktracker service on all.")
+        """Run start_service on slaves"""
+        self.log.error("Stop tasktracker service on slaves.")
         command = Tasktracker(self.daemon_script, start=False)
         command.run()
 

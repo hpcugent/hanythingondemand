@@ -20,26 +20,21 @@ CLIENT_SOCKS_OPTS = ParamsDescr({
 })
 
 CLIENT_SOCKS_ENV_OPTS = ParamsDescr({
-    'HADOOP_OPTS':[Arguments('-Dsun.net.spi.nameservice.nameservers'), 'Specify the DNS server Sun JDK will use']
+    'HADOOP_OPTS':[Arguments(['-Dsun.net.spi.nameservice.provider.1="dns,sun"', '-Dsun.net.spi.nameservice.nameservers=']), 'Specify the DNS server Sun JDK will use']
 })
 
 class ClientCfg(HadoopCfg):
     """Client cfg"""
-    def __init__(self):
+    def __init__(self, name='localclient'):
         HadoopCfg.__init__(self)
-        self.name = 'localclient'
+        self.name = name
 
 
-class ClientOpts(ClientCfg, HadoopOpts):
-    """Client options"""
-    def __init__(self, shared=None, basedir=None):
+class LocalClientOpts(ClientCfg, HadoopOpts):
+    """Local client options"""
+    def __init__(self, shared=None, basedir=None, name='localclient'):
         HadoopOpts.__init__(self, shared=shared, basedir=basedir)
-        ClientCfg.__init__(self)
-
-        self.pubkeys = []
-
-        self.sshdstart = None
-        self.sshdstop = None
+        ClientCfg.__init__(self, name=name)
 
     def init_defaults(self):
         """Create the default list of params and description"""
@@ -66,8 +61,7 @@ class ClientOpts(ClientCfg, HadoopOpts):
         ## - they are updated in the order they are started (last)
         prev_params = ParamsDescr()
         prev_env_params = ParamsDescr()
-        for act_work in shared['active_work']:
-
+        for act_work in self.shared_active_work:
             name = act_work['work_name']
             params = act_work.get('params', Params({}))
             env_params = act_work.get('env_params', Params({}))
@@ -94,13 +88,26 @@ class ClientOpts(ClientCfg, HadoopOpts):
         self.log.debug("Adding init shared core env_params")
         self.add_from_opts_dict(shared.get('env_params', ParamsDescr({})), update_env=True)
 
+
+class RemoteClientOpts(LocalClientOpts):
+    """Remote client options"""
+    def __init__(self, shared=None, basedir=None):
+        LocalClientOpts.__init__(self, shared=shared, basedir=basedir, name='remoteclient')
+
+        self.pubkeys = []
+
+        self.sshdstart = None
+        self.sshdstop = None
+
+    def init_core_defaults_shared(self, shared):
+        LocalClientOpts.init_core_defaults_shared(self, shared)
+
+
         self.pubkeys = shared.get('pubkeys', [])
 
-        if shared.get('socks', False):
-            self.log.debug("adding SOCKS config")
-            self.add_from_opts_dict(CLIENT_SOCKS_OPTS)
-            self.name = 'socksclient'
-
+        self.log.debug("adding SOCKS config")
+        self.add_from_opts_dict(CLIENT_SOCKS_OPTS)
+        self.add_from_opts_dict(CLIENT_SOCKS_ENV_OPTS, update_env=True)
 
     def gen_ssh_cfg(self):
         """Make the sshd_config and the authorized_keys file"""
@@ -117,6 +124,9 @@ class ClientOpts(ClientCfg, HadoopOpts):
         txt.append("PidFile %s" % pid_fn)
         txt.append("PasswordAuthentication no")
         txt.append("ForceCommand '/bin/sleep inf'") ## is this enough or is the command still needed?
+        txt.append("Protocol 2")
+        txt.append("SyslogFacility USER")
+        txt.append("StrictModes no")
 
         ## the sshd config
         content = "\n".join(txt + ['']) ## add newline
@@ -154,6 +164,7 @@ class ClientOpts(ClientCfg, HadoopOpts):
         self.sshdstart = RunSshd(sshd_fn)
         self.log.debug("Preparing the sshd kill from pid file %s" % pid_fn)
         self.sshdstop = KillPidFile(pid_fn)
+
 
     def make_opts_env_cfg(self):
         """Make the cfg file"""

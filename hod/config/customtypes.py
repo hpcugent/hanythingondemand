@@ -29,9 +29,13 @@ class HostnamePort:
         return d == self.hostname or d == "%s" % self
 
 class HdfsFs(HostnamePort):
+    def __init__(self, txt=None, path='/'):
+        HostnamePort.__init__(self, txt)
+        self.fspath = path
+
     def __str__(self):
         hnp = HostnamePort.__str__(self)
-        return "hdfs://%s/" % hnp
+        return "hdfs://%s%s" % (hnp, self.fspath)
 
 class KindOfList:
     def __init__(self, kol=None):
@@ -71,6 +75,9 @@ class KindOfList:
         if d is None:
             d = []
         return self.str_sepa.join(["%s" % x for x in d if not x is None])
+
+class Servers(KindOfList):
+    """Comma separated list of servers"""
 
 
 class UserGroup:
@@ -143,3 +150,20 @@ class ParamsDescr(dict):
             else:
                 tmp[k] = "%s" % v
         return "%s" % tmp
+
+class Boolean:
+    """bool class with slightly different __str__"""
+    def __init__(self, val=None):
+        if val:
+            self.value = True
+        elif val is None:
+            self.value = None
+        else:
+            self.value = False
+
+    def __contains__(self, d):
+        return d == self.value
+
+    def __str__(self):
+        txt = "%s" % self.value
+        return txt.lower()

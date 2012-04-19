@@ -2,7 +2,7 @@
 HDFS config and options
 """
 
-from hod.config.customtypes import HostnamePort, Directories, Arguments, ParamsDescr, UserGroup
+from hod.config.customtypes import HostnamePort, Directories, Arguments, ParamsDescr, UserGroup, Boolean
 
 from hod.config.hadoopopts import HadoopOpts
 from hod.config.hadoopcfg import HadoopCfg
@@ -31,9 +31,14 @@ HDFS_HTTP_OPTS = ParamsDescr({
 })
 
 HDFS_ENV_OPTS = ParamsDescr({
-    'HADOOP_NAMENODE_OPTS':[Arguments(), ''],
+    'HADOOP_NAMENODE_OPTS':[Arguments("-XX:+UseParallelGC"), ''],
     'HADOOP_DATANODE_OPTS':[Arguments(), ''],
     'HADOOP_SECONDARYNAMENODE_OPTS':[Arguments(), ''],
+})
+
+HDFS_HBASE_OPTS = ParamsDescr({
+    'dfs.support.append':[Boolean(True), 'Enable durable sync'],
+    'dfs.datanode.max.xcievers':[4096, 'Number of files to served at any one time.'],
 })
 
 class HdfsCfg(HadoopCfg):
@@ -45,17 +50,23 @@ class HdfsCfg(HadoopCfg):
 class HdfsOpts(HdfsCfg, HadoopOpts):
     """Hdfs options"""
     def __init__(self, shared=None, basedir=None):
+        self.format_hdfs = True
+
         HadoopOpts.__init__(self, shared=shared, basedir=basedir)
         HdfsCfg.__init__(self)
 
-        self.format_hdfs = True
 
     def init_defaults(self):
         """Create the default list of params and description"""
         self.log.debug("Adding init defaults.")
         self.add_from_opts_dict(HDFS_OPTS)
+        if self.shared_other_work.get('Hbase', False): ## HBase is not active here
+            self.log.debug("Adding Hbase HDFS params")
+            self.add_from_opts_dict(HDFS_HBASE_OPTS)
+
 
     def init_security_defaults(self):
         """Add security options"""
+        self.log.debug("Add HDFS security settings")
         self.add_from_opts_dict(HDFS_SECURITY_SERVICE)
 

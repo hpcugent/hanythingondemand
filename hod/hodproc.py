@@ -5,10 +5,13 @@ from hod.mpiservice import MpiService, MASTERRANK
 from hod.work.work import TestWorkA, TestWorkB
 from hod.work.mapred import Mapred
 from hod.work.hdfs import Hdfs
-from hod.work.client import Client
+from hod.work.hbase import Hbase
+from hod.work.client import LocalClient, RemoteClient
 
 
 from hod.config.customtypes import HostnamePort, HdfsFs, ParamsDescr
+from hod.config.options import HodOption
+
 
 from vsc import fancylogger
 fancylogger.setLogLevelDebug()
@@ -29,15 +32,42 @@ class Master(MpiService):
 
 class Slave(MpiService):
     """Basic Slave"""
+    def __init__(self):
+        MpiService.__init__(self)
+        self.options = HodOption()
 
 class HadoopMaster(MpiService):
     """Basic Master Hdfs and MR1"""
+    def __init__(self):
+        MpiService.__init__(self)
+        self.options = HodOption()
 
     def distribution(self):
         """Master makes the distribution"""
         self.dists = []
 
-        self.distribution_HDFS_Mapred()
+        ## parse the options first
+        if self.options.options.hdfs_off:
+            self.log.info("HDFS off option set.")
+        else:
+            self.distribution_HDFS()
+
+        ## if HBase is required, start it before MR; so the MR can use the HBase confs and jars
+        if self.options.options.hbase_on:
+            self.log.debug("HBase on, starting before MapRed")
+            self.distribution_Hbase()
+
+        if self.options.options.mr1_off:
+            self.log.info("Mapred off option set.")
+        else:
+            if self.options.options.yarn_on:
+                self.log.info("YARN on option set. Not enabling Mapred")
+            else:
+                self.distribution_Mapred()
+
+        if self.options.options.yarn_on:
+            self.distribution_Yarn()
+
 
         ## generate client configs
         self.make_client()
@@ -46,27 +76,18 @@ class HadoopMaster(MpiService):
         """Create the client configs"""
 
         ## local client config
-        shared_localclient = {'socks':False}
+        shared_localclient = {}
         client_ranks = [0] ## only on one rank
-        self.dists.append([Client, client_ranks, shared_localclient])
+        self.dists.append([LocalClient, client_ranks, shared_localclient])
 
         ## client with socks access
-        shared_socksclient = {'socks':True}
+        shared_remoteclient = {}
         client_ranks = [0] ## only on one rank
-        self.dists.append([Client, client_ranks, shared_socksclient])
+        self.dists.append([RemoteClient, client_ranks, shared_remoteclient])
 
 
-    def distribution_HDFS_Mapred(self):
-        """The HDFS+MR1 distribution"""
-
-        ## 4 things to start
-        ## HDFS config
-        ##   nameserver (and broadcast this to further services)
-        ##   datanodes
-        ## MR1 config
-        ##   jobtracker
-        ##   tasktracker
-
+    def distribution_HDFS(self):
+        """HDFS distribution. Should be one of the first, sets the namenode"""
         network_index = self.select_network()
 
         ## namenode on rank 0, jobtracker of last one
@@ -74,19 +95,61 @@ class HadoopMaster(MpiService):
         nn_param = [HdfsFs("%s:8020" % self.allnodes[nn_rank]['network'][network_index][0]),
                   'Namenode on rank %s network_index %s' % (nn_rank, network_index)]
 
+        sharedhdfs = {'params':ParamsDescr({'fs.default.name':nn_param })}
+        self.dists.append([Hdfs, hdfs_ranks, sharedhdfs])
+
+    def distribution_Yarn(self):
+        """Yarn distribution. Reuse HDFS namenode"""
+        self.log.error("Not implemented")
+
+
+    def distribution_Mapred(self):
+        """Mapred distribution. Reuse HDFS namenode"""
+        network_index = self.select_network()
+        sharedhdfs = None
+        for d in self.dists:
+            if d[0].__name__ == 'Hdfs':
+                sharedhdfs = d[2]
+                break
+        if sharedhdfs:
+            self.log.debug("Found Hdfs work in dists with shared params %s" % (sharedhdfs['params']))
+        else:
+            self.log.error("No previous Hdfs work found in dists %s" % self.dists)
+
         jt_rank, mapred_ranks = self.select_mapred_ranks()
         jt_param = [HostnamePort("%s:9000" % self.allnodes[jt_rank]['network'][network_index][0]),
                     'Jobtracker on rank %s network_index %s' % (jt_rank, network_index)]
-
-
-        sharedhdfs = {'params':ParamsDescr({'fs.default.name':nn_param })}
-        self.dists.append([Hdfs, hdfs_ranks, sharedhdfs])
 
 
         sharedmapred = {'params':ParamsDescr({'mapred.job.tracker':jt_param})}
         sharedmapred['params'].update(sharedhdfs['params'])
         self.dists.append([Mapred, mapred_ranks, sharedmapred])
 
+
+    def distribution_Hbase(self):
+        """HBase distribution. Reuse HDFS namenode"""
+        network_index = self.select_network()
+        sharedhdfs = None
+        for d in self.dists:
+            ## enable hdfs hbase tuning
+            d[2].setdefault('other_work', {})
+            d[2]['other_work'].setdefault('Hbase', True)
+            self.log.debug("Set shared Hbase for %s to true" % d[0].__name__)
+
+            if d[0].__name__ == 'Hdfs':
+                sharedhdfs = d[2]
+
+        if sharedhdfs:
+            self.log.debug("Found Hdfs work in dists with shared params %s" % (sharedhdfs['params']))
+        else:
+            self.log.error("No previous Hdfs work found in dists %s" % self.dists)
+
+
+        hm_rank, hm_ranks = self.select_hbasemaster_ranks()
+
+        sharedhbase = {'params':ParamsDescr({})}
+        sharedhbase['params'].update(sharedhdfs['params'])
+        self.dists.append([Hbase, hm_ranks, sharedhbase])
 
 
     def select_network(self):
@@ -123,6 +186,20 @@ class HadoopMaster(MpiService):
 
         self.log.debug("Simple mapred distribution: jt is first of allranks and all slaves are tasktracker: %s , %s" % (rank, allranks))
         return rank, allranks
+
+    def select_hbasemaster_ranks(self):
+        """return hbasemaster/zookeeper rank and all regionservers ranks"""
+        allranks = range(self.size)
+        rank = allranks[0]
+
+        ## set jt_rank as first rank
+        oldindex = allranks.index(rank)
+        val = allranks.pop(oldindex)
+        allranks.insert(rank, val)
+
+        self.log.debug("Simple hbase distribution: hm is first of allranks and all slaves are regioserver: %s , %s" % (rank, allranks))
+        return rank, allranks
+
 
 if __name__ == '__main__':
     from mpi4py import MPI

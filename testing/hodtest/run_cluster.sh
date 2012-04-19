@@ -7,6 +7,7 @@
 
 module load Python
 module load Hadoop
+module load HBase
 module unload Java
 module load Java/1.7.0_3
 

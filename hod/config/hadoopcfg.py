@@ -11,7 +11,7 @@ class HadoopCfg:
     def __init__(self):
         self.log = fancylogger.getLogger(self.__class__.__name__)
 
-        self.version = {'major':-1,
+        self.hadoopversion = {'major':-1,
                         'minor':-1,
                         'small':-1,
                         'suffix': None,
@@ -42,7 +42,12 @@ class HadoopCfg:
         self.log.debug("Starting cfg preparation for name %s" % self.name)
         self.prep_java()
         self.prep_hadoop()
+        self.basic_cfg_extra()
         self.locate_start_stop_daemon()
+
+    def basic_cfg_extra(self):
+        """Perform extra configuration gathering"""
+        self.log.debug("basic_cfg_extra not implemented")
 
     def which_exe(self, exe, showall=False, stripbin=False):
         """Locate executable exe (similar to which). If all is True, return list of all found executables.
@@ -161,22 +166,22 @@ class HadoopCfg:
         self.hadoophome = self.which_exe('hadoop', stripbin=True)
 
     def hadoop_version(self):
-        """Set the major and minor version"""
+        """Set the major and minor hadoopversion"""
         hv = HadoopVersion()
         hv_out, hv_err = hv.run()
 
         hadoopVerRegExp = re.compile("^\s*Hadoop\s+(\d+)\.(\d+)(?:\.(\d+)(?:(?:-|_)(\S+))?)?\s*$", re.M)
         verMatch = hadoopVerRegExp.search(hv_out)
         if verMatch:
-            self.version['major'] = int(verMatch.group(1))
-            self.version['minor'] = int(verMatch.group(2))
+            self.hadoopversion['major'] = int(verMatch.group(1))
+            self.hadoopversion['minor'] = int(verMatch.group(2))
             if verMatch.group(3):
-                self.version['small'] = int(verMatch.group(3))
+                self.hadoopversion['small'] = int(verMatch.group(3))
             if verMatch.group(4):
-                self.version['suffix'] = verMatch.group(4)
-            self.log.debug('Version found from hadoop command: %s' % self.version)
+                self.hadoopversion['suffix'] = verMatch.group(4)
+            self.log.debug('Version found from hadoop command: %s' % self.hadoopversion)
         else:
-            self.log.error("No Hadoop version found (output %s err %s)" % (hv_out, hv_err))
+            self.log.error("No Hadoop hadoopversion found (output %s err %s)" % (hv_out, hv_err))
 
     def prep_hadoop(self):
         """Check and prepare hadoop environment"""
@@ -217,5 +222,5 @@ class HadoopCfg:
             self.log.error("daemon_script %s for name %s daemonname %s not found in paths %s" % (daemonname, self.name, self.daemonname, searchpaths))
 
     def is_version_ok(self, req=None):
-        """Given a requirement req, check if current version is sufficient"""
+        """Given a requirement req, check if current hadoopversion is sufficient"""
 

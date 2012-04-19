@@ -36,7 +36,7 @@ class Work(MpiService):
 
     def prepare_work_cfg(self):
         """prepare any config"""
-        self.log.error("Not implemented.")
+        self.log.error("Not implemented prepare_work_cfg.")
 
     def work_begin(self, comm):
         """Prepartion of work, previous to start"""
@@ -52,27 +52,27 @@ class Work(MpiService):
 
     def start_work_service_master(self):
         """Start service on master only"""
-        self.log.error("Not implemented.")
+        self.log.error("Not implemented start_work_service_master.")
 
     def start_work_service_slaves(self):
         """Start service on slaves only"""
-        self.log.error("Not implemented.")
+        self.log.debug("Not implemented start_work_service_slaves.")
 
     def start_work_service_all(self):
         """Run start_service on all"""
-        self.log.error("Not implemented.")
+        self.log.debug("Not implemented start_work_service_all.")
 
     def stop_work_service_master(self):
         """Stop the Hadoop service on master only"""
-        self.log.error("Not implemented.")
+        self.log.debug("Not implemented stop_work_service_master.")
 
     def stop_work_service_slaves(self):
         """Stop the Hadoop service on slaves only"""
-        self.log.error("Not implemented.")
+        self.log.debug("Not implemented stop_work_service_slaves.")
 
     def stop_work_service_all(self):
         """Run after start_service"""
-        self.log.error("Not implemented.")
+        self.log.debug("Not implemented stop_work_service_all.")
 
     def work_wait(self):
         """What to do between start and stop (and how stop is triggered). Returns True is the wait is over"""

@@ -2,20 +2,30 @@
 Mapred config and options
 """
 
-from hod.config.customtypes import HostnamePort, Directories, Arguments, ParamsDescr, UserGroup
+from hod.config.customtypes import HostnamePort, Directories, Arguments, ParamsDescr, UserGroup, Params
 from hod.config.hadoopopts import HadoopOpts
 from hod.config.hadoopcfg import HadoopCfg
+import re
 
 MAPRED_OPTS = ParamsDescr({
     'mapred.job.tracker' : [HostnamePort(':9000'), 'The host and port that the MapReduce job tracker runs at.  If "local", then jobs are run in-process as a single map and reduce task.'],
     'mapred.local.dir' : [Directories([None]), 'The local directory where MapReduce stores intermediate data files. May be a comma-separated list of kindoflist on different devices in order to spread disk i/o. Directories that do not exist are ignored.'],
     'mapred.map.tasks' : [None, 'As a rule of thumb, use 10x the number of slaves (i.e., number of TaskTrackers).'],
     'mapred.reduce.tasks' : [None, 'As a rule of thumb, use 2x the number of slave processors (i.e., number of TaskTrackers).'],
+
+    'mapred.tasktracker.map.tasks.maximum':[None, 'The maximum number of map tasks (default is 2)'],
+    'mapred.tasktracker.reduce.tasks.maximum' : [None, 'The maximum number of map tasks (default is 2)'],
+
     'mapred.child.java.opts' : [Arguments(), 'General java options passed to each task JVM'],
 
-    'mapred.job.reuse.jvm.num.tasks':[1, 'Reuse the JVM between tasks'], ## from myhadoop
+    'mapred.job.reuse.jvm.num.tasks':[-1, 'Reuse the JVM between tasks If the value is 1 (the default), then JVMs are not reused (i.e. 1 task per JVM) (-1: no limit)'], ## from myhadoop
 
     'mapred.task.tracker.task-controller':'Fully qualified class name of the task controller class. Currently there are two implementations of task controller in the Hadoop system, DefaultTaskController and LinuxTaskController. Refer to the class names mentioned above to determine the value to set for the class of choice.',
+
+    'mapred.compress.map.output':[],
+    'mapred.reduce.parallel.copies':[],
+    'mapred.map.tasks.speculative.exectution':[],
+    'mapred.reduce.tasks.speculative.exectution':[],
 })
 
 MAPRED_SECURITY_SERVICE = ParamsDescr({
@@ -51,6 +61,7 @@ MAPRED_ENV_OPTS = ParamsDescr({
     'HADOOP_TASKTRACKER_OPTS':[Arguments(), ''],
 })
 
+
 class MapredCfg(HadoopCfg):
     """Mapred MR1 cfg"""
     def __init__(self):
@@ -70,6 +81,82 @@ class MapredOpts(MapredCfg, HadoopOpts):
 
     def init_security_defaults(self):
         """Add security options"""
+        self.log.debug("Add mapred security settings")
         self.add_from_opts_dict(MAPRED_SECURITY_SERVICE)
 
 
+    def init_core_defaults_shared(self, shared):
+        """Add hbase code"""
+        self.check_hbase()
+
+        self.log.debug("Adding init shared core params")
+        self.add_from_opts_dict(shared.get('params', ParamsDescr({})))
+
+        self.log.debug("Adding init shared core env_params")
+        self.add_from_opts_dict(shared.get('env_params', ParamsDescr({})), update_env=True)
+
+
+
+    def check_hbase(self):
+        """hbase support
+            - we need the HBase config files (or config info)
+            - add hbase jars + conf +zookeeper to HADOOP_CLASSPATH eg
+            $HBASE_HOME/build/hbase-X.X.X.jar:$HBASE_HOME/build/hbase-X.X.X-test.jar:$HBASE_HOME/conf:${HBASE_HOME}/lib/zookeeper-X.X.X.jar
+        """
+        ## TODO now we are going to assume that the regionservers are also the tasktrackers, so the config files are available
+
+        ## locate the HBase work
+
+        ## Code basedon Client config init_core_defaults_shared
+        exclude_params = [r'\.dir$',
+                          r'^mapred.local',
+                          ]
+        exclude_env_params = [r'_DIR$']
+
+
+        ## make compiled regexp
+        exclude_params = [re.compile(x) for x in exclude_params]
+        exclude_env_params = [re.compile(x) for x in exclude_env_params]
+
+        ## first parse the params from the (previously initiated) active work
+        ## - they are updated in the order they are started (last)
+        prev_params = ParamsDescr()
+        prev_env_params = ParamsDescr()
+
+        found_hbase = False
+        for act_work in self.shared_active_work:
+            name = act_work['work_name']
+            params = act_work.get('params', Params({}))
+            env_params = act_work.get('env_params', Params({}))
+            if name == 'Hbase':
+                self.log.debug("Active work from %s params %s env_params %s" % (name, params, env_params))
+
+                for k, v in params.items():
+                    for excl_k in exclude_params:
+                        if not excl_k.search(k):
+                            prev_params.update({k:[v, '']})
+                            continue
+
+                for k, v in env_params.items():
+                    for excl_k in exclude_env_params:
+                        if not excl_k.search(k):
+                            prev_env_params.update({k:[v, '']})
+                            continue
+
+                jars = ":".join(act_work['hbase_jars'])
+                jar_env_params = ParamsDescr({'HADOOP_CLASSPATH':[jars, 'Added HBase jars']})
+
+                found_hbase = True
+                break
+            else:
+                self.log.debug("Looking for HBase work, ignoring %s work" % name)
+
+        if found_hbase:
+            self.log.debug("Hbase found, adding some of the params")
+            self.add_from_opts_dict(prev_params)
+            self.add_from_opts_dict(prev_env_params, update_env=True)
+
+            self.log.debug("Added jar env params %s" % jar_env_params)
+            self.add_from_opts_dict(jar_env_params, update_env=True)
+        else:
+            self.log.debug('Hbase not found, no params added')
