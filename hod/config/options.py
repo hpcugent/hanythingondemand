@@ -25,13 +25,18 @@ class ExtOption(Option):
         else:
             Option.take_action(self, action, dest, opt, value, values, parser)
 
+class ExtOptionParser(OptionParser):
+    """Make an option parser that limits the -h to short opts only"""
+    def print_help(self, fn=None):
+        OptionParser.print_help(self, fn)
+
 
 OPTNAME_SEPARATOR = '_'
 
 class GeneralOption:
     """Simple wrapper class for optiopn parsing"""
     def __init__(self):
-        self.parser = OptionParser(option_class=ExtOption)
+        self.parser = ExtOptionParser(option_class=ExtOption)
 
         self.log = fancylogger.getLogger(self.__class__.__name__)
 
