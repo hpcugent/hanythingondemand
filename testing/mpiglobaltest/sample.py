@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-
+#
+# Copyright 2012 Stijn De Weirdt
+# 
+# This file is part of HanythingOnDemand,
+# originally created by the HPC team of the University of Ghent (http://ugent.be/hpc).
+#
 from mpiservice import MpiService, MASTERRANK
 
 from work import TestWorkA, TestWorkB

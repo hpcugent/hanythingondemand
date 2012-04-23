@@ -1,5 +1,11 @@
-from mpi4py import MPI
 
+#
+# Copyright 2012 Stijn De Weirdt
+# 
+# This file is part of HanythingOnDemand,
+# originally created by the HPC team of the University of Ghent (http://ugent.be/hpc).
+#
+from mpi4py import MPI
 from node import Node
 
 MASTERRANK = 0

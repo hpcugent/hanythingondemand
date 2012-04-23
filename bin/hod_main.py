@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-
+#
+# Copyright 2012 Stijn De Weirdt
+# 
+# This file is part of HanythingOnDemand,
+# originally created by the HPC team of the University of Ghent (http://ugent.be/hpc).
+#
 from hod.hodproc import Slave, HadoopMaster
 from hod.mpiservice import MASTERRANK
 

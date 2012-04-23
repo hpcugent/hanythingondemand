@@ -1,3 +1,10 @@
+
+#
+# Copyright 2012 Stijn De Weirdt
+# 
+# This file is part of HanythingOnDemand,
+# originally created by the HPC team of the University of Ghent (http://ugent.be/hpc).
+#
 from hod.work.work import Work
 from hod.work.hadoop import Hadoop
 from hod.config.hbase import HbaseOpts
