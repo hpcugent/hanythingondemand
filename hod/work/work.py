@@ -6,7 +6,7 @@
 # originally created by the HPC team of the University of Ghent (http://ugent.be/hpc).
 #
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 import time, os
 

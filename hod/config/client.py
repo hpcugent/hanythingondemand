@@ -13,7 +13,7 @@ from hod.commands.command import GenerateSshKey, RunSshd, KillPidFile
 from hod.config.customtypes import Params, ParamsDescr, HostnamePort, Arguments
 
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 import re, os
 
@@ -36,6 +36,10 @@ class ClientCfg(HadoopCfg):
         HadoopCfg.__init__(self)
         self.name = name
         self.environment_script = None
+
+    def locate_start_stop_daemon(self):
+        """Not needed here"""
+        self.log.debug("Not setting the start/stop/daemon scripts")
 
 class LocalClientOpts(ClientCfg, HadoopOpts):
     """Local client options"""

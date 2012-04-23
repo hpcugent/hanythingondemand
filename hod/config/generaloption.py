@@ -6,7 +6,7 @@
 # originally created by the HPC team of the University of Ghent (http://ugent.be/hpc).
 #
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 from optparse import OptionParser, OptionGroup, Option, make_option
 import sys, re
@@ -39,15 +39,19 @@ class ExtOptionParser(OptionParser):
 
 OPTNAME_SEPARATOR = '_'
 
+debug_options_build = False
+
 class GeneralOption:
     """Simple wrapper class for optiopn parsing"""
     def __init__(self):
         self.parser = ExtOptionParser(option_class=ExtOption)
 
         self.log = fancylogger.getLogger(self.__class__.__name__)
-
         self.options = None
         self.processed_options = {}
+
+
+        self.set_debug()
 
         self.make_debug_options()
 
@@ -55,10 +59,21 @@ class GeneralOption:
 
         self.parseoptions()
 
+        self.set_debug()
+
+    def set_debug(self):
+        """Check if debug options are on and then set fancylogger to debug"""
+        if self.options is None:
+            if debug_options_build:
+                fancylogger.setLogLevelDebug()  ## debug mode when building the options ?
+        else:
+            if self.options.debug:
+                fancylogger.setLogLevelDebug()
+
 
     def make_debug_options(self):
         """Add debug option"""
-        opts = {'debug':("Enable debug mode (default %default)", None, "store_true", False, '-d')
+        opts = {'debug':("Enable debug mode (default %default)", None, "store_true", False, 'd')
                 }
         descr = ['Debug options', '']
         self.log.debug("Add debug options descr %s opts %s (no prefix)" % (descr, opts))

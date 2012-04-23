@@ -11,7 +11,7 @@ from hod.commands.hadoop import HadoopVersion
 import os, re
 
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 class HadoopCfg:
     """Hadoop cfg class. Environment and xml cfg control"""

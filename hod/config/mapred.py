@@ -9,7 +9,7 @@
 Mapred config and options
 """
 
-from hod.config.customtypes import HostnamePort, Directories, Arguments, ParamsDescr, UserGroup, Params
+from hod.config.customtypes import HostnamePort, Directories, Arguments, ParamsDescr, UserGroup, Params, Boolean
 from hod.config.hadoopopts import HadoopOpts
 from hod.config.hadoopcfg import HadoopCfg
 import re
@@ -23,16 +23,17 @@ MAPRED_OPTS = ParamsDescr({
     'mapred.tasktracker.map.tasks.maximum':[None, 'The maximum number of map tasks (default is 2)'],
     'mapred.tasktracker.reduce.tasks.maximum' : [None, 'The maximum number of map tasks (default is 2)'],
 
-    'mapred.child.java.opts' : [Arguments(), 'General java options passed to each task JVM'],
 
-    'mapred.job.reuse.jvm.num.tasks':[-1, 'Reuse the JVM between tasks If the value is 1 (the default), then JVMs are not reused (i.e. 1 task per JVM) (-1: no limit)'], ## from myhadoop
+    #'mapred.child.java.opts' : [Arguments(), 'General java options passed to each task JVM'],  ## not for now
+
+    'mapred.job.reuse.jvm.num.tasks':[2, 'Reuse the JVM between tasks If the value is 1 (the default), then JVMs are not reused (i.e. 1 task per JVM) (-1: no limit)'], ## from myhadoop
 
     'mapred.task.tracker.task-controller':'Fully qualified class name of the task controller class. Currently there are two implementations of task controller in the Hadoop system, DefaultTaskController and LinuxTaskController. Refer to the class names mentioned above to determine the value to set for the class of choice.',
 
+    'mapred.map.tasks.speculative.exectution':[Boolean(True), 'If true, then multiple instances of some map tasks may be executed in parallel.'],
+    'mapred.reduce.tasks.speculative.exectution':[Boolean(True), 'If true, then multiple instances of some reduce tasks may be executed in parallel.'],
+    'mapred.reduce.parallel.copies':[5, 'The default number of parallel transfers run by reduce during the copy(shuffle) phase.'],
     'mapred.compress.map.output':[],
-    'mapred.reduce.parallel.copies':[],
-    'mapred.map.tasks.speculative.exectution':[],
-    'mapred.reduce.tasks.speculative.exectution':[],
 })
 
 MAPRED_SECURITY_SERVICE = ParamsDescr({

@@ -13,7 +13,7 @@ from hod.config.customtypes import HostnamePort, Directories, Servers
 from hod.commands.hadoop import HbaseZooKeeper, HbaseMaster, HbaseRegionServer
 
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 import os, copy
 
@@ -68,10 +68,10 @@ class Hbase(HbaseOpts, Hadoop):
         """Start service on master"""
         self.set_niceness(4, 2, 3, 'socket:0', varname='HBASE_NICENESS') ## same as mapred jobtracker
 
-        self.log.error("Start zookeeper service on master.")
+        self.log.info("Start zookeeper service on master.")
         command = HbaseZooKeeper(self.daemon_script, start=True)
         command.run()
-        self.log.error("Start hbase master service on master.")
+        self.log.info("Start hbase master service on master.")
         command = HbaseMaster(self.daemon_script, start=True)
         command.run()
 
@@ -79,7 +79,7 @@ class Hbase(HbaseOpts, Hadoop):
     def start_work_service_slaves(self):
         """Run start_service on slaves"""
         self.set_niceness(15, 2, 7, varname='HBASE_NICENESS') ## same as mapred tasktracker
-        self.log.error("Start regionserver service on slaves.")
+        self.log.info("Start regionserver service on slaves.")
         command = HbaseRegionServer(self.daemon_script, start=True)
         command.run()
 
@@ -88,14 +88,14 @@ class Hbase(HbaseOpts, Hadoop):
         self.log.error("Stop hbase master service on master.")
         command = HbaseMaster(self.daemon_script, start=False)
         command.run()
-        self.log.error("Stop zookeeper service on master.")
+        self.log.info("Stop zookeeper service on master.")
         command = HbaseZooKeeper(self.daemon_script, start=False)
         command.run()
 
 
     def stop_work_service_slaves(self):
         """Run stop_service on slaves"""
-        self.log.error("Stop regionserver service on slaves.")
+        self.log.info("Stop regionserver service on slaves.")
         command = HbaseRegionServer(self.daemon_script, start=False)
         command.run()
 

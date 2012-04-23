@@ -19,7 +19,7 @@ import os, shutil, re, pwd
 from xml.dom import getDOMImplementation
 
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 from hod.config.hadoopcfg import HadoopCfg
 

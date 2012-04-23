@@ -6,7 +6,7 @@
 # originally created by the HPC team of the University of Ghent (http://ugent.be/hpc).
 #
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 import re, os, socket
 
@@ -303,12 +303,15 @@ class Node:
         """Extract information about the available memory"""
         self.memory['meminfo'] = {}
         re_mem = re.compile(r"^\s*(?P<mem>\d+)(?P<unit>(?:k)B)?\s*$")
-        for line in open('/proc/meminfo').read().replace(' ', '').split('\n'):
+        proc_meminfo_fn = '/proc/meminfo'
+        for line in open(proc_meminfo_fn).read().replace(' ', '').split('\n'):
+            if not line.strip():
+                continue
             key = line.split(':')[0].lower().strip()
             try:
                 value = line.split(':')[1].strip()
             except IndexError:
-                self.log.error("No :-separated entry for line %s" % line)
+                self.log.error("No :-separated entry for line %s in %s" % (line, proc_meminfo_fn))
                 continue
             reg = re_mem.search(value)
             if reg:

@@ -12,7 +12,7 @@ from hod.config.mapred import MapredOpts
 from hod.config.customtypes import *
 
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 from hod.commands.hadoop import Jobtracker, Tasktracker
 
@@ -64,7 +64,7 @@ class Mapred(MapredOpts, Hadoop):
     def start_work_service_master(self):
         """Start service on master"""
         self.set_niceness(4, 2, 3, 'socket:0')
-        self.log.error("Start jobtracker service on master.")
+        self.log.info("Start jobtracker service on master.")
         command = Jobtracker(self.daemon_script, start=True)
         command.run()
 
@@ -72,20 +72,20 @@ class Mapred(MapredOpts, Hadoop):
     def start_work_service_slaves(self):
         """Run start_service on slaves"""
         self.set_niceness(15, 2, 7)
-        self.log.error("Start tasktracker service on slaves.")
+        self.log.info("Start tasktracker service on slaves.")
         command = Tasktracker(self.daemon_script, start=True)
         command.run()
 
     def stop_work_service_master(self):
         """Stop service on master"""
-        self.log.error("Stop jobtracker service on master.")
+        self.log.info("Stop jobtracker service on master.")
         command = Jobtracker(self.daemon_script, start=False)
         command.run()
 
 
     def stop_work_service_slaves(self):
         """Run start_service on slaves"""
-        self.log.error("Stop tasktracker service on slaves.")
+        self.log.info("Stop tasktracker service on slaves.")
         command = Tasktracker(self.daemon_script, start=False)
         command.run()
 

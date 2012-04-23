@@ -13,7 +13,7 @@ from hod.config.customtypes import Arguments
 import os, pwd, re
 
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 
 class Hadoop(Work, HadoopOpts):

@@ -13,7 +13,7 @@ import time
 MASTERRANK = 0
 
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 class MpiService:
     """Basic mpi based service class"""

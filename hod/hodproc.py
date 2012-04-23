@@ -19,7 +19,7 @@ from hod.config.hodoption import HodOption
 
 
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
+
 
 
 class Master(MpiService):

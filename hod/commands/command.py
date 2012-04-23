@@ -18,7 +18,6 @@ import signal
 import time
 
 from vsc import fancylogger
-fancylogger.setLogLevelDebug()
 
 
 COMMAND_TIMEOUT = 120 ## timeout
