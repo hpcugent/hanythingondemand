@@ -124,7 +124,7 @@ class MapredOpts(MapredCfg, HadoopOpts):
         prev_env_params = ParamsDescr()
 
         found_hbase = False
-        for act_work in self.shared_active_work:
+        for act_work in self.shared_opts['active_work']:
             name = act_work['work_name']
             params = act_work.get('params', Params({}))
             env_params = act_work.get('env_params', Params({}))

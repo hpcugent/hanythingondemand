@@ -101,10 +101,10 @@ class HadoopOpts(HadoopCfg):
             shared = {}
         shared.setdefault('other_work', {})
         shared.setdefault('active_work', {})
-        self.shared_other_work = shared['other_work']  ## config info from other work (active or not)
-        self.log.debug("shared_other_work %s" % self.shared_other_work)
-        self.shared_active_work = shared['active_work']  ## config info from already active work
-        self.log.debug("shared_active_work %s" % self.shared_active_work)
+
+        self.shared_opts = shared
+        self.log.debug("shared_opts %s" % self.shared_opts)
+
 
         self.basedir = basedir ## opts basedir
 

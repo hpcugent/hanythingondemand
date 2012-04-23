@@ -277,7 +277,6 @@ class MpiService:
                 ## adding started work
                 self.active_work.append(tmp)
 
-
         for act_work in self.active_work:
             self.log.debug("work %s start" % (act_work.__class__.__name__))
             act_work.do_work_start()

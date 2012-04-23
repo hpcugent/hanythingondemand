@@ -10,7 +10,7 @@ from hod.work.client import LocalClient, RemoteClient
 
 
 from hod.config.customtypes import HostnamePort, HdfsFs, ParamsDescr
-from hod.config.options import HodOption
+from hod.config.hodoption import HodOption
 
 
 from vsc import fancylogger
@@ -74,14 +74,33 @@ class HadoopMaster(MpiService):
 
     def make_client(self):
         """Create the client configs"""
+        ## recreate the job environment
+        if self.options.options.hod_envclass:
+            from hod.rmscheduler.hodjob import HodJob, EasybuildPbsHod  ## make sure all is imported 
+            exec('Job=%s(options=self.options)' % self.options.options.hod_envclass) ## TODO is there a non-exec way of doing this?
+            environment = "\n".join(Job.generate_environment())
+            self.log.debug('Generated environment %s from option hod_envclass %s' % (environment, self.options.options.hod_envclass))
+        elif self.options.options.hod_envscript:
+            try:
+                environment = open(self.options.options.hod_envscript).read()
+                self.log.debug('Generated environment %s from option hod_envscript %s' % (environment, self.options.options.hod_envscript))
+            except:
+                self.log.exception("Failed to read environment script %s" % self.options.options.hod_envscript)
+        else:
+            self.log.debug('No environment provided.')
+            environment = None
 
         ## local client config
-        shared_localclient = {}
+        shared_localclient = {'environment':environment}
+        if self.options.options.hod_script:
+            shared_localclient ['work_script'] = self.options.options.hod_script
+            self.log.debug('set shared work_script from option %s' % self.options.options.hod_script)
+
         client_ranks = [0] ## only on one rank
         self.dists.append([LocalClient, client_ranks, shared_localclient])
 
         ## client with socks access
-        shared_remoteclient = {}
+        shared_remoteclient = {'environment':environment}
         client_ranks = [0] ## only on one rank
         self.dists.append([RemoteClient, client_ranks, shared_remoteclient])
 
@@ -199,21 +218,5 @@ class HadoopMaster(MpiService):
 
         self.log.debug("Simple hbase distribution: hm is first of allranks and all slaves are regioserver: %s , %s" % (rank, allranks))
         return rank, allranks
-
-
-if __name__ == '__main__':
-    from mpi4py import MPI
-
-    if MPI.COMM_WORLD.rank == MASTERRANK:
-        serv = HadoopMaster()
-    else:
-        serv = Slave()
-
-    try:
-        serv.run_dist()
-
-        serv.stop_service()
-    except:
-        serv.log.exception("Main failed")
 
 

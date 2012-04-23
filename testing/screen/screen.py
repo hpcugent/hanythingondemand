@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 ## from http://fleckenzwerg2000.blogspot.com/2011/10/running-and-controlling-gnu-screen-from.html
+## script examples from http://aperiodic.net/screen/quick_reference
 
 import pty
 import os

@@ -60,7 +60,7 @@ class HdfsOpts(HdfsCfg, HadoopOpts):
         """Create the default list of params and description"""
         self.log.debug("Adding init defaults.")
         self.add_from_opts_dict(HDFS_OPTS)
-        if self.shared_other_work.get('Hbase', False): ## HBase is not active here
+        if self.shared_opts['other_work'].get('Hbase', False): ## HBase is not active here
             self.log.debug("Adding Hbase HDFS params")
             self.add_from_opts_dict(HDFS_HBASE_OPTS)
 

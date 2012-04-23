@@ -32,6 +32,8 @@ class Command(object):
         self.command = command
         self.timeout = timeout
 
+        self.fake_pty = False
+
     def __str__(self):
         cmd = self.getCommand()
         if type(cmd) in (tuple, list,):
@@ -60,9 +62,29 @@ class Command(object):
 
         self.log.debug("Run going to run %s" % self.command)
         start = datetime.datetime.now()
+
+        nameds = {'shell':True,
+                'close_fds':True
+                }
+        if self.fake_pty:
+            self.log.debug("Setting up PTY")
+            import pty
+            (master, slave) = pty.openpty()
+            stdouterr = {'stdin':slave,
+                       'stdout':slave,
+                       'stderr':slave
+                       }
+        else:
+            self.log.debug('Using PIPE stdout and stderr')
+            stdouterr = {'stdout':PIPE,
+                       'stderr':PIPE
+                       }
+
+
+        nameds.update(stdouterr)
         #TODO: (high) buffer overflow here sometimes, check what happens and fix
         #see easybuild/buildsoft/async 
-        p = Popen(self.__str__(), shell=True, stdout=PIPE, stderr=PIPE, close_fds=True)
+        p = Popen(self.__str__(), **nameds)
         time.sleep(.1) ## for immediate answers
         timedout = False
         while p.poll() is None:
@@ -77,15 +99,21 @@ class Command(object):
                         os.kill(p.pid, signal.SIGKILL)
             time.sleep(1)
 
-        out = p.stdout.read().strip()
-        err = p.stderr.read().strip()
+        if self.fake_pty:
+            ## no stdout/stderr
+            self.log.debug("No stdout/stderr in fake pty mode")
+            out = 'Fake PTY no out (this is ok)'
+            err = 'Fake PTY no err (this is ok)'
+        else:
+            out = p.stdout.read().strip()
+            err = p.stderr.read().strip()
 
         ec = p.returncode
         if not ec == 0:
             self.log.warning("Problem occured with cmd %s: out %s, err %s" % (self.command, out, err))
             err += "Exitcode %s\n"
         else:
-            self.log.debug("cmd %s: %s" % (self.command, out))
+            self.log.debug("cmd ok %s: out %s err %s" % (self.command, out, err))
         return out, err
 
 
@@ -141,3 +169,23 @@ class KillPidFile(Command):
         self.command = ['kill', pid]
         Command.run(self)
 
+
+class ScreenDaemon(Command):
+    """Start a named screen session in background"""
+    def __init__(self, name):
+        Command.__init__(self)
+        self.command = ['screen', '-dmS', name]
+        self.fake_pty = True
+
+
+class RunInScreen(Command):
+    """Start a named screen session in background"""
+    def __init__(self, name):
+        Command.__init__(self, name)
+        self.command_templ = ['screen', '-S', name, '-X', 'stuff', "$'%s\r'"]
+
+    def run(self, command):
+        self.command = self.command_templ[:]
+        self.command[-1] = self.command[-1] % command
+        self.log.debug("Added command %s to create real command %s" % (command, self.command))
+        Command.run(self)

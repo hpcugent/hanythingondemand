@@ -11,7 +11,8 @@ class Work(MpiService):
         self.log = fancylogger.getLogger(self.__class__.__name__)
         MpiService.__init__(self, initcomm=False, log=self.log)
 
-        self.shared = shared ## shared is something that can be shared between work (eg common information)
+        self.shared_work = shared ## shared is something that can be shared between work (eg common information)
+        self.log.debug("shared_work %s" % self.shared_work)
 
         self.allranks = ranks
 

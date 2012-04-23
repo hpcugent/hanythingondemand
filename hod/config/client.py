@@ -28,7 +28,7 @@ class ClientCfg(HadoopCfg):
     def __init__(self, name='localclient'):
         HadoopCfg.__init__(self)
         self.name = name
-
+        self.environment_script = None
 
 class LocalClientOpts(ClientCfg, HadoopOpts):
     """Local client options"""
@@ -61,7 +61,7 @@ class LocalClientOpts(ClientCfg, HadoopOpts):
         ## - they are updated in the order they are started (last)
         prev_params = ParamsDescr()
         prev_env_params = ParamsDescr()
-        for act_work in self.shared_active_work:
+        for act_work in self.shared_opts['active_work']:
             name = act_work['work_name']
             params = act_work.get('params', Params({}))
             env_params = act_work.get('env_params', Params({}))
@@ -87,6 +87,32 @@ class LocalClientOpts(ClientCfg, HadoopOpts):
 
         self.log.debug("Adding init shared core env_params")
         self.add_from_opts_dict(shared.get('env_params', ParamsDescr({})), update_env=True)
+
+
+    def gen_environment_script(self):
+        """Create the environment script"""
+
+        env_fn = os.path.join(self.confdir, 'environment')
+        self.environment_script = env_fn
+
+        content = self.shared_opts.get('environment', '')
+
+        self.log.debug("Creating environment file %s with content %s" % (env_fn, content))
+        try:
+            fh = open(env_fn, 'w')
+            fh.write(content)
+            fh.close()
+            self.log.debug("Written environment file %s with content %s" % (env_fn, content))
+        except OSError:
+            self.log.exception("Failed to write environment file %s with content %s" % (env_fn, content))
+
+
+    def make_opts_env_cfg(self):
+        """Make the cfg file"""
+        HadoopOpts.make_opts_env_cfg(self)
+
+        ## generate the environment file to source
+        self.gen_environment_script()
 
 
 class RemoteClientOpts(LocalClientOpts):
@@ -168,7 +194,7 @@ class RemoteClientOpts(LocalClientOpts):
 
     def make_opts_env_cfg(self):
         """Make the cfg file"""
-        HadoopOpts.make_opts_env_cfg(self)
+        LocalClientOpts.make_opts_env_cfg(self)
 
         ##
         self.gen_ssh_cfg()
