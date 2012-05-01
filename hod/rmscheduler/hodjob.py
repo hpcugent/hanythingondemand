@@ -114,7 +114,7 @@ class EasybuildPbsHod(HodJob):
     def __init__(self, options=None):
         HodJob.__init__(self, options)
 
-        self.modules = ['Python'] ## no version?
+        self.modules = ['scripts', 'Python'] ## no version?
 
         self.modules.append('Hadoop/%s' % self.options.options.hadoop_module)
 
