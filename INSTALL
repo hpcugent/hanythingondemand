@@ -6,10 +6,9 @@ cp -a $PWD /tmp/HOD-$VERSION
 
 ## add vsc fancy logger module from python-vsc-packages-logging
 cp -a /some/path/python-vsc-packages-logging/vsc /tmp/HOD-$VERISON/
-echo "## Nothing to be done" > /tmp/HOD-$VERISON/vsc/__init__.py
+echo "## Nothing to be done" > /tmp/HOD-$VERSION/vsc/__init__.py
 
 ## make tarball
 cd /tmp
 tar czf /tmp/HOD-$VERSION.tar.gz /tmp/HOD-$VERSION 
 
- 
