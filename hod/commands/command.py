@@ -180,7 +180,9 @@ class ScreenDaemon(Command):
     """Start a named screen session in background"""
     def __init__(self, name):
         Command.__init__(self)
-        self.command = ['screen', '-dmS', name]
+        # this does nto work if nothing is connected to the session
+        #self.command = ['screen', '-dmS', name]
+        self.command = ['screen', '-dmS', 'dummyxc', 'screen', '-S', name]
         self.fake_pty = True
 
 
