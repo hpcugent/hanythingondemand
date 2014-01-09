@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -23,7 +23,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 Setup for Hanything on Demand
 
@@ -38,7 +38,7 @@ import os
 from setuptools import setup
 
 PACKAGE = {
-    'name': 'hod',
+    'name': 'hanythingondemand',
     'version': '2.1.1',
     'author': 'Stijn De Weirdt',
     'maintainer': 'Jens Timmerman',
@@ -46,7 +46,7 @@ PACKAGE = {
     'package_dir': {'': 'lib', 'tests': ''},
     'install_requires': [
         'vsc-base >= 1.7.2',
-        'vsc-mympirun >= 3.2.2',
+        'vsc-mympirun >= 3.2.3',
     ],
     'packages': [
         'tests',
