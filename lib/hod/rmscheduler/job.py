@@ -27,7 +27,7 @@
 @author: Stijn De Weirdt
 """
 from vsc.utils.fancylogger import getLogger
-
+from vsc.utils.missing import get_subclasses
 
 class Job(object):
     def __init__(self, options):
@@ -128,7 +128,7 @@ class Job(object):
 
         Returns an instance of classname initialized with options
         """
-        for cls in Job.__subclasses__():
+        for cls in get_subclasses(Job):
             if cls._is_job_for(classname):
                 return cls(options)
-        fancylogger.getLogger().error("No job class found for %s", classname)
+        getLogger().error("No job class found for %s", classname)
