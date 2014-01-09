@@ -39,14 +39,14 @@ from setuptools import setup
 
 PACKAGE = {
     'name': 'hod',
-    'version': '2.1.0',
+    'version': '2.1.1',
     'author': 'Stijn De Weirdt',
     'maintainer': 'Jens Timmerman',
     'license': "GPL v2",
     'package_dir': {'': 'lib', 'tests': ''},
     'install_requires': [
-        'vsc-base >= 1.6.9',
-        'vsc-mympirun >= 3.2.1',
+        'vsc-base >= 1.7.2',
+        'vsc-mympirun >= 3.2.2',
     ],
     'packages': [
         'tests',
