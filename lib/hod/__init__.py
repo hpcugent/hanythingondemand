@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-###
+##
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,24 +21,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+##
 """
-Main hanything on demand script, should be invoked in a job
+Nothing here for now.
 
 @author: Stijn De Weirdt
 """
-from hod.hodproc import Slave, HadoopMaster
-from hod.mpiservice import MASTERRANK
-
-from mpi4py import MPI
-
-if MPI.COMM_WORLD.rank == MASTERRANK:
-    serv = HadoopMaster()
-else:
-    serv = Slave()
-
-try:
-    serv.run_dist()
-
-    serv.stop_service()
-except:
-    serv.log.exception("Main HanythingOnDemand failed")

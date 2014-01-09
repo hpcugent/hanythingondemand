@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-###
+# -*- coding: latin-1 -*-
+##
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,24 +23,43 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+##
 """
-Main hanything on demand script, should be invoked in a job
+Setup for Hanything on Demand
 
+@author: Andy Georges
 @author: Stijn De Weirdt
+@author: Wouter Depypere
+@author: Kenneth Hoste
+@author: Jens Timmerman
 """
-from hod.hodproc import Slave, HadoopMaster
-from hod.mpiservice import MASTERRANK
 
-from mpi4py import MPI
+import os
+from setuptools import setup
 
-if MPI.COMM_WORLD.rank == MASTERRANK:
-    serv = HadoopMaster()
-else:
-    serv = Slave()
+PACKAGE = {
+    'name': 'hod',
+    'version': '2.1.0',
+    'author': 'Stijn De Weirdt',
+    'maintainer': 'Jens Timmerman',
+    'license': "GPL v2",
+    'package_dir': {'': 'lib', 'tests': ''},
+    'install_requires': [
+        'vsc-base >= 1.6.9',
+        'vsc-mympirun >= 3.2.1',
+    ],
+    'packages': [
+        'tests',
+        'hod',
+        'hod.work',
+        'hod.commands',
+        'hod.config',
+        'hod.rmscheduler',
+    ],
+    'scripts': ['bin/hod_main.py', 'bin/hod_pbs.py'],
+    'url': 'https://github.ugent.be/hpcugent/hanythingondemand',
+    'download_url': 'https://github.ugent.be/hpcugent/hanythingondemand',
+    'long_description': open(os.path.join(os.path.dirname(__file__), 'README')).read(),
+}
 
-try:
-    serv.run_dist()
-
-    serv.stop_service()
-except:
-    serv.log.exception("Main HanythingOnDemand failed")
+setup(**PACKAGE)

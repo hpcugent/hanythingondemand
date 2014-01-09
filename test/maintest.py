@@ -23,23 +23,23 @@
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 """
-Main hanything on demand script, should be invoked in a job
+Main hanything on demand test script
 
-@author: Stijn De Weirdt
+this does not require mpi4py
+
+@author: Stijn De Weirdt, Jens Timmerman
 """
 from hod.hodproc import Slave, HadoopMaster
-from hod.mpiservice import MASTERRANK
 
-from mpi4py import MPI
 
-if MPI.COMM_WORLD.rank == MASTERRANK:
-    serv = HadoopMaster()
-else:
-    serv = Slave()
+# TODO add unittests here
+serv = HadoopMaster()
+serv.run_dist()
 
-try:
-    serv.run_dist()
+# test slave
+slave = Slave()
+slave.run_dist()
+slave.stop_service()
 
-    serv.stop_service()
-except:
-    serv.log.exception("Main HanythingOnDemand failed")
+
+serv.stop_service()
