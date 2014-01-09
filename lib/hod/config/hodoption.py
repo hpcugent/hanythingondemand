@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 @author: Stijn De Weirdt
 """
@@ -52,8 +52,8 @@ class HodOption(GeneralOption):
         """Make the action related options"""
         opts = {"create": ("Create and submit new HOD job", None, "store_true", False, 'C'),
                 "showall": ("Show info on all found HOD jobs (this is the default action)", None, "store_true", True),
-                #"showjob":("Show info for HOD job JOBID", "string", "store", ''),
-                #"removejob":("Remove HOD job JOBID", "string", "store", ''),
+                # "showjob":("Show info for HOD job JOBID", "string", "store", ''),
+                # "removejob":("Remove HOD job JOBID", "string", "store", ''),
                 }
         descr = ["Action", "What action to take"]
 
@@ -123,7 +123,7 @@ class HodOption(GeneralOption):
     def yarn_options(self):
         """Some hbase presets"""
         # Yarn install seems default on newer hadoop versions, so switch to the old mapreduce path
-        opts = {'on': ("Start Yarn instead of MapRed (SWITCHING NOT IMPLEMENTED)", None, "store_true", True),  # TODO remove when implemented
+        opts = {'on': ("Start Yarn instead of MapRed (SWITCHING NOT IMPLEMENTED)", None, "store_true", False),  # TODO remove when implemented
                 }
         descr = ['Yarn', 'Provide Yarn related options']
         prefix = 'yarn'
