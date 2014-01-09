@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 
 @author: Stijn De Weirdt
@@ -45,6 +45,8 @@ class HodJob(Job):
 
         self.exeout = None
 
+        # TODO abs path?
+        self.pythonexe = 'python'
         self.hodexe, self.hodpythonpath = self.get_hod()
         self.hodargs = self.options.generate_cmd_line(ignore='^(rm|action)_')
 
@@ -62,12 +64,12 @@ class HodJob(Job):
 
         self.name_suffix = 'HOD'  # suffixed name, to lookup later
         options_dict = self.options.dict_by_prefix()
-        options_dict['rm']['name'] = "%s_%s" % (options_dict['rm'][
-                                                'name'], self.name_suffix)
+        options_dict['rm']['name'] = "%s_%s" % (options_dict['rm']['name'],
+                                                self.name_suffix)
         self.type = self.type_class(options_dict['rm'])
 
-        self.type.job_filter = {'Job_Name': '%s$' %
-                                self.name_suffix}  # all jobqueries are filter on this suffix
+        # all jobqueries are filtered on this suffix
+        self.type.job_filter = {'Job_Name': '%s$' % self.name_suffix }
 
         self.run_in_cwd = True
 
@@ -81,7 +83,7 @@ class HodJob(Job):
 
     def get_hod(self, exe_name='hod_main.py'):
         """Get the full path of the exe_name
- -look in bin or bin / .. / hod /
+             -look in bin or bin / .. / hod /
         """
         fullscriptname = os.path.abspath(sys.argv[0])
 
@@ -129,11 +131,36 @@ class HodJob(Job):
             self.log.error("Unknown action in actions %s" % actions)
 
 
-class EasybuildPbsHod(HodJob):
+class MympirunHod(HodJob):
     """Hod type job for easybuild infrastructure
-        - type PBS
         - mympirun cmd style
- -easybuild module names
+    """
+    def generate_exe(self):
+        """Mympirun executable"""
+
+        exe = ["mympirun"]
+        if self.exeout:
+            exe.append("--output=%s" % self.exeout)
+        exe.append("--hybrid=1")
+
+        exe.append('--variablesprefix=%s' % ','.join(self.hodenvvarprefix))
+
+        exe.append(self.pythonexe)
+        exe.append(self.hodexe)
+
+        exe.extend(self.hodargs)
+
+        # pass the classname so the environment can be re-setup
+        exe.append("--hod-envclass=%s" % self.__class__.__name__)
+
+        self.log.debug("Generated exe %s" % exe)
+        return [" ".join(exe)]
+
+
+class EasybuildPbsHod(Mympirun):
+    """MympirunHod type job for easybuild infrastructure
+        - type PBS
+        - easybuild module names
     """
     def __init__(self, options=None):
         HodJob.__init__(self, options)
@@ -146,10 +173,11 @@ class EasybuildPbsHod(HodJob):
             self.modules.append('HBase/%s' % self.options.options.hbase_module)
 
         if self.options.options.java_module:
-            ## force Java module
+            # force Java module
+
             self.modules.append(['unload', 'Java'])
+            # TODO fixed version of 170_3
             self.modules.append('Java/%s' % self.options.options.java_module)
-                                ## TODO fixed version of 170_3
 
     def set_type_class(self):
         """Set the typeclass"""
@@ -159,7 +187,7 @@ class EasybuildPbsHod(HodJob):
 
     def generate_extra_environment(self):
         """load the HOD module, this will set all the environments correctly"""
-        version = os.env.get('EBVERSIONHOD', None)
+        version = os.environ.get('EBVERSIONHOD', None)
         # if version is not set we don't specify it, but also don't specify the '/'
         if version:
             version = "/%s" % version
@@ -171,22 +199,3 @@ class EasybuildPbsHod(HodJob):
 
         return [hodenv]
 
-    def generate_exe(self):
-        """Mympirun executable"""
-
-        exe = ["mympirun"]
-        if self.exeout:
-            exe.append("--output=%s" % self.exeout)
-        exe.append("--hybrid=1")
-
-        exe.append('--variablesprefix=%s' % ','.join(self.hodenvvarprefix))
-
-        exe.append('python')  # TODO abs path?
-        exe.append(self.hodexe)
-        exe += self.hodargs
-
-        exe.append("--hod_envclass=%s" % self.__class__.__name__)
-                   ## pass the classname so the environment can be re-setup
-
-        self.log.debug("Generated exe %s" % exe)
-        return [" ".join(exe)]
