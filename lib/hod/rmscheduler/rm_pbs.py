@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 Implementation of the pbs resource manager
 
@@ -39,7 +39,7 @@ from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 class Pbs(ResourceManagerScheduler):
     """Interaction with torque"""
     def __init__(self, options):
-        self.log = fancylogger.getLogger(self.__class__.__name__)
+        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
         self.options = options
         self.log.debug("Provided options %s" % options)
 
@@ -89,7 +89,7 @@ class Pbs(ResourceManagerScheduler):
                     tmpattropl[0].name = "Mail_Users"
                     tmpattropl[0].value = tmp['others']
             elif arg in ('queue',):
-                ## use destination field of pbs_submit
+                # # use destination field of pbs_submit
                 pass
             else:
                 self.log.error('Unknown arg %s' % arg)
@@ -97,8 +97,8 @@ class Pbs(ResourceManagerScheduler):
 
             attropl.extend(tmpattropl)
 
-        ## add a bunch of variables (added by qsub)
-        ## also set PBS_O_WORKDIR to os.getcwd()
+        # # add a bunch of variables (added by qsub)
+        # # also set PBS_O_WORKDIR to os.getcwd()
         os.environ.setdefault('WORKDIR', os.getcwd())
 
         defvars = ['MAIL', 'HOME', 'PATH', 'SHELL', 'WORKDIR']
@@ -179,12 +179,12 @@ class Pbs(ResourceManagerScheduler):
 
     def info(self, jobid, types=None, job_filter=None):
         """Return jobinfo"""
-        ## TODO restrict to current user jobs
+        # # TODO restrict to current user jobs
         if type(types) is str:
             types = [types]
         self.log.debug("Return info types %s" % types)
 
-        ## add all filter values to the types
+        # # add all filter values to the types
         if job_filter is None:
             job_filter = {}
         self.log.debug("Job filter passed %s" % job_filter)
@@ -216,7 +216,7 @@ class Pbs(ResourceManagerScheduler):
         else:
             self.log.error("Request for jobid %s returned more then one result %s" % (jobid, jobs))
 
-        ## more then one, return value
+        # # more then one, return value
         res = []
         for j in jobs:
             job_details = dict(
@@ -233,7 +233,7 @@ class Pbs(ResourceManagerScheduler):
             return True
 
         if 'Job_Name' in filter:
-            ## name filter is regexp
+            # # name filter is regexp
             reg = re.compile(filter['Job_Name'])
             if reg.search(job['Job_Name']):
                 return True
@@ -278,8 +278,8 @@ class Pbs(ResourceManagerScheduler):
         walltime = int(float(walltime) * 60 * 60)  # in hours
         m, s = divmod(walltime, 60)
         h, m = divmod(m, 60)
-        #d, h = divmod(h, 24) ## no days
-        ## also prints leading 0s (do not insert if x > 0 (eg print 1:0)!
+        # d, h = divmod(h, 24) ## no days
+        # # also prints leading 0s (do not insert if x > 0 (eg print 1:0)!
         # walltimetxt = ":".join(["%02d" % x for x in [ d,h, m, s]]) ## no days
         walltimetxt = ":".join(["%02d" % x for x in [h, m, s]])
 
@@ -304,7 +304,7 @@ class Pbs(ResourceManagerScheduler):
 
         self.log.debug("Create args %s" % self.args)
 
-        ## creating the header. Not used in submission!!
+        # # creating the header. Not used in submission!!
         opts = []
         for arg in self.args.keys():
             if arg in ('resources',):
@@ -336,7 +336,7 @@ class Pbs(ResourceManagerScheduler):
             res.setdefault(np, 0)
             res[np] += 1
 
-        ## return most frequent
+        # # return most frequent
         freq_count, freq_np = max([(j, i) for i, j in res.items()])
         self.log.debug("Found most frequent np %s (%s times) in interesni nodes %s" % (freq_np, freq_count, interesni_nodes))
 

@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 HDFS config and options
 
@@ -34,7 +34,7 @@ from hod.config.hadoopopts import HadoopOpts
 from hod.config.hadoopcfg import HadoopCfg
 
 
-## namenode is set in core
+# # namenode is set in core
 HDFS_OPTS = ParamsDescr({
     'dfs.name.dir': [Directories([None]), 'Determines where on the local filesystem the DFS name node should store the name table(fsimage). If this is a comma-delimited list of kindoflist then the name table is replicated in all of the kindoflist, for redundancy. def ${hadoop.tmp.dir}/dfs/name'],
     'dfs.data.dir': [Directories([None]), 'Determines where on the local filesystem an DFS data node should store its blocks. If this is a comma-delimited list of kindoflist, then data will be stored in all named kindoflist, typically on different devices. Directories that do not exist are ignored. def ${hadoop.tmp.dir}/dfs/data'],
@@ -73,7 +73,7 @@ class HdfsCfg(HadoopCfg):
     def __init__(self):
         HadoopCfg.__init__(self)
         self.name = 'dfs'
-
+        self.log.debug('name set to %s' % self.name)
 
 class HdfsOpts(HdfsCfg, HadoopOpts):
     """Hdfs options"""

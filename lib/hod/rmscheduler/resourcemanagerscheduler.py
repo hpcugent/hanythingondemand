@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 This module specifies the interface to implement for a ResourceNamagerScheduler
 
@@ -33,7 +33,7 @@ from vsc import fancylogger
 class ResourceManagerScheduler:
     """Class to implement"""
     def __init__(self):
-        self.log = fancylogger.getLogger(self.__class__.__name__)
+        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
 
         self.vars = {
             'cwd': None,

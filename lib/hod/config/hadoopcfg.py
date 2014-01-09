@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 @author: Stijn De Weirdt
 """
@@ -37,12 +37,12 @@ from vsc.utils import fancylogger
 class HadoopCfg:
     """Hadoop cfg class. Environment and xml cfg control"""
     def __init__(self):
-        self.log = fancylogger.getLogger(self.__class__.__name__)
+        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
 
         self.hadoopversion = {
-            'major': -1,
-            'minor': -1,
-            'small': -1,
+            'major':-1,
+            'minor':-1,
+            'small':-1,
             'suffix': None,
         }
 
@@ -50,8 +50,8 @@ class HadoopCfg:
         self.hadoop = None
 
         self.javaversion = {
-            'major': -1,
-            'minor': -1,
+            'major':-1,
+            'minor':-1,
             'suffix': None,
         }
         self.java = None
@@ -68,7 +68,7 @@ class HadoopCfg:
 
     def basic_cfg(self):
         """Perform configuration gathering"""
-        ## some default initialisation
+        # # some default initialisation
         self.log.debug("Starting cfg preparation for name %s" % self.name)
         self.prep_java()
         self.prep_hadoop()
@@ -126,7 +126,7 @@ class HadoopCfg:
     def which_java(self):
         """Locate java and/or JAVA_HOME"""
         java = self.which_exe('java')
-        ## is JAVA_HOME set?
+        # # is JAVA_HOME set?
         javahome = os.environ.get('JAVA_HOME', None)
         if javahome and not os.path.isdir(javahome):
             self.log.error("JAVA_HOME %s not a directory" % javahome)
@@ -136,7 +136,7 @@ class HadoopCfg:
             self.log.debug("java found %s" % java)
             if javahome and (not java == os.path.join(javahome, 'bin', 'java')):
                 self.log.warn("java %s does not match JAVA_HOME/bin/java (JAVA_HOME %s)" % (java, javahome))
-                ## java from JAVA_HOME takes precedence
+                # # java from JAVA_HOME takes precedence
                 java = os.path.join(javahome, 'bin', 'java')
                 self.addenv('PATH', os.path.dirname(java))
         else:
@@ -243,7 +243,7 @@ class HadoopCfg:
                 self.log.debug("Found daemon_script %s for name %s daemonname %s" % (self.daemon_script, self.name, self.daemonname))
 
         if self.start_script is None:
-            self.log.error("start_script %s for name %s not found in paths %s" % (startname,  self.name, searchpaths))
+            self.log.error("start_script %s for name %s not found in paths %s" % (startname, self.name, searchpaths))
 
         if self.start_script is None:
             self.log.error("start_script %s for name %s not found in paths %s" % (stopname, self.name, searchpaths))

@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 Command module
 
@@ -55,7 +55,7 @@ class Command(object):
         Constructor
         command is a string representing the command to be run
         '''
-        self.log = fancylogger.getLogger(self.__class__.__name__)
+        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
         self.command = command
         self.timeout = timeout
 
@@ -111,8 +111,8 @@ class Command(object):
             }
 
         nameds.update(stdouterr)
-        #TODO: (high) buffer overflow here sometimes, check what happens and fix
-        #see easybuild/buildsoft/async
+        # TODO: (high) buffer overflow here sometimes, check what happens and fix
+        # see easybuild/buildsoft/async
         p = Popen(self.__str__(), **nameds)
         time.sleep(.1)  # for immediate answers
         timedout = False
@@ -129,7 +129,7 @@ class Command(object):
             time.sleep(1)
 
         if self.fake_pty:
-            ## no stdout/stderr
+            # # no stdout/stderr
             self.log.debug("No stdout/stderr in fake pty mode")
             out = 'Fake PTY no out (this is ok)'
             err = 'Fake PTY no err (this is ok)'
@@ -146,7 +146,7 @@ class Command(object):
         return out, err
 
 
-## Some basic non-hadoop commands
+# # Some basic non-hadoop commands
 class IpAddrShow(Command):
     """Run ip addr show"""
     def __init__(self):
@@ -207,7 +207,7 @@ class ScreenDaemon(Command):
     def __init__(self, name):
         Command.__init__(self)
         # this does nto work if nothing is connected to the session
-        #self.command = ['screen', '-dmS', name]
+        # self.command = ['screen', '-dmS', name]
         self.command = ['screen', '-dmS', 'dummyxc', 'screen', '-S', name]
         self.fake_pty = True
 

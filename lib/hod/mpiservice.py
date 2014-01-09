@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 
 @author: Stijn De Weirdt
@@ -40,7 +40,7 @@ class MpiService:
     def __init__(self, initcomm=True, log=None):
         self.log = log
         if self.log is None:
-            self.log = fancylogger.getLogger()
+            self.log = fancylogger.getLogger(name=self.__class__.__name__, fname=False)
 
         self.comm = None
         self.size = -1
@@ -85,7 +85,7 @@ class MpiService:
         if startwithbarrier:
             self.barrier('Start ')
 
-        ## init all nodes from original COMM_WORLD
+        # # init all nodes from original COMM_WORLD
         self.thisnode = Node()
         self.collect_nodes()
 
@@ -108,7 +108,7 @@ class MpiService:
         self.allnodes = self.comm.alltoall([descr] * self.size)
         self.log.debug("Got allnodes %s" % (self.allnodes))
 
-        ## TODO proper sanity check to see if all nodes have similar network
+        # # TODO proper sanity check to see if all nodes have similar network
         # (ie that the netmask of the selected index can reach the other indices)
         self.log.debug(
             "Sanity check: do all nodes have same network adapters?")
@@ -138,8 +138,8 @@ class MpiService:
             topo)  # all nodes have same dimension (see sanity check)
         mykeys = [[]] * dimension
 
-        ## sanity check
-        ## - all topologies have same length
+        # # sanity check
+        # # - all topologies have same length
         foundproblem = False
         for n in range(self.size):
             sometopo = self.allnodes[n]['topology']
@@ -163,7 +163,7 @@ class MpiService:
             newcomm = self.comm.Split(
                 color, key)  # non-overlapping communicator
             self.check_comm(newcomm, "Topologycomm dimensionindex %d color %d key %d" % (dimind, color, key))
-            ## sanity check
+            # # sanity check
             others = self.who_is_out_there(newcomm)
             self.log.debug(
                 "Others found %s; based on %s" % (others, mykeys[dimind]))
@@ -280,7 +280,7 @@ class MpiService:
         for wrk in self.dists:
             w_type = wrk[0]
             w_ranks = wrk[1]
-            ## pass any existing previous work
+            # # pass any existing previous work
             w_shared = {'active_work': [],
                         'other_work': {},
                         }
@@ -313,14 +313,14 @@ class MpiService:
                 tmp = w_type(w_ranks, w_shared)
                 self.log.debug("work %s begin" % (w_type.__name__))
                 tmp.work_begin(newcomm)
-                ## adding started work
+                # # adding started work
                 self.active_work.append(tmp)
 
         for act_work in self.active_work:
             self.log.debug("work %s start" % (act_work.__class__.__name__))
             act_work.do_work_start()
 
-        ## all work is started now
+        # # all work is started now
         while len(self.active_work):
             self.log.debug(
                 "amount of active work %s" % (len(self.active_work)))

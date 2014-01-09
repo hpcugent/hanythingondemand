@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -37,7 +37,7 @@ from hod.config.hadoopcfg import HadoopCfg
 from hod.commands.hadoop import HbaseVersion
 
 
-## namenode is set in core
+# # namenode is set in core
 HBASE_OPTS = ParamsDescr({
     'hbase.rootdir': [
         HdfsFs(),
@@ -85,7 +85,7 @@ HBASE_OPTS = ParamsDescr({
 
     'hbase.client.scanner.caching': [100, 'Default 1 is too low'],
 
-    ## 'mapred.mapred.child.java.opts':[,'']
+    # # 'mapred.mapred.child.java.opts':[,'']
 })
 
 HBASE_SECURITY_SERVICE = ParamsDescr({
@@ -106,12 +106,14 @@ class HbaseCfg(HadoopCfg):
     def __init__(self):
         HadoopCfg.__init__(self)
         self.name = 'hbase'
+        self.log.debug('name set to %s' % self.name)
+
         self.daemonname = 'hbase'
 
         self.hbasehome = None
         self.hbase = None
-        self.hbaseversion = {'major': -1,
-                             'minor': -1,
+        self.hbaseversion = {'major':-1,
+                             'minor':-1,
                              'suffix': None,
                              }
         self.hbase_jars = []
@@ -121,13 +123,13 @@ class HbaseCfg(HadoopCfg):
         self.which_hbase()
         self.hbase_version()
 
-        ## add the habse required jars
+        # # add the habse required jars
         import glob
         self.hbase_jars += glob.glob("%s/hbase*jar" % self.hbasehome)
         self.hbase_jars += glob.glob("%s/conf")
         self.hbase_jars += glob.glob("%s/lib/zookeeper*jar" % self.hbasehome)
 
-        ## add paths to look for hbase daemon scripts
+        # # add paths to look for hbase daemon scripts
         self.extrasearchpaths.append(os.path.join(self.hbasehome, 'bin'))
         self.extrasearchpaths.append(os.path.join(self.hbasehome, 'sbin'))
         self.log.debug("hbase extrasearchpaths %s" % self.extrasearchpaths)

@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 
 @author: Stijn De Weirdt
@@ -63,10 +63,10 @@ class Hadoop(Work, HadoopOpts):
         """prepare the config: collect the parameters and make the necessary xml cfg files"""
         self.basic_cfg()
         if self.basedir is None:
-            self.basedir = tempfile.mkdtemp(prefix='hod', suffix=".".join(
+            self.basedir = tempfile.mkdtemp(prefix='hod', suffix=".".join([
                 pwd.getpwuid(os.getuid())[0],  # current user uid
                 "%d" % self.rank,
-                self.name
+                self.name]
             ))
 
         self.prepare_extra_work_cfg()
@@ -74,15 +74,15 @@ class Hadoop(Work, HadoopOpts):
         if None in self.default_fsdefault:
             self.log.error("Primary nameserver still not set.")
 
-        ## set the defaults
+        # # set the defaults
         self.make_opts_env_defaults()
 
         self.use_sdp(False)
 
-        ## make the cfg
+        # # make the cfg
         self.make_opts_env_cfg()
 
-        ## set the controldir to the confdir
+        # # set the controldir to the confdir
         self.controldir = self.confdir
 
     def use_sdp(self, allowsdp=True):
@@ -118,15 +118,15 @@ class Hadoop(Work, HadoopOpts):
         sdpconf.append("connect %s %s" % (netw, portrange))
         sdpconf.append("bind %s %s" % (netw, portrange))
 
-        ## add default general
+        # # add default general
         # (java sdp is a bit stupid; doesn't recognize a bind to 0.0.0.0 as valid part for configured bind subnet)
-        ## - only for https(s) type connection
-        #netw = "%s" % ('0.0.0.0')
-        #portrange = "32000-*"  ##
-        #sdpconf.append("connect %s %s" % (netw, portrange))
-        #sdpconf.append("bind %s %s" % (netw, portrange))
+        # # - only for https(s) type connection
+        # netw = "%s" % ('0.0.0.0')
+        # portrange = "32000-*"  ##
+        # sdpconf.append("connect %s %s" % (netw, portrange))
+        # sdpconf.append("bind %s %s" % (netw, portrange))
 
-        ## refpath: the tasktracker config option hjas to exists everywhere (shared fs or identical structure (eg localclient with same name (eg not the MPI rank))
+        # # refpath: the tasktracker config option hjas to exists everywhere (shared fs or identical structure (eg localclient with same name (eg not the MPI rank))
         # refdir = '$%s_CONF_DIR'%self.daemonname.upper() does not work, tasktracker does not export it to the task jvm shell
         refdir = os.path.join(self.basedir, 'refdir')  # is part of basedir, so exists
 
@@ -156,7 +156,7 @@ class Hadoop(Work, HadoopOpts):
                                  '-Djava.net.preferIPv4Stack=true'])
 
         if sdpdebug:
-            ## add $$ for unique id
+            # # add $$ for unique id
             debug_name = "sdp.debug.log.$$"
             debuglog = os.path.join("%s" % self.env_params['%s_LOG_DIR' %
                                     self.daemonname.upper()], debug_name)
@@ -181,7 +181,7 @@ class Hadoop(Work, HadoopOpts):
         self.log.debug("Going to log sdp to %s" % debuglog)
         sdpconf.append('#log min-level %s destination file %s' % (loglvl, debuglog))  # logging disabled for now. causes issues with extra log info to stdout
 
-        ## last entries, catch all
+        # # last entries, catch all
         softname = '*java*'
         portrange = '50020'  # '32000-65536' ## portrange, only datanodes will benefit ?
         netw = "%s/%s" % (intf[1], intf[3])

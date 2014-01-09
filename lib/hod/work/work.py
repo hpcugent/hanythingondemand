@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 
 @author: Stijn De Weirdt
@@ -39,7 +39,7 @@ from hod.mpiservice import MpiService
 class Work(MpiService):
     """Basic work class"""
     def __init__(self, ranks, shared=None):
-        self.log = fancylogger.getLogger(self.__class__.__name__)
+        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
         MpiService.__init__(self, initcomm=False, log=self.log)
 
         self.shared_work = shared  # shared is something that can be shared between work (eg common information)
@@ -128,7 +128,7 @@ class Work(MpiService):
         if self.rank == self.masterrank:
             self.start_work_service_master()
         if self.rank != self.masterrank or self.size == 1:
-            ## slaves and in case there is only one node (master=slave)
+            # # slaves and in case there is only one node (master=slave)
             self.start_work_service_slaves()
         self.barrier("Going to start work on all")
         self.start_work_service_all()
@@ -140,7 +140,7 @@ class Work(MpiService):
 
         ans = self.work_wait()  # True when wait is over
 
-        ## override mechanisms
+        # # override mechanisms
         force_fn = os.path.join(self.controldir, 'force_stop')
         if os.path.isfile(force_fn):
             self.log.warn(
@@ -170,7 +170,7 @@ class Work(MpiService):
         if self.rank == self.masterrank:
             self.stop_work_service_master()
         if self.rank != self.masterrank or self.size == 1:
-            ## slaves and in case there is only one node (master=slave)
+            # # slaves and in case there is only one node (master=slave)
             self.stop_work_service_slaves()
         self.post_run_any_service()
 

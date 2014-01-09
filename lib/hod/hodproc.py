@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 
 @author: Stijn De Weirdt
@@ -44,7 +44,7 @@ class Master(MpiService):
 
     def distribution(self):
         """Master makes the distribution"""
-        ## example part one on half one, part 2 on second half (make sure one is always started)
+        # # example part one on half one, part 2 on second half (make sure one is always started)
         self.dists = []
 
         allranks = range(self.size)
@@ -71,13 +71,13 @@ class HadoopMaster(MpiService):
         """Master makes the distribution"""
         self.dists = []
 
-        ## parse the options first
+        # # parse the options first
         if self.options.options.hdfs_off:
             self.log.info("HDFS off option set.")
         else:
             self.distribution_HDFS()
 
-        ## if HBase is required, start it before MR; so the MR can use the HBase confs and jars
+        # # if HBase is required, start it before MR; so the MR can use the HBase confs and jars
         if self.options.options.hbase_on:
             self.log.debug("HBase on, starting before MapRed")
             self.distribution_Hbase()
@@ -93,15 +93,15 @@ class HadoopMaster(MpiService):
         if self.options.options.yarn_on:
             self.distribution_Yarn()
 
-        ## generate client configs
+        # # generate client configs
         self.make_client()
 
     def make_client(self):
         """Create the client configs"""
-        ## recreate the job environment
+        # # recreate the job environment
         if self.options.options.hod_envclass:
-            from hod.rmscheduler.hodjob import get_job
-            job = get_job(self.options.options.hod_envclass, self.options)
+            from hod.rmscheduler.hodjob import Job
+            job = Job.get_job(self.options.options.hod_envclass, self.options)
             environment = "\n".join(job.generate_environment())
             self.log.debug('Generated environment %s from option hod_envclass %s' % (environment, self.options.options.hod_envclass))
         elif self.options.options.hod_envscript:
@@ -115,7 +115,7 @@ class HadoopMaster(MpiService):
             self.log.debug('No environment provided.')
             environment = None
 
-        ## local client config
+        # # local client config
         shared_localclient = {'environment': environment}
         if self.options.options.hod_script:
             shared_localclient[
@@ -126,7 +126,7 @@ class HadoopMaster(MpiService):
         client_ranks = [0]  # only on one rank
         self.dists.append([LocalClient, client_ranks, shared_localclient])
 
-        ## client with socks access
+        # # client with socks access
         shared_remoteclient = {'environment': environment}
         client_ranks = [0]  # only on one rank
         self.dists.append([RemoteClient, client_ranks, shared_remoteclient])
@@ -135,7 +135,7 @@ class HadoopMaster(MpiService):
         """HDFS distribution. Should be one of the first, sets the namenode"""
         network_index = self.select_network()
 
-        ## namenode on rank 0, jobtracker of last one
+        # # namenode on rank 0, jobtracker of last one
         nn_rank, hdfs_ranks = self.select_hdfs_ranks()
         nn_param = [HdfsFs(
             "%s:8020" % self.allnodes[nn_rank]['network'][network_index][0]),
@@ -177,7 +177,7 @@ class HadoopMaster(MpiService):
         """HBase distribution. Reuse HDFS namenode"""
         sharedhdfs = None
         for d in self.dists:
-            ## enable hdfs hbase tuning
+            # # enable hdfs hbase tuning
             d[2].setdefault('other_work', {})
             d[2]['other_work'].setdefault('Hbase', True)
             self.log.debug("Set shared Hbase for %s to true" % d[0].__name__)
@@ -211,7 +211,7 @@ class HadoopMaster(MpiService):
         allranks = range(self.size)
         rank = allranks[0]
 
-        ## set jt_rank as first rank
+        # # set jt_rank as first rank
         oldindex = allranks.index(rank)
         val = allranks.pop(oldindex)
         allranks.insert(rank, val)
@@ -224,7 +224,7 @@ class HadoopMaster(MpiService):
         allranks = range(self.size)
         rank = allranks[0]
 
-        ## set jt_rank as first rank
+        # # set jt_rank as first rank
         oldindex = allranks.index(rank)
         val = allranks.pop(oldindex)
         allranks.insert(rank, val)
@@ -237,7 +237,7 @@ class HadoopMaster(MpiService):
         allranks = range(self.size)
         rank = allranks[0]
 
-        ## set jt_rank as first rank
+        # # set jt_rank as first rank
         oldindex = allranks.index(rank)
         val = allranks.pop(oldindex)
         allranks.insert(rank, val)

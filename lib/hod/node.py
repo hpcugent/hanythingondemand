@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 
 @author: Stijn De Weirdt
@@ -37,7 +37,7 @@ import socket
 class Node:
     """Detect localnode properties"""
     def __init__(self):
-        self.log = fancylogger.getLogger()
+        self.log = fancylogger.getLogger(name=self.__class__.__name__, fname=False)
 
         self.fqdn = 'localhost'  # base fqdn hostname
         self.network = []  # all possible IPs
@@ -98,7 +98,7 @@ class Node:
 
     def address_in_network(self, ip, net):
         "Is an address in a network"
-        ## from http://stackoverflow.com/questions/819355/how-can-i-check-if-an-ip-is-in-a-network-in-python
+        # # from http://stackoverflow.com/questions/819355/how-can-i-check-if-an-ip-is-in-a-network-in-python
         regipv4_ip = re.compile(r"^\s*(\d+(?:\.\d+){3})$")
         if not regipv4_ip.search(ip):
             tmpip = socket.gethostbyname(ip)
@@ -162,7 +162,7 @@ class Node:
                 cmd = IpAddrShow()
                 inputtxt, err = cmd.run()
             except Exception:
-                ## forced old behaviour (eg non-linux systems?)
+                # # forced old behaviour (eg non-linux systems?)
                 if not self.fqdn in self.network:
                     self.network.append(self.fqdn)
                 self.log.error("%s addr show returned no output. Using %s as network" % (IpAddrShow, self.network))
@@ -187,7 +187,7 @@ class Node:
 
             state = match.group(2).split(',')
             if up and not 'UP' in state:
-                ## interface is not up
+                # # interface is not up
                 self.log.debug("dev %s state is not up: %s" % (dev, state))
                 continue
 
@@ -204,7 +204,7 @@ class Node:
                     name = socket.gethostbyaddr(ip)[0]
                     self.log.debug("Found name %s for ip %s" % (name, ip))
                 except:
-                    ## can't resolve name
+                    # # can't resolve name
                     self.log.debug(
                         "dev %s ipv4 addr %s can't resolve name." % (dev, ip))
                     name = None
@@ -232,10 +232,10 @@ class Node:
         """Try to find a preferred network (can be advanced like IPoIB of high-speed ethernet)"""
         nw = []
         self.log.debug("Preferred network selection")
-        ## step 1 alphabetical ordering (who knows in what order ip returns the addresses) on hostname field
+        # # step 1 alphabetical ordering (who knows in what order ip returns the addresses) on hostname field
         self.network.sort()
 
-        ## look for ib network
+        # # look for ib network
         ib_reg = re.compile("^(ib)\d+$")
         for intf in self.network:
             if ib_reg.search(intf[2]):
@@ -243,7 +243,7 @@ class Node:
                     self.log.debug("Added intf %s as ib interface" % intf)
                     nw.append(intf)
 
-        ## final selection prefer non-vlan
+        # # final selection prefer non-vlan
         vlan_reg = re.compile("^(.*)\.\d+$")
         loopback_reg = re.compile("^(lo)\d*$")
         for intf in self.network:
@@ -252,14 +252,14 @@ class Node:
                     self.log.debug("Added intf %s as non-vlan or non-loopback interface" % intf)
                     nw.append(intf)
 
-        ## add remainder non-loopback
+        # # add remainder non-loopback
         for intf in self.network:
             if not loopback_reg.search(intf[2]):
                 if not intf in nw:
                     self.log.debug("Added intf %s as remaining non-loopback interface" % intf)
                     nw.append(intf)
 
-        ## add remainder
+        # # add remainder
         for intf in self.network:
             if not intf in nw:
                 self.log.debug("Added intf %s as remaining  interface" % intf)

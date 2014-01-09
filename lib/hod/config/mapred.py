@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 Mapred config and options
 
@@ -43,7 +43,7 @@ MAPRED_OPTS = ParamsDescr({
     'mapred.tasktracker.reduce.tasks.maximum': [None, 'The maximum number of map tasks (default is 2)'],
 
 
-    #'mapred.child.java.opts' : [Arguments(), 'General java options passed to each task JVM'],  ## not for now
+    # 'mapred.child.java.opts' : [Arguments(), 'General java options passed to each task JVM'],  ## not for now
 
     'mapred.job.reuse.jvm.num.tasks': [2, 'Reuse the JVM between tasks If the value is 1 (the default), then JVMs are not reused (i.e. 1 task per JVM) (-1: no limit)'],  # from myhadoop
 
@@ -74,13 +74,13 @@ MAPRED_HTTP_OPTS = ParamsDescr({
     'mapred.job.tracker.http.address': [HostnamePort(':50030'), 'The job tracker http server address and port the server will listen on. If the port is 0 then the server will start on a free port.'],
 })
 
-## mapred taskset.cfg opts for LinuxTaskController
-## not for xml
-#MAPRED_TASKSETCFG_OPTS = {
+# # mapred taskset.cfg opts for LinuxTaskController
+# # not for xml
+# MAPRED_TASKSETCFG_OPTS = {
 #    'mapred.local.dir':'Path to mapred local kindoflist. Should be same as the value which was provided to key in mapred-site.xml. This is required to validate paths passed to the setuid executable in order to prevent arbitrary paths being passed to it.',
 #    'hadoop.log.dir':'Path to hadoop log directory. Should be same as the value which the TaskTracker is started with. This is required to set proper permissions on the log files so that they can be written to by the users tasks and read by the TaskTracker for serving on the web UI.',
 #    'mapreduce.tasktracker.group':'Group to which the TaskTracker belongs. The group owner of the taskcontroller binary should be this group. Should be same as the value with which the TaskTracker is configured. This configuration is required for validating the secure access of the task-controller binary.',
-#}
+# }
 
 
 MAPRED_ENV_OPTS = ParamsDescr({
@@ -94,6 +94,7 @@ class MapredCfg(HadoopCfg):
     def __init__(self):
         HadoopCfg.__init__(self)
         self.name = 'mapred'  # MR1
+        self.log.debug('name set to %s' % self.name)
 
 
 class MapredOpts(MapredCfg, HadoopOpts):
@@ -129,22 +130,22 @@ class MapredOpts(MapredCfg, HadoopOpts):
             - add hbase jars + conf +zookeeper to HADOOP_CLASSPATH eg
             $HBASE_HOME/build/hbase-X.X.X.jar:$HBASE_HOME/build/hbase-X.X.X-test.jar:$HBASE_HOME/conf:${HBASE_HOME}/lib/zookeeper-X.X.X.jar
         """
-        ## TODO now we are going to assume that the regionservers are also the tasktrackers, so the config files are available
+        # # TODO now we are going to assume that the regionservers are also the tasktrackers, so the config files are available
 
-        ## locate the HBase work
+        # # locate the HBase work
 
-        ## Code basedon Client config init_core_defaults_shared
+        # # Code basedon Client config init_core_defaults_shared
         exclude_params = [r'\.dir$',
                           r'^mapred.local',
                           ]
         exclude_env_params = [r'_DIR$']
 
-        ## make compiled regexp
+        # # make compiled regexp
         exclude_params = [re.compile(x) for x in exclude_params]
         exclude_env_params = [re.compile(x) for x in exclude_env_params]
 
-        ## first parse the params from the (previously initiated) active work
-        ## - they are updated in the order they are started (last)
+        # # first parse the params from the (previously initiated) active work
+        # # - they are updated in the order they are started (last)
         prev_params = ParamsDescr()
         prev_env_params = ParamsDescr()
 
