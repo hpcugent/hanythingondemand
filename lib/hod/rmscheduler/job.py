@@ -1,4 +1,4 @@
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -21,17 +21,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 
 @author: Stijn De Weirdt
 """
-from vsc import fancylogger
+from vsc.utils.fancylogger import getLogger
 
 
-class Job:
+class Job(object):
     def __init__(self, options):
-        self.log = fancylogger.getLogger(self.__class__.__name__)
+        self.log = getLogger(self.__class__.__name__, fname=False)
 
         self.options = options
 

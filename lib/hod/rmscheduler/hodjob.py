@@ -33,22 +33,27 @@ import sys
 from hod.rmscheduler.job import Job
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 
+from hod.config.hodoption import HodOption
+
 
 class HodJob(Job):
     """Hanything on demand job"""
+
+    OPTION_CLASS = HodOption
+    OPTION_IGNORE_PREFIX = ['rm', 'action']
+
     def __init__(self, options=None):
         if options is None:
-            from hod.config.hodoption import HodOption
-            options = HodOption()
+            options = self.OPTION_CLASS()
 
-        Job.__init__(self, options)
+        super(HodJob, self).__init__(options)
 
         self.exeout = None
 
         # TODO abs path?
         self.pythonexe = 'python'
         self.hodexe, self.hodpythonpath = self.get_hod()
-        self.hodargs = self.options.generate_cmd_line(ignore='^(rm|action)_')
+        self.hodargs = self.options.generate_cmd_line(ignore='^(%s)_' % '|'.join(self.OPTION_IGNORE_PREFIX))
 
         self.hodenvvarprefix = ['HADOOP', 'JAVA', 'HOD', 'MAPRED', 'HDFS']
         if not self.options.options.hdfs_off:
@@ -131,14 +136,37 @@ class HodJob(Job):
             self.log.error("Unknown action in actions %s" % actions)
 
 
+class MympirunHodOption(HodOption):
+    """Extended option class for mympirun usage"""
+
+    def mympirun_options(self):
+        """Some mympiprun options"""
+        opts = {'debug': ("Run mympirun in debug mode", None, "store_true", False)}
+        descr = ['mympirun', 'Provide mympirun related options']
+        prefix = 'mympirun'
+
+        self.log.debug("Add mympirun option parser prefix %s descr %s opts %s" %
+                       (prefix, descr, opts))
+        self.add_group_parser(opts, descr, prefix=prefix)
+
+    def make_init(self):
+        super(MympirunHodOption, self).make_init()
+        self.mympirun_options()
+
+
 class MympirunHod(HodJob):
-    """Hod type job for easybuild infrastructure
+    """Hod type job 
         - mympirun cmd style
     """
+    OPTION_CLASS = MympirunHodOption
+    OPTION_IGNORE_PREFIX = ['rm', 'action', 'mympirun']
+
     def generate_exe(self):
         """Mympirun executable"""
 
         exe = ["mympirun"]
+        if self.options.options.mympirun_debug:
+            exe.append('--debug')
         if self.exeout:
             exe.append("--output=%s" % self.exeout)
         exe.append("--hybrid=1")
@@ -157,27 +185,48 @@ class MympirunHod(HodJob):
         return [" ".join(exe)]
 
 
-class EasybuildPbsHod(Mympirun):
+class EasybuildMMHod(MympirunHod):
     """MympirunHod type job for easybuild infrastructure
-        - type PBS
         - easybuild module names
     """
     def __init__(self, options=None):
-        HodJob.__init__(self, options)
+        super(EasybuildMMHod, self).__init__(options)
+        self.modules = []
 
-        self.modules = ['scripts', 'Python']  # no version?
+        modname = 'hanythingondemand'
+        # TODO this is undefined, module should be provided via E, eg EBMODULENAME
+        ebmodname_envvar = 'EBMODNAME%s' % modname.upper()
 
-        self.modules.append('Hadoop/%s' % self.options.options.hadoop_module)
+        ebmodname = None
+        if ebmodname_envvar in os.environ:
+            ebmodname = os.environ.get(ebmodulename)
+        else:
+            # TODO: is this environment modules specific?
+            env_list = 'LOADEDMODULES'
+            self.log.debug(('Missing environment variable %s,'
+                              ' going to guess it via %s and modname %s.') % (ebmodname_envvar, env_list, modname))
+            candidates = [x for x in os.environ.get(env_list, '').split(':') if x.startswith(modname)]
+            if candidates:
+                ebmodname = candidates[-1]
+                self.log.debug("Using guessed modulename %s" % ebmodname)
+            else:
+                self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.' % ebmodname_envvar)
 
-        if self.options.options.hbase_on:
-            self.modules.append('HBase/%s' % self.options.options.hbase_module)
+        # TODO temp fix to work around bug in vsc-mympirun and vsc-base!!
+        self.modules.append('vsc-mympirun')
+        self.modules.append(['swap', 'vsc-base'])
+
+        self.modules.append(ebmodname)
 
         if self.options.options.java_module:
-            # force Java module
-
-            self.modules.append(['unload', 'Java'])
             # TODO fixed version of 170_3
-            self.modules.append('Java/%s' % self.options.options.java_module)
+            self.modules.append(['swap', 'Java/%s' % self.options.options.java_module])
+
+
+class PbsEBMMHod(EasybuildMMHod):
+    """MympirunHod type job for easybuild infrastructure
+        - type PBS
+    """
 
     def set_type_class(self):
         """Set the typeclass"""
@@ -185,17 +234,4 @@ class EasybuildPbsHod(Mympirun):
         from hod.rmscheduler.rm_pbs import Pbs
         self.type_class = Pbs
 
-    def generate_extra_environment(self):
-        """load the HOD module, this will set all the environments correctly"""
-        version = os.environ.get('EBVERSIONHOD', None)
-        # if version is not set we don't specify it, but also don't specify the '/'
-        if version:
-            version = "/%s" % version
-        else:
-            version = ""
-        hodenv = """module load HOD%s\n""" % version
-
-        self.log.debug("Added extra environment %s" % hodenv)
-
-        return [hodenv]
 

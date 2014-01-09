@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-##
+# #
 # Copyright 2009-2012 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,14 +22,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
 Generate a PBS job script using pbs_python. Will use mympirun to get the all started
 
 @author: Stijn De Weirdt
 """
 
-from hod.rmscheduler.hodjob import EasybuildPbsHod
+from hod.rmscheduler.hodjob import PbsEBMMHod
 
-j = EasybuildPbsHod()
+j = PbsEBMMHod()
 j.run()
