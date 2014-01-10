@@ -30,7 +30,7 @@ Setup for Hanything on Demand
 @author: Stijn De Weirdt
 @author: Jens Timmerman
 """
-
+import os
 import vsc.install.shared_setup as shared_setup
 from vsc.install.shared_setup import jt, sdw
 
