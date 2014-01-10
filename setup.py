@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 # #
-# Copyright 2009-2012 Ghent University
+# Copyright 2009-2013 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -27,21 +27,24 @@
 """
 Setup for Hanything on Demand
 
-@author: Andy Georges
 @author: Stijn De Weirdt
-@author: Wouter Depypere
-@author: Kenneth Hoste
 @author: Jens Timmerman
 """
 
-import os
-from setuptools import setup
+import vsc.install.shared_setup as shared_setup
+from vsc.install.shared_setup import jt, sdw
+
+shared_setup.SHARED_TARGET.update({
+    'url': 'https://github.com/hpcugent/hanythingondemand',
+    'download_url': 'https://github.com/hpcugent/hanythingondemand',
+})
+
 
 PACKAGE = {
     'name': 'hanythingondemand',
     'version': '2.1.1',
-    'author': 'Stijn De Weirdt',
-    'maintainer': 'Jens Timmerman',
+    'author': [sdw, jt],
+    'maintainer': [sdw, jt],
     'license': "GPL v2",
     'package_dir': {'': 'lib', 'tests': ''},
     'install_requires': [
@@ -57,9 +60,8 @@ PACKAGE = {
         'hod.rmscheduler',
     ],
     'scripts': ['bin/hod_main.py', 'bin/hod_pbs.py'],
-    'url': 'https://github.ugent.be/hpcugent/hanythingondemand',
-    'download_url': 'https://github.ugent.be/hpcugent/hanythingondemand',
     'long_description': open(os.path.join(os.path.dirname(__file__), 'README')).read(),
 }
 
-setup(**PACKAGE)
+if __name__ == '__main__':
+    shared_setup.action_target(PACKAGE)

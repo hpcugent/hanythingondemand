@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-###
-# Copyright 2009-2012 Ghent University
+# ##
+# Copyright 2009-2013 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -23,7 +23,7 @@
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 """
-Main hanything on demand script, should be invoked in a job
+Main hanythingondemand script, should be invoked in a job
 
 @author: Stijn De Weirdt
 """
