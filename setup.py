@@ -48,7 +48,7 @@ PACKAGE = {
     'license': "GPL v2",
     'package_dir': {'': 'lib', 'tests': ''},
     'install_requires': [
-        'vsc-base >= 1.7.2',
+        'vsc-base >= 1.7.3',
         'vsc-mympirun >= 3.2.3',
     ],
     'packages': [

@@ -212,10 +212,6 @@ class EasybuildMMHod(MympirunHod):
             else:
                 self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.' % ebmodname_envvar)
 
-        # TODO temp fix to work around bug in vsc-mympirun and vsc-base!!
-        self.modules.append('vsc-mympirun')
-        self.modules.append(['swap', 'vsc-base'])
-
         self.modules.append(ebmodname)
 
         if self.options.options.java_module:
