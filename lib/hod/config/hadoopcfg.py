@@ -26,7 +26,7 @@
 @author: Stijn De Weirdt
 """
 import os
-from os.path import isfile, join as mkpath
+from os.path import isfile
 import re
 
 from hod.commands.command import JavaVersion
@@ -144,7 +144,7 @@ class HadoopCfg:
             self.log.error('java not found in path.')
             if javahome:
                 java = os.path.join(javahome, 'bin', 'java')
-                if os.path.isfile(java):
+                if isfile(java):
                     self.log.debug("java %s located from JAVA_HOME" % java)
                     self.addenv('PATH', os.path.dirname(java))
                 else:
@@ -225,33 +225,36 @@ class HadoopCfg:
         stopname = "stop-%s.sh" % self.name
         daemonname = "%s-daemon.sh" % self.daemonname
 
-        searchpaths = [mkpath(self.hadoophome, 'sbin'), mkpath(self.hadoophome, 'bin'), mkpath(self.hadoophome, 'bin-mapreduce1')] + self.extrasearchpaths
-
+        searchpaths = [
+                os.path.join(self.hadoophome, 'sbin'), 
+                os.path.join(self.hadoophome, 'bin'), 
+                os.path.join(self.hadoophome, 'bin-mapreduce1')
+                ] + self.extrasearchpaths
 
         def _files_in_path(path, files):
-            return all([isfile(mkpath(path, f)) for f in files])
+            return all([isfile(os.path.join(path, f)) for f in files])
 
         # If we find all 3 files together, use them together. This is the case with bin-mapreduce1
         for path in searchpaths:
             if _files_in_path(path, [startname, stopname, daemonname]):
-                self.start_script = mkpath(path, startname)
-                self.stop_script = mkpath(path, stopname)
-                self.daemon_script = mkpath(path, daemonname)
+                self.start_script = os.path.join(path, startname)
+                self.stop_script = os.path.join(path, stopname)
+                self.daemon_script = os.path.join(path, daemonname)
 
         # If they weren't found together, look them up.
         for path in searchpaths:
             startpath = os.path.join(path, startname)
-            if not self.start_script and os.path.isfile(startpath):
+            if self.start_script is None and isfile(startpath):
                 self.start_script = startpath
                 self.log.debug("Found start_script %s for name %s" % (self.start_script, self.name))
 
             stoppath = os.path.join(path, stopname)
-            if not self.stop_script and os.path.isfile(stoppath):
+            if self.stop_script is None and isfile(stoppath):
                 self.stop_script = stoppath
                 self.log.debug("Found stop_script %s for name %s" % (self.stop_script, self.name))
 
             daemonpath = os.path.join(path, daemonname)
-            if not self.daemon_script and os.path.isfile(daemonpath):
+            if self.daemon_script is None and isfile(daemonpath):
                 self.daemon_script = daemonpath
                 self.log.debug("Found daemon_script %s for name %s daemonname %s" % (self.daemon_script, self.name, self.daemonname))
 
