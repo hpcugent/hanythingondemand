@@ -228,7 +228,7 @@ class HadoopCfg:
         searchpaths = [
                 os.path.join(self.hadoophome, 'sbin'), 
                 os.path.join(self.hadoophome, 'bin'), 
-                os.path.join(self.hadoophome, 'bin-mapreduce1')
+                os.path.join(self.hadoophome, 'bin-mapreduce1'),
                 ] + self.extrasearchpaths
 
         def _files_in_path(path, files):
