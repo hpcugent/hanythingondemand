@@ -2,7 +2,6 @@ Run HanythingOnDemand (or HOD for short)
 
 Goal
 ====
-  
 HadoopOnDemand is a set of scripts to start a Hadoop cluster from within
 another resource management system (i.e. Torque/PBS). It allows traditional
 users of HPC systems to experiment with Hadoop or use it as a production setup
@@ -10,7 +9,6 @@ if there is no deciated setup available.
 
 History
 =======
-
 Hadoop used to ship it's own HOD (Hadoop On Demand) but it was non-maintained
 and only supported Hadoop without tuning. (The HOD code that was shipped with
 Hadoop 1.0.0 release was buggy to say the least.) An attempt was made to make
@@ -21,7 +19,8 @@ support more tuning and functionality out of the box (eg HBase was minimum
 requirement), hence it's name.  Apart from the acronym HOD nothing of the
 Hadoop On Demand was reused.
 
-== How does it work? == 
+How does it work?
+=================
 HadoopOnDemand works by launching an MPI job which uses the reserved nodes as a
 cluster-in-a-cluster. These nodes then have the various Hadoop services started
 on them. Users can launch a job at startup or login to the master node and run
@@ -29,7 +28,6 @@ attach to a screen session where they can interact with their services.
 
 Prerequisites
 =============
-
 * A cluster using [Torque](http://www.adaptivecomputing.com/products/open-source/torque/).
 * [environment-modules](http://modules.sourceforge.net/) (used to test HOD) to manage the environment
  * This is optional if everything is setup and usable (eg `PATH`, `JAVA_HOME`, `PYTHONPATH`)
@@ -61,7 +59,8 @@ Preparation
   * Install HanythingOnDemand in $HOME/hod
   * Sourcing the following script will setup the correct environment
 
-```cat > $HOME/hod/localenv <<EOF
+```shell
+cat > $HOME/hod/localenv <<EOF
 
 module load mpich2-x86_64
 HODPATH=$HOME/hod
@@ -74,13 +73,13 @@ fi
 export JAVA_HOME=/usr/lib/jvm/java
 export PATH=$HOME/hadoop/cdh3u3/hadoop-0.20.2-cdh3u3/bin:$HODPATH/bin/:$PATH
 
-EOF```
+EOF
+```
  
  * use hod with option `--hod_envscript=$HOME/hod/localenv`
 
 Usage
 =====
-
 * localhost
  * set the environment
  * `hod.py`
@@ -90,7 +89,6 @@ Usage
  
 HDFS
 ====
-
 Note that some users might be under the impression that they need to import all
 their data into HDFS before they can begin using it. This is not true. They can
 use the 'file://' prefix on paths in the Hadoop system to access the native file
