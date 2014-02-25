@@ -43,7 +43,7 @@ MAPRED_OPTS = ParamsDescr({
     'mapred.tasktracker.reduce.tasks.maximum': [None, 'The maximum number of map tasks (default is 2)'],
 
 
-    # 'mapred.child.java.opts' : [Arguments(), 'General java options passed to each task JVM'],  ## not for now
+     'mapred.child.java.opts' : [Arguments('-Xmx1024M'), 'General java options passed to each task JVM'], 
 
     'mapred.job.reuse.jvm.num.tasks': [2, 'Reuse the JVM between tasks If the value is 1 (the default), then JVMs are not reused (i.e. 1 task per JVM) (-1: no limit)'],  # from myhadoop
 
