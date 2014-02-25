@@ -1,13 +1,15 @@
 Run HanythingOnDemand (or HOD for short)
 
-== Goal ==
+Goal
+====
   
 HadoopOnDemand is a set of scripts to start a Hadoop cluster from within
 another resource management system (i.e. Torque/PBS). It allows traditional
 users of HPC systems to experiment with Hadoop or use it as a production setup
 if there is no deciated setup available.
 
-== History ==
+History
+=======
 
 Hadoop used to ship it's own HOD (Hadoop On Demand) but it was non-maintained
 and only supported Hadoop without tuning. (The HOD code that was shipped with
@@ -25,7 +27,8 @@ cluster-in-a-cluster. These nodes then have the various Hadoop services started
 on them. Users can launch a job at startup or login to the master node and run
 attach to a screen session where they can interact with their services.
 
-== Prerequisites ==
+Prerequisites
+=============
 
 * A cluster using [Torque](http://www.adaptivecomputing.com/products/open-source/torque/).
 * [environment-modules](http://modules.sourceforge.net/) (used to test HOD) to manage the environment
@@ -47,7 +50,8 @@ attach to a screen session where they can interact with their services.
 We prefer to use [Easybuild](https://github.com/hpcugent/easybuild) for
 installing all of this software on our clusters.
 
-== Preparation ==
+Preparation
+===========
 * If the environment is not usable (eg for localhost usage)
  * Create a small script so that the environment is setup
  * eg FC16
@@ -57,24 +61,26 @@ installing all of this software on our clusters.
   * Install HanythingOnDemand in $HOME/hod
   * Sourcing the following script will setup the correct environment
 
-    cat > $HOME/hod/localenv <<EOF
+```cat > $HOME/hod/localenv <<EOF
 
-    module load mpich2-x86_64
-    HODPATH=$HOME/hod
-    if [ -z $PYTHONPATH ]
-    then
-        export PYTHONPATH=$HODPATH
-    else
-        export PYTHONPATH=$HODPATH:$PYTHONPATH
-    fi
-    export JAVA_HOME=/usr/lib/jvm/java
-    export PATH=$HOME/hadoop/cdh3u3/hadoop-0.20.2-cdh3u3/bin:$HODPATH/bin/:$PATH
-    
-    EOF
+module load mpich2-x86_64
+HODPATH=$HOME/hod
+if [ -z $PYTHONPATH ]
+then
+    export PYTHONPATH=$HODPATH
+else
+    export PYTHONPATH=$HODPATH:$PYTHONPATH
+fi
+export JAVA_HOME=/usr/lib/jvm/java
+export PATH=$HOME/hadoop/cdh3u3/hadoop-0.20.2-cdh3u3/bin:$HODPATH/bin/:$PATH
+
+EOF```
  
  * use hod with option `--hod_envscript=$HOME/hod/localenv`
 
-== Usage ==
+Usage
+=====
+
 * localhost
  * set the environment
  * `hod.py`
@@ -82,7 +88,9 @@ installing all of this software on our clusters.
 * cluster
  * use `hod_pbs.py` for pbs support
  
-== HDFS == 
+HDFS
+====
+
 Note that some users might be under the impression that they need to import all
 their data into HDFS before they can begin using it. This is not true. They can
 use the 'file://' prefix on paths in the Hadoop system to access the native file
