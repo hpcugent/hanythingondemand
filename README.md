@@ -1,14 +1,12 @@
-Run HanythingOnDemand (or HOD for short)
+# HanythingOnDemand  (HOD for short)
 
-Goal
-====
-HadoopOnDemand is a set of scripts to start a Hadoop cluster from within
+## Goal
+HanythingOnDemand is a set of scripts to start a Hadoop cluster from within
 another resource management system (i.e. Torque/PBS). It allows traditional
 users of HPC systems to experiment with Hadoop or use it as a production setup
 if there is no deciated setup available.
 
-History
-=======
+## History
 Hadoop used to ship it's own HOD (Hadoop On Demand) but it was non-maintained
 and only supported Hadoop without tuning. (The HOD code that was shipped with
 Hadoop 1.0.0 release was buggy to say the least.) An attempt was made to make
@@ -19,15 +17,16 @@ support more tuning and functionality out of the box (eg HBase was minimum
 requirement), hence it's name.  Apart from the acronym HOD nothing of the
 Hadoop On Demand was reused.
 
-How does it work?
-=================
-HadoopOnDemand works by launching an MPI job which uses the reserved nodes as a
+More on the history of HOD can be found in section 2 of [this paper on Yarn
+(PDF)](http://www.cs.cmu.edu/~garth/15719/papers/yarn.pdf)
+
+## How does it work?
+HanythingOnDemand works by launching an MPI job which uses the reserved nodes as a
 cluster-in-a-cluster. These nodes then have the various Hadoop services started
 on them. Users can launch a job at startup or login to the master node and run
 attach to a screen session where they can interact with their services.
 
-Prerequisites
-=============
+## Prerequisites
 * A cluster using [Torque](http://www.adaptivecomputing.com/products/open-source/torque/).
 * [environment-modules](http://modules.sourceforge.net/) (used to test HOD) to manage the environment
  * This is optional if everything is setup and usable (eg `PATH`, `JAVA_HOME`, `PYTHONPATH`)
@@ -48,17 +47,18 @@ Prerequisites
 We prefer to use [Easybuild](https://github.com/hpcugent/easybuild) for
 installing all of this software on our clusters.
 
-Preparation
-===========
-* If the environment is not usable (eg for localhost usage)
- * Create a small script so that the environment is setup
- * eg FC16
-  * Download
-  * [hadoop-2.0.0-cdh4.4.0.tar.gz](http://archive.cloudera.com/cdh4/cdh/4/) in `$HOME/hadoop/cdh4.4.0` and unpack
-  * Install mpi4py and java: `yum install -y mpi4py-mpich2 java-1.6.0-openjdk`
-  * Install HanythingOnDemand in $HOME/hod
-  * Sourcing the following script will setup the correct environment
-
+## Usage
+### On a cluster
+ Use `hod_pbs.py` for pbs support
+### On localhost
+ * Set the environment
+  * Create a small script so that the environment is setup
+  * eg FC16
+   * Download [hadoop-2.0.0-cdh4.4.0.tar.gz](http://archive.cloudera.com/cdh4/cdh/4/) in `$HOME/hadoop/cdh4.4.0` and unpack.
+   * Install mpi4py and java: `yum install -y mpi4py-mpich2 java-1.6.0-openjdk`
+   * Install HanythingOnDemand in $HOME/hod
+   * Sourcing the following script will setup the correct environment.
+ 
 ```shell
 cat > $HOME/hod/localenv <<EOF
 
@@ -77,21 +77,5 @@ EOF
 ```
  
  * use hod with option `--hod_envscript=$HOME/hod/localenv`
-
-Usage
-=====
-* localhost
- * set the environment
- * `hod.py`
+ * Use `hod_main.py`
   * don't forget the `--hod_envscript` option
-* cluster
- * use `hod_pbs.py` for pbs support
- 
-HDFS
-====
-Note that some users might be under the impression that they need to import all
-their data into HDFS before they can begin using it. This is not true. They can
-use the 'file://' prefix on paths in the Hadoop system to access the native file
-system. If you are managing a cluster, you almost certainly have a parallel file
-system already configured so there is no need for them to move it into a user
-space file system.
