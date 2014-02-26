@@ -199,7 +199,7 @@ class EasybuildMMHod(MympirunHod):
 
         ebmodname = None
         if ebmodname_envvar in os.environ:
-            ebmodname = os.environ.get(ebmodulename)
+            ebmodname = os.environ.get(ebmodname_envvar)
         else:
             # TODO: is this environment modules specific?
             env_list = 'LOADEDMODULES'

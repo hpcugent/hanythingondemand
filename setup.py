@@ -42,7 +42,7 @@ shared_setup.SHARED_TARGET.update({
 
 PACKAGE = {
     'name': 'hanythingondemand',
-    'version': '2.1.1',
+    'version': '2.1.2',
     'author': [sdw, jt],
     'maintainer': [sdw, jt],
     'license': "GPL v2",
@@ -50,6 +50,8 @@ PACKAGE = {
     'install_requires': [
         'vsc-base >= 1.7.3',
         'vsc-mympirun >= 3.2.3',
+        'netaddr',
+        'netifaces',
     ],
     'packages': [
         'tests',

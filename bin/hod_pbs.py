@@ -29,7 +29,9 @@ Generate a PBS job script using pbs_python. Will use mympirun to get the all sta
 @author: Stijn De Weirdt
 """
 
+from hod.config.hodoption import HodOption
 from hod.rmscheduler.hodjob import PbsEBMMHod
 
-j = PbsEBMMHod()
+options = HodOption()
+j = PbsEBMMHod(options)
 j.run()

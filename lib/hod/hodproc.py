@@ -56,16 +56,16 @@ class Master(MpiService):
 
 class Slave(MpiService):
     """Basic Slave"""
-    def __init__(self):
+    def __init__(self, options):
         MpiService.__init__(self)
-        self.options = HodOption()
+        self.options = options
 
 
 class HadoopMaster(MpiService):
     """Basic Master Hdfs and MR1"""
-    def __init__(self):
+    def __init__(self, options):
         MpiService.__init__(self)
-        self.options = HodOption()
+        self.options = options
 
     def distribution(self):
         """Master makes the distribution"""

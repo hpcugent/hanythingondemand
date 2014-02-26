@@ -27,15 +27,18 @@ Main hanythingondemand script, should be invoked in a job
 
 @author: Stijn De Weirdt
 """
+from hod.config.hodoption import HodOption
 from hod.hodproc import Slave, HadoopMaster
 from hod.mpiservice import MASTERRANK
 
 from mpi4py import MPI
 
+options = HodOptions()
+
 if MPI.COMM_WORLD.rank == MASTERRANK:
-    serv = HadoopMaster()
+    serv = HadoopMaster(options)
 else:
-    serv = Slave()
+    serv = Slave(options)
 
 try:
     serv.run_dist()
