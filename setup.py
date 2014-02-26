@@ -54,7 +54,6 @@ PACKAGE = {
         'vsc-base >= 1.7.3',
         'vsc-mympirun >= 3.2.3',
         'mpi4py',
-        'pbs_python',
         'netaddr',
         'netifaces',
     ],
