@@ -27,11 +27,10 @@ class HodNodeTestCase(unittest.TestCase):
     inet6 ::1/128 scope host
     valid_lft forever preferred_lft forever
     '''
-        from hod.node import get_networks
         with patch('netifaces.interfaces', return_value=['lo']):
             with patch('netifaces.ifaddresses', return_value={2:[{'addr':'127.0.0.1', 'netmask':'255.0.0.0'}]}):
                 with patch('socket.getfqdn', return_value='localhost'):
-                    network = get_networks()
+                    network = hn.get_networks()
                     assert network == [['localhost', '127.0.0.1', 'lo', 8]]
 
     def test_get_networks_multiple(self):
