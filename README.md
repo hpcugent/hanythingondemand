@@ -76,6 +76,6 @@ export PATH=$HOME/hadoop/cdh3u3/hadoop-0.20.2-cdh3u3/bin:$HODPATH/bin/:$PATH
 EOF
 ```
  
- * use hod with option `--hod_envscript=$HOME/hod/localenv`
+ * Use hod with option `--hod_envscript=$HOME/hod/localenv`
  * Use `hod_main.py`
   * don't forget the `--hod_envscript` option
