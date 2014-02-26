@@ -60,7 +60,7 @@ PACKAGE = {
         'hod.rmscheduler',
     ],
     'scripts': ['bin/hod_main.py', 'bin/hod_pbs.py'],
-    'long_description': open(os.path.join(os.path.dirname(__file__), 'README')).read(),
+    'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
 }
 
 if __name__ == '__main__':
