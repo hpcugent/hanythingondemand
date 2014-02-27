@@ -30,6 +30,7 @@ import os
 import pwd
 import tempfile
 import re
+import socket
 
 from hod.node import ip_interface_to
 from hod.work.work import Work
