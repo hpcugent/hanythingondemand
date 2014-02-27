@@ -33,7 +33,7 @@ from hod.mpiservice import MASTERRANK
 
 from mpi4py import MPI
 
-options = HodOptions()
+options = HodOption()
 
 if MPI.COMM_WORLD.rank == MASTERRANK:
     serv = HadoopMaster(options)
