@@ -31,6 +31,7 @@ import pwd
 import tempfile
 import re
 
+from hod.node import ip_interface_to
 from hod.work.work import Work
 from hod.config.hadoopopts import HadoopOpts
 from hod.config.customtypes import Arguments
@@ -49,7 +50,7 @@ class Hadoop(Work, HadoopOpts):
             self.log.error("No namenode set")
             return None
 
-        intf = self.thisnode.ip_interface_to(nn.hostname)
+        intf = ip_interface_to(self.thisnode.network, nn.hostname)
         if intf:
             self.log.debug("namenode can be reached by intf %s" % intf)
             return intf
