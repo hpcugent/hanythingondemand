@@ -50,7 +50,8 @@ class Hadoop(Work, HadoopOpts):
             self.log.error("No namenode set")
             return None
 
-        intf = ip_interface_to(self.thisnode.network, nn.hostname)
+        hostip = socket.gethostbyname(nn.hostname) # can throw.
+        intf = ip_interface_to(self.thisnode.network, hostip)
         if intf:
             self.log.debug("namenode can be reached by intf %s" % intf)
             return intf
