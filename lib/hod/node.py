@@ -25,6 +25,7 @@
 """
 
 @author: Stijn De Weirdt
+@author: Ewan Higgs
 """
 import re
 import os
@@ -35,20 +36,19 @@ import netaddr
 import struct
 import multiprocessing
 
+from vsc.affinity import sched_getaffinity
 
 def netmask2maskbits(netmask):
-    '''
-Find the number of bits in a netmask.
-'''
+    """Find the number of bits in a netmask."""
     mask_as_int = netaddr.IPAddress(netmask).value
     return bin(mask_as_int).count('1')
 
 
 def get_networks():
         """
-Returns list of network information by interface.
-Of the form: [hostname, ipaddr, iface, subnetmask]
-"""
+        Returns list of network information by interface.
+        Of the form: [hostname, ipaddr, iface, subnetmask]
+        """
         devices = netifaces.interfaces()
         networks = []
         for device in devices:
@@ -64,18 +64,18 @@ Of the form: [hostname, ipaddr, iface, subnetmask]
 
 
 def address_in_network(ip, net):
-    '''
-Determine if an ip is in a network.
-e.g. 192.168.0.1 is in 192.168.0.0/24 but not 10.0.0.0/24.
+    """
+    Determine if an ip is in a network.
+    e.g. 192.168.0.1 is in 192.168.0.0/24 but not 10.0.0.0/24.
 
-Params
-------
-ip : str
-ipv4 ip address as string.
+    Params
+    ------
+    ip :    str`
+    ipv4 ip address as string.
 
-net : str
-Network and mask bits as string (e.g. '192.168.0.0/16')
-'''
+    net : `str`
+    Network and mask bits as string (e.g. '192.168.0.0/16')
+    """
     return netaddr.IPAddress(ip) in netaddr.IPNetwork(net)
 
 def ip_interface_to(networks, ip):
@@ -146,8 +146,8 @@ class Node(object):
         self.order_network() # order the network
 
         self.pid = os.getpid()
-        self.cores = multiprocessing.cpu_count()
-        self.get_cpuset()
+        self.usablecores = [idx for idx, used in enumerate(sched_getaffinity().cpus) if used)]
+        self.cores = len(self.usablecores)
 
         self.memory = get_memory()
 
@@ -221,43 +221,4 @@ class Node(object):
 
         self.network = nw
         log.debug("ordered network %s" % self.network)
-
-
-    def get_cpuset(self):
-        """Detect presence of a cpuset"""
-        if self.cores < 1:
-            self.cores = multiprocessing.cpu_count()
-        self.usablecores = range(self.cores)
-
-        cpusetmntpt = '/dev/cpuset' # should be mounted TODO check mount
-        myproccpuset = "/proc/%s/cpuset" % self.pid
-
-        if not os.path.isdir(cpusetmntpt):
-            log.debug("No cpuset mountpoint %s found" % (cpusetmntpt))
-        elif not os.path.isfile(myproccpuset):
-            log.debug("No proc cpuset %s found" % (myproccpuset))
-        else:
-            try:
-                mycpusetsuffix = open(myproccpuset).read().strip().lstrip('/')
-                cpusetfn = os.path.join(cpusetmntpt, mycpusetsuffix, 'cpus')
-                if os.path.isfile(cpusetfn):
-                    mycpus = [x.split('-') for x in open(
-                        cpusetfn).read().strip().split(',')]
-                    cpst = []
-                    for cpu in mycpus:
-                        if len(cpu) == 1:
-                            cpst += cpu
-                        else:
-                            cpst += range(int(cpu[0]), int(cpu[1]) + 1)
-                    self.usablecores = [int(x) for x in cpst]
-                    log.debug("Found cpuset %s" % (cpusetfn))
-                else:
-                    log.error("Found proccpuset %s but no cpus file %s" %
-                                   (myproccpuset, cpusetfn))
-            except IOError:
-                log.exception("Failed to cpuset files")
-
-        log.debug("Using cores %s" % (self.usablecores))
-
-
 

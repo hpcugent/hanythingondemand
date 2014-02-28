@@ -131,10 +131,6 @@ class HodNodeTestCase(unittest.TestCase):
         n = hn.Node()
         n.order_network()
 
-    def test_node_get_cpuset(self):
-        n = hn.Node()
-        n.get_cpuset()
-
     def test_node_get_memory(self):
         memory = hn.get_memory()
         assert memory['meminfo'] > 512
