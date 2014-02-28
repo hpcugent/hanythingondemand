@@ -36,7 +36,7 @@ import netaddr
 import struct
 import multiprocessing
 
-from vsc.affinity import sched_getaffinity
+from vsc.utils.affinity import sched_getaffinity
 
 def netmask2maskbits(netmask):
     """Find the number of bits in a netmask."""
@@ -146,7 +146,7 @@ class Node(object):
         self.order_network() # order the network
 
         self.pid = os.getpid()
-        self.usablecores = [idx for idx, used in enumerate(sched_getaffinity().cpus) if used)]
+        self.usablecores = [idx for idx, used in enumerate(sched_getaffinity().cpus) if used]
         self.cores = len(self.usablecores)
 
         self.memory = get_memory()
