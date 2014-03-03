@@ -111,7 +111,6 @@ class HodNodeTestCase(unittest.TestCase):
             with patch('netifaces.ifaddresses', side_effect=_ifaddresses):
                 with patch('socket.getfqdn', side_effect=_hostname):
                     network = get_networks()
-                    print network
                     self.assertEqual(network, [
                             ['localhost', '127.0.0.1', 'lo', 8],
                             ['wibble01.wibble.os', '10.1.1.2', 'em1', 16],
@@ -147,7 +146,6 @@ class HodNodeTestCase(unittest.TestCase):
     def test_node_go(self):
         n = hn.Node()
         desc = n.go()
-        print desc
 
     def test_node_order_network(self):
         n = hn.Node()
@@ -156,4 +154,3 @@ class HodNodeTestCase(unittest.TestCase):
     def test_node_get_memory(self):
         memory = hn.get_memory()
         self.assertTrue(memory['meminfo'] > 512)
-        print memory

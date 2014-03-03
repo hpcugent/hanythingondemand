@@ -58,6 +58,3 @@ class HodConfigHadoopCfg(unittest.TestCase):
         self.assertTrue(cfg.start_script is not None)
         self.assertTrue(cfg.stop_script is not None)
         self.assertTrue(cfg.daemonname is 'hadoop')
-        
-
-

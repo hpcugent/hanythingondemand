@@ -69,8 +69,6 @@ class HodCommandsCommandTestCase(unittest.TestCase):
         c = hcc.IpAddrShow()
         self.assertEqual(str(c), '/sbin/ip addr show')
         out, err = c.run()
-        print 'out', out
-        print 'err', err
         self.assertNotEqual(out,  '') # loads of text which is different on each platform
         self.assertEqual(err, '') # Probably won't work on non Linux.
 

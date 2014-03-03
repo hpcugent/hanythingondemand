@@ -113,4 +113,3 @@ class HodProcTestCase(unittest.TestCase):
         self.assertTrue(isinstance(allranks, list))
         self.assertEqual(ranks, 0)
         self.assertEqual(allranks, range(hm.size))
-
