@@ -34,9 +34,9 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
         cfg = hch.HadoopOpts()
         cfg.init_core_defaults_shared({'params': {'number': 42}, 'env_params': {'power_level': 9000}})
         print cfg.env_params
-        assert 'params' in cfg.env_params
-        assert 'env_params' in cfg.env_params
-        assert 'wibble' in cfg.env_params
+        self.assertTrue('params' in cfg.env_params)
+        self.assertTrue('env_params' in cfg.env_params)
+        self.assertTrue('wibble' in cfg.env_params)
 
 
     def test_hadoopopts_init_core_defaults(self):
@@ -54,8 +54,8 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
     def test_hadoopopts_basic_tuning(self):
         cfg = hch.HadoopOpts()
         cfg.basic_tuning()
-        assert 'sort900' in cfg.tuning
-        assert 'sort1400' in cfg.tuning
+        self.assertTrue('sort900' in cfg.tuning)
+        self.assertTrue('sort1400' in cfg.tuning)
 
     def test_hadoopopts_create_xml_element(self):
         cfg = hch.HadoopOpts()
@@ -94,7 +94,7 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
         cfg = hch.HadoopOpts()
         #cfg.prep_conf_dir()
         cfg.pre_run_any_service()
-        assert os.getenv('HADOOP_CONF_DIR') == cfg.confdir
+        self.assertEqual(os.getenv('HADOOP_CONF_DIR'), cfg.confdir)
 
     def test_hadoopopts_set_niceness(self):
         cfg = hch.HadoopOpts()

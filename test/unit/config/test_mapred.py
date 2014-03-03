@@ -27,7 +27,7 @@ import hod.config.mapred as hcm
 class HodConfigMapred(unittest.TestCase):
     def test_mapredcfg_init(self):
         cfg = hcm.MapredCfg()
-        assert cfg.name == 'mapred'
+        self.assertEqual(cfg.name, 'mapred')
 
     def test_mapredopts_init(self):
         cfg = hcm.MapredOpts()

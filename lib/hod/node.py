@@ -115,8 +115,7 @@ def get_memory():
                 log.error("Unsupported memory unit %s in key %s value %s" % (unit, key, value))
             memory['meminfo'][key] = mem * multi
         else:
-            log.error(
-                "Unknown memory entry in key %s value %s" % (key, value))
+            log.error("Unknown memory entry in key %s value %s" % (key, value))
 
     log.debug("Collected meminfo %s" % memory['meminfo'])
     return memory

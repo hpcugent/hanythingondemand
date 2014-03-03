@@ -28,18 +28,18 @@ import hod.node as hn
 
 class HodNodeTestCase(unittest.TestCase):
     def test_netmask2maskbits(self):
-        assert 0 == hn.netmask2maskbits('0.0.0.0')
-        assert 8 == hn.netmask2maskbits('255.0.0.0')
-        assert 16 == hn.netmask2maskbits('255.255.0.0')
-        assert 24 == hn.netmask2maskbits('255.255.255.0')
-        assert 25 == hn.netmask2maskbits('255.255.255.128')
-        assert 26 == hn.netmask2maskbits('255.255.255.192')
-        assert 27 == hn.netmask2maskbits('255.255.255.224')
-        assert 28 == hn.netmask2maskbits('255.255.255.240')
-        assert 29 == hn.netmask2maskbits('255.255.255.248')
-        assert 30 == hn.netmask2maskbits('255.255.255.252')
-        assert 31 == hn.netmask2maskbits('255.255.255.254')
-        assert 32 == hn.netmask2maskbits('255.255.255.255')
+        self.assertEqual(0, hn.netmask2maskbits('0.0.0.0'))
+        self.assertEqual(8, hn.netmask2maskbits('255.0.0.0'))
+        self.assertEqual(16, hn.netmask2maskbits('255.255.0.0'))
+        self.assertEqual(24, hn.netmask2maskbits('255.255.255.0'))
+        self.assertEqual(25, hn.netmask2maskbits('255.255.255.128'))
+        self.assertEqual(26, hn.netmask2maskbits('255.255.255.192'))
+        self.assertEqual(27, hn.netmask2maskbits('255.255.255.224'))
+        self.assertEqual(28, hn.netmask2maskbits('255.255.255.240'))
+        self.assertEqual(29, hn.netmask2maskbits('255.255.255.248'))
+        self.assertEqual(30, hn.netmask2maskbits('255.255.255.252'))
+        self.assertEqual(31, hn.netmask2maskbits('255.255.255.254'))
+        self.assertEqual(32, hn.netmask2maskbits('255.255.255.255'))
 
     def test_get_networks_single(self):
         '''
@@ -54,7 +54,7 @@ class HodNodeTestCase(unittest.TestCase):
             with patch('netifaces.ifaddresses', return_value={2:[{'addr':'127.0.0.1', 'netmask':'255.0.0.0'}]}):
                 with patch('socket.getfqdn', return_value='localhost'):
                     network = hn.get_networks()
-                    assert network == [['localhost', '127.0.0.1', 'lo', 8]]
+                    self.assertEqual(network, [['localhost', '127.0.0.1', 'lo', 8]])
 
     def test_get_networks_multiple(self):
         '''
@@ -112,17 +112,17 @@ class HodNodeTestCase(unittest.TestCase):
                 with patch('socket.getfqdn', side_effect=_hostname):
                     network = get_networks()
                     print network
-                    assert network == [
+                    self.assertEqual(network, [
                             ['localhost', '127.0.0.1', 'lo', 8],
                             ['wibble01.wibble.os', '10.1.1.2', 'em1', 16],
                             ['wibble01.sitename.tld', '157.193.16.9', 'em3', 25],
                             ['wibble01.wibble.data', '10.143.13.2', 'ib0', 16],
                             ['wibble.sitename.nat', '172.24.13.2', 'em1.295@em1', 16],
-                            ]
+                            ])
     def test_address_in_network(self):
-        assert hn.address_in_network('192.168.0.1', '192.168.0.0/24')
-        assert hn.address_in_network('192.169.2.3', '192.168.0.0/8')
-        assert not hn.address_in_network('192.168.0.1', '10.0.0.0/24')
+        self.assertTrue(hn.address_in_network('192.168.0.1', '192.168.0.0/24'))
+        self.assertTrue(hn.address_in_network('192.169.2.3', '192.168.0.0/8'))
+        self.assertFalse(hn.address_in_network('192.168.0.1', '10.0.0.0/24'))
 
     def test_ip_interface_to(self):
         networks = [
@@ -132,18 +132,17 @@ class HodNodeTestCase(unittest.TestCase):
                 ['wibble01.wibble.data', '10.143.13.2', 'ib0', 16],
                 ['wibble.sitename.nat', '172.24.13.2', 'em1.295@em1', 16],
                 ]
-        assert hn.ip_interface_to(networks, '192.168.0.1') is None
-
-        assert hn.ip_interface_to(networks, '127.9.10.11') == networks[0]
-        assert hn.ip_interface_to(networks, '10.1.2.6') == networks[1]
-        assert hn.ip_interface_to(networks, '157.193.16.10') == networks[2]
-        assert hn.ip_interface_to(networks, '157.193.16.128') is None
+        self.assertTrue(hn.ip_interface_to(networks, '192.168.0.1') is None)
+        self.assertEqual(hn.ip_interface_to(networks, '127.9.10.11'), networks[0])
+        self.assertEqual(hn.ip_interface_to(networks, '10.1.2.6'), networks[1])
+        self.assertEqual(hn.ip_interface_to(networks, '157.193.16.10'), networks[2])
+        self.assertTrue(hn.ip_interface_to(networks, '157.193.16.128') is None)
 
 
     def test_node_init(self):
         n = hn.Node()
-        assert n.fqdn == 'localhost'
-        assert str(n) == 'FQDN localhost PID -1'
+        self.assertEqual(n.fqdn, 'localhost')
+        self.assertEqual(str(n), 'FQDN localhost PID -1')
 
     def test_node_go(self):
         n = hn.Node()
@@ -156,5 +155,5 @@ class HodNodeTestCase(unittest.TestCase):
 
     def test_node_get_memory(self):
         memory = hn.get_memory()
-        assert memory['meminfo'] > 512
+        self.assertTrue(memory['meminfo'] > 512)
         print memory

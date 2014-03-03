@@ -27,7 +27,7 @@ import hod.config.hbase as hch
 class HodConfigHBase(unittest.TestCase):
     def test_hbasecfg_init(self):
         cfg = hch.HbaseCfg()
-        assert cfg.daemonname == 'hbase'
+        self.assertEqual(cfg.daemonname, 'hbase')
 
     @unittest.expectedFailure
     def test_hbasecfg_basic_cfg_extra(self):
@@ -38,8 +38,8 @@ class HodConfigHBase(unittest.TestCase):
     def test_hbasecfg_which_hbase(self):
         cfg = hch.HbaseCfg()
         cfg.which_hbase()
-        assert cfg.hbase is not None
-        assert cfg.hbasehome is not None
+        self.assertTrue(cfg.hbase is not None)
+        self.assertTrue(cfg.hbasehome is not None)
 
     def test_hbasecfg_hbase_version(self):
         cfg = hch.HbaseCfg()

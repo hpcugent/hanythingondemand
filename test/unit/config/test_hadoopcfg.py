@@ -42,22 +42,22 @@ class HodConfigHadoopCfg(unittest.TestCase):
 
     def test_hadoopcfg_java_version(self):
         cfg = hch.HadoopCfg()
-        assert len(cfg.javaversion) == 3
-        assert cfg.javaversion['major'] == -1
-        assert cfg.javaversion['minor'] == -1 
-        assert cfg.javaversion['suffix'] is None
-        assert cfg.java_version() is None # TODO: Move java version string manip to JavaVersion.
-        assert cfg.javaversion['major'] == 1
-        assert cfg.javaversion['minor'] > 4
-        assert cfg.javaversion['suffix'] > 4
+        self.assertEqual(len(cfg.javaversion), 3)
+        self.assertEqual(cfg.javaversion['major'], -1)
+        self.assertEqual(cfg.javaversion['minor'], -1 )
+        self.assertTrue(cfg.javaversion['suffix'] is None)
+        self.assertTrue(cfg.java_version() is None) # TODO: Move java version string manip to JavaVersion.
+        self.assertEqual(cfg.javaversion['major'], 1)
+        self.assertTrue(cfg.javaversion['minor'] > 4)
+        self.assertTrue(cfg.javaversion['suffix'] > 4)
 
     @unittest.expectedFailure
     def test_hadoopcfg_locate_start_stop_daemon(self):
         cfg = hch.HadoopCfg()
         cfg.locate_start_stop_daemon()
-        assert cfg.start_script is not None
-        assert cfg.stop_script is not None
-        assert cfg.daemonname is 'hadoop'
+        self.assertTrue(cfg.start_script is not None)
+        self.assertTrue(cfg.stop_script is not None)
+        self.assertTrue(cfg.daemonname is 'hadoop')
         
 
 
