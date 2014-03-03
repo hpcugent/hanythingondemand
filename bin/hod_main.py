@@ -25,8 +25,8 @@
 """
 Main hanythingondemand script, should be invoked in a job
 
-@author: Stijn De Weirdt (Universiteir Gent)
-@author: Ewan Higgs (Universiteir Gent)
+@author: Stijn De Weirdt (Universiteit Gent)
+@author: Ewan Higgs (Universiteit Gent)
 """
 from hod.config.hodoption import HodOption
 from hod.hodproc import Slave, HadoopMaster
