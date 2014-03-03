@@ -26,7 +26,8 @@
 """
 Generate a PBS job script using pbs_python. Will use mympirun to get the all started
 
-@author: Stijn De Weirdt
+@author: Stijn De Weirdt (Universiteit Gent)
+@author: Ewan Higgs (Universiteit Gent)
 """
 
 from hod.rmscheduler.hodjob import PbsEBMMHod, MympirunHodOption
