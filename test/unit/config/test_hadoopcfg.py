@@ -25,12 +25,16 @@ import unittest
 import hod.config.hadoopcfg as hch
 
 class HodConfigHadoopCfg(unittest.TestCase):
+    '''Test HadoopCfg functions'''
+
     def test_hadoopcfg(self):
+        '''Test the HadoopCfg class can create objects.'''
         cfg = hch.HadoopCfg()
         assert cfg.is_version_ok() is None
         assert cfg.is_version_ok('9001') is None
 
     def test_hadoopcfg_which_hadoop(self):
+        '''Test the HadoopCfg which_hadoop function can find Hadoop.'''
         cfg = hch.HadoopCfg()
         assert cfg.hadoop is None
         assert cfg.hadoophome is None
@@ -41,6 +45,7 @@ class HodConfigHadoopCfg(unittest.TestCase):
         assert cfg.hadoophome is not None
 
     def test_hadoopcfg_java_version(self):
+        '''Test the HadoopCfg can find the Java version.'''
         cfg = hch.HadoopCfg()
         self.assertEqual(len(cfg.javaversion), 3)
         self.assertEqual(cfg.javaversion['major'], -1)
@@ -53,6 +58,7 @@ class HodConfigHadoopCfg(unittest.TestCase):
 
     @unittest.expectedFailure
     def test_hadoopcfg_locate_start_stop_daemon(self):
+        '''Test the HadoopCfg can locate the start stop daemon.'''
         cfg = hch.HadoopCfg()
         cfg.locate_start_stop_daemon()
         self.assertTrue(cfg.start_script is not None)

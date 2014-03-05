@@ -26,34 +26,41 @@ import hod.config.hbase as hch
 
 class HodConfigHBase(unittest.TestCase):
     def test_hbasecfg_init(self):
+        '''test HbaseCfg init function'''
         cfg = hch.HbaseCfg()
         self.assertEqual(cfg.daemonname, 'hbase')
 
     @unittest.expectedFailure
     def test_hbasecfg_basic_cfg_extra(self):
+        '''test HbaseCfg basic_cfg_extra'''
         cfg = hch.HbaseCfg()
         cfg.basic_cfg_extra()
 
     @unittest.expectedFailure
     def test_hbasecfg_which_hbase(self):
+        '''test HbaseCfg which_hbase'''
         cfg = hch.HbaseCfg()
         cfg.which_hbase()
         self.assertTrue(cfg.hbase is not None)
         self.assertTrue(cfg.hbasehome is not None)
 
     def test_hbasecfg_hbase_version(self):
+        '''test HbaseCfg which_hbase_version'''
         cfg = hch.HbaseCfg()
         cfg.hbase_version()
 
     def test_hbase_opts_init(self):
+        '''test HbaseCfg init_defaults'''
         cfg = hch.HbaseOpts()
         cfg.init_defaults()
 
     def test_hbaseopts_init_security_defaults(self):
+        '''test HbaseCfg init_security_defaults'''
         cfg = hch.HbaseOpts()
         cfg.init_security_defaults()
 
     @unittest.expectedFailure
     def test_hbaseopts_pre_run_any_service(self):
+        '''test HbaseCfg pre_run_any_service'''
         cfg = hch.HbaseOpts()
         cfg.pre_run_any_service()

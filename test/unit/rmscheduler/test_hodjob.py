@@ -38,31 +38,37 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
     the path scheme."""
 
     def setUp(self):
+        '''setUp'''
         self.opt = hch.HodOption(go_args=['progname'])
         self.mpiopt = MympirunHodOption(go_args=['progname'])
 
     def test_hodjob_init(self):
+        '''testt HodJob init function'''
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
             hj = hrh.HodJob(self.opt)
 
     def test_hodjob_set_type_class(self):
+        '''testt HodJob set_type_class'''
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
             hj = hrh.HodJob(self.opt)
             hj.set_type_class()
         self.assertEqual(hj.type_class, ResourceManagerScheduler)
 
     def test_hodjob_get_hod(self):
+        '''testt HodJob get_hod'''
         # TODO: Determine some tests for this path hacking 
         with patch('os.path.isfile', side_effect=lambda x: True):
             hj = hrh.HodJob(self.opt)
             hj.get_hod('hod_main')
 
     def test_hodjob_run(self):
+        '''testt HodJob run'''
         with patch('os.path.isfile', side_effect=lambda x: True):
             hj = hrh.HodJob(self.opt)
             hj.run()
 
     def test_mympirunhod_init(self):
+        '''test MympirunHod init functioon'''
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
             o = hrh.MympirunHod(self.opt)
 
@@ -77,17 +83,20 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
         """
 
     def test_easybuildmmhod_init(self):
+        '''test EasybuildMMHod init function'''
         os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
 
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
             o = hrh.EasybuildMMHod(self.opt)
 
     def test_pbsebmmhod_init(self):
+        '''test PbsEBMMHod init function'''
         os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
             o = hrh.PbsEBMMHod(self.mpiopt)
 
     def test_pbsebmmhod_set_type_class(self):
+        '''test PbsEBMMHod set_type_class'''
         # should look into using mock or something here
         os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
         o = hrh.PbsEBMMHod(self.mpiopt)

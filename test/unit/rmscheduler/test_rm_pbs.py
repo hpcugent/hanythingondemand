@@ -25,11 +25,15 @@ import unittest
 import hod.rmscheduler.rm_pbs as hrr
 
 class HodRMSchedulerRMPBSTestCase(unittest.TestCase):
+    '''Test Pbs class functions'''
+
     def test_pbs_init(self):
+        '''test Pbs init function'''
         o = hrr.Pbs(None)
 
     @unittest.expectedFailure
     def test_pbs_submit(self):
+        '''test Pbs submit'''
         o = hrr.Pbs(None)
         o.submit()
 
@@ -40,23 +44,29 @@ class HodRMSchedulerRMPBSTestCase(unittest.TestCase):
     #    o.state()
 
     def test_pbs_info(self):
+        '''test Pbs info -- though it doesn't do it yet.'''
+        # TODO: Make this test the info function
         o = hrr.Pbs(None)
 
     def test_pbs_match_filter(self):
+        '''test Pbs match_filter'''
         o = hrr.Pbs(None)
         o.match_filter('123') # TODO: cleanup use of 'filter'
 
     def test_pbs_remove(self):
+        '''test Pbs remove'''
         o = hrr.Pbs(None)
         o.remove()
 
     @unittest.expectedFailure
     def test_pbs_header(self):
+        '''test Pbs header'''
         o = hrr.Pbs(None)
         hdr = o.header()
         print hdr
 
     @unittest.expectedFailure
     def test_pbs_get_ppn(self):
+        '''test Pbs get_ppn'''
         o = hrr.Pbs(None)
         o.get_ppn()

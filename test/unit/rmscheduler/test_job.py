@@ -25,35 +25,43 @@ import unittest
 import hod.rmscheduler.job as hrj
 
 class HodRMSchedulerJobTestCase(unittest.TestCase):
+    '''Test Job class functions.'''
     def test_job_init(self):
         j = hrj.Job(None)
 
     @unittest.expectedFailure
     def test_job_submit(self):
+        '''test Job submit.'''
         j = hrj.Job(None)
         j.submit()
 
     @unittest.expectedFailure
     def test_job_generate_script(self):
+        '''test Job generate_script.'''
         j = hrj.Job(None)
         j.generate_script()
 
     def test_job_generate_environment(self):
+        '''test Job generate_environment.'''
         j = hrj.Job(None)
         j.generate_environment()
 
     def test_job_generate_extra_environment(self):
+        '''test Job generate_extra_environment.'''
         j = hrj.Job(None)
         j.generate_extra_environment()
 
     def test_job_generate_exe(self):
+        '''test Job generate_exe.'''
         j = hrj.Job(None)
         j.generate_exe()
 
     def test_job_generate_modules(self):
+        '''test Job generate_modules'''
         j = hrj.Job(None)
         j.generate_modules()
 
     def test_job_get_jobs(self):
+        '''test Job get_jobs'''
         hrj.Job.get_job(hrj.Job, None)
 

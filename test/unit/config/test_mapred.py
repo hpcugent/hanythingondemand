@@ -25,22 +25,29 @@ import unittest
 import hod.config.mapred as hcm
 
 class HodConfigMapred(unittest.TestCase):
+    '''Test the MapredCfg class. Sadly we do not assert much here.'''
+
     def test_mapredcfg_init(self):
+        '''test MapredCfg init function'''
         cfg = hcm.MapredCfg()
         self.assertEqual(cfg.name, 'mapred')
 
     def test_mapredopts_init(self):
+        '''test MapredCfg init_defaults'''
         cfg = hcm.MapredOpts()
         cfg.init_defaults()
 
     def test_mapredopts_init_security_defaults(self):
+        '''test MapredCfg init_security_defaults'''
         cfg = hcm.MapredOpts()
         cfg.init_security_defaults()
 
     def test_mapredopts_init_core_defaults_shared(self):
+        '''test MapredCfg init_core_defaults_shared'''
         cfg = hcm.MapredOpts()
         cfg.init_core_defaults_shared({})
 
     def test_mapredopts_check_hbase(self):
+        '''test MapredCfg check_hbase'''
         cfg = hcm.MapredOpts()
         cfg.check_hbase()

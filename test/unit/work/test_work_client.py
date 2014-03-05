@@ -24,25 +24,37 @@
 import hod.work.client as hwc
 import unittest
 
-class HodWorkClientTestCasE(unittest.TestCase):
+class HodWorkLocalClientTestCase(unittest.TestCase):
+    '''Test LocalClient functions'''
+    # TODO: Get these tests working
+
     def test_localclient_init(self):
+        '''test LocalClient init function'''
         o = hwc.LocalClient([0], {})
 
     def test_localclient_start_work_service_master(self):
+        '''test LocalClient start_work_service_master'''
         o = hwc.LocalClient([0], {})
         #o.start_work_service_master()
 
     def test_localclient_stop_work_service_master(self):
+        '''test LocalClient stop_work_service_master'''
         o = hwc.LocalClient([0], {})
         #o.stop_work_service_master()
 
+class HodWorkRemoteClientTestCase(unittest.TestCase):
+    '''Test RemoteClient functions'''
+
     def test_remoteclient_init(self):
+        '''test RemoveClient init function'''
         o = hwc.RemoteClient([0], {})
 
     def test_remoteclient_start_work_service_master(self):
+        '''test RemoteClient start_work_service_master'''
         o = hwc.RemoteClient([0], {})
         #o.start_work_service_master()
 
     def test_remoteclient_stop_work_service_master(self):
+        '''test RemoteClient stop_work_service_master'''
         o = hwc.RemoteClient([0], {})
         #o.start_work_service_master()

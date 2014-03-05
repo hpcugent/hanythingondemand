@@ -27,7 +27,10 @@ import socket
 import hod.node as hn
 
 class HodNodeTestCase(unittest.TestCase):
+    '''Test Node functions'''
+
     def test_netmask2maskbits(self):
+        '''test netmask2maskbits'''
         self.assertEqual(0, hn.netmask2maskbits('0.0.0.0'))
         self.assertEqual(8, hn.netmask2maskbits('255.0.0.0'))
         self.assertEqual(16, hn.netmask2maskbits('255.255.0.0'))
@@ -119,11 +122,13 @@ class HodNodeTestCase(unittest.TestCase):
                             ['wibble.sitename.nat', '172.24.13.2', 'em1.295@em1', 16],
                             ])
     def test_address_in_network(self):
+        '''test address in network'''
         self.assertTrue(hn.address_in_network('192.168.0.1', '192.168.0.0/24'))
         self.assertTrue(hn.address_in_network('192.169.2.3', '192.168.0.0/8'))
         self.assertFalse(hn.address_in_network('192.168.0.1', '10.0.0.0/24'))
 
     def test_ip_interface_to(self):
+        '''test ip interface to'''
         networks = [
                 ['localhost', '127.0.0.1', 'lo', 8],
                 ['wibble01.wibble.os', '10.1.1.2', 'em1', 16],
@@ -139,18 +144,22 @@ class HodNodeTestCase(unittest.TestCase):
 
 
     def test_node_init(self):
+        '''test node init'''
         n = hn.Node()
         self.assertEqual(n.fqdn, 'localhost')
         self.assertEqual(str(n), 'FQDN localhost PID -1')
 
     def test_node_go(self):
+        '''test node go'''
         n = hn.Node()
         desc = n.go()
 
     def test_node_order_network(self):
+        '''test node order network'''
         n = hn.Node()
         n.order_network()
 
     def test_node_get_memory(self):
+        '''test node get memory'''
         memory = hn.get_memory()
         self.assertTrue(memory['meminfo'] > 512)

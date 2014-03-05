@@ -25,24 +25,31 @@ import unittest
 import hod.rmscheduler.resourcemanagerscheduler as hrr
 
 class HodRMSchedulerResourceManagerSchedulerTestCase(unittest.TestCase):
+    '''Test ResourceManagerSceduler functions'''
+
     def test_resourcemanagerscheduler_init(self):
+        '''test ResourceManagerScheduler init function'''
         o = hrr.ResourceManagerScheduler(None)
         self.assertTrue('cwd' in o.vars)
         self.assertTrue('jobid' in o.vars)
 
     @unittest.expectedFailure
     def test_resourcemanagerscheduler_submit(self):
+        '''test ResourceManagerScheduler submit'''
         o = hrr.ResourceManagerScheduler(None)
         o.submit() # TODO: Remove.
 
     def test_resourcemanagerscheduler_state(self):
+        '''test ResourceManagerScheduler state'''
         o = hrr.ResourceManagerScheduler(None)
         o.state() # TODO: Remove.
 
     def test_resourcemanagerscheduler_remove(self):
+        '''test ResourceManagerScheduler remove'''
         o = hrr.ResourceManagerScheduler(None)
         o.remove() # TODO: Remove.
 
     def test_resourcemanagerscheduler_header(self):
+        '''test ResourceManagerScheduler header'''
         o = hrr.ResourceManagerScheduler(None)
         o.header() # TODO: Remove.

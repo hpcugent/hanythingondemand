@@ -25,17 +25,22 @@ import unittest
 import hod.config.client as hcc
 
 class HodConfigClient(unittest.TestCase):
+    '''Test CleintCfg functions'''
+
     def test_client_cfg(self):
+        '''test client cfg'''
         o = hcc.ClientCfg()
         self.assertEqual(o.name, 'localclient')
         self.assertEqual(o.environment_script, None)
 
     def test_local_client_opts_init(self):
+        '''test client opts init'''
         o = hcc.LocalClientOpts()
         o.init_defaults() # wait, didn't we just init?
         o.init_core_defaults_shared({})
 
     @unittest.expectedFailure
     def test_local_client_opts_gen_environment_script(self):
+        '''test local client opts gen_environtment_script'''
         o = hcc.LocalClientOpts()
         o.gen_environment_script()

@@ -25,14 +25,18 @@ import unittest
 import hod.config.hdfs as hch
 
 class HodConfigHDFSTestCase(unittest.TestCase):
+    '''Test the HdfsCfg class. Sadly we do not assert much here.'''
     def test_hdfscfg_init(self):
+        '''test HdfsCfg init function'''
         cfg = hch.HdfsCfg()
         self.assertEqual(cfg.name, 'dfs') # TODO: should this be hdfs?
 
-    def test_hdfsopts_init(self):
+    def test_hdfsopts_init_defaults(self):
+        '''test HdfsCfg init_defaults'''
         cfg = hch.HdfsOpts()
         cfg.init_defaults()
 
     def test_hdfsopts_init_security_defaults(self):
+        '''test HdfsCfg init_security_defaults'''
         cfg = hch.HdfsOpts()
         cfg.init_security_defaults()
