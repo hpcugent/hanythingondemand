@@ -37,6 +37,7 @@ import struct
 import multiprocessing
 
 from vsc.utils.affinity import sched_getaffinity
+from vsc import fancylogger
 
 def netmask2maskbits(netmask):
     """Find the number of bits in a netmask."""
@@ -124,6 +125,7 @@ def get_memory():
 class Node(object):
     """Detect localnode properties"""
     def __init__(self):
+        self.log = fancylogger.getLogger(name=self.__class__.__name__, fname=False)
         self.fqdn = 'localhost' # base fqdn hostname
         self.network = [] # all possible IPs
 
@@ -178,13 +180,13 @@ class Node(object):
         network = struct.unpack('=L', socket.inet_aton(netaddr))[0] & netmask
 
         ans = (ipaddr & netmask) == (network & netmask)
-        log.debug("ip %s in net %s : %s" % (ip, net, ans))
+        self.log.debug("ip %s in net %s : %s" % (ip, net, ans))
         return ans
 
     def order_network(self):
         """Try to find a preferred network (can be advanced like IPoIB of high-speed ethernet)"""
         nw = []
-        log.debug("Preferred network selection")
+        self.log.debug("Preferred network selection")
         # # step 1 alphabetical ordering (who knows in what order ip returns the addresses) on hostname field
         self.network.sort()
 
@@ -193,7 +195,7 @@ class Node(object):
         for intf in self.network:
             if ib_reg.search(intf[2]):
                 if not intf in nw:
-                    log.debug("Added intf %s as ib interface" % intf)
+                    self.log.debug("Added intf %s as ib interface" % intf)
                     nw.append(intf)
 
         # # final selection prefer non-vlan
@@ -202,22 +204,22 @@ class Node(object):
         for intf in self.network:
             if not (vlan_reg.search(intf[2]) or loopback_reg.search(intf[2])):
                 if not intf in nw:
-                    log.debug("Added intf %s as non-vlan or non-loopback interface" % intf)
+                    self.log.debug("Added intf %s as non-vlan or non-loopback interface" % intf)
                     nw.append(intf)
 
         # # add remainder non-loopback
         for intf in self.network:
             if not loopback_reg.search(intf[2]):
                 if not intf in nw:
-                    log.debug("Added intf %s as remaining non-loopback interface" % intf)
+                    self.log.debug("Added intf %s as remaining non-loopback interface" % intf)
                     nw.append(intf)
 
         # # add remainder
         for intf in self.network:
             if not intf in nw:
-                log.debug("Added intf %s as remaining interface" % intf)
+                self.log.debug("Added intf %s as remaining interface" % intf)
                 nw.append(intf)
 
         self.network = nw
-        log.debug("ordered network %s" % self.network)
+        self.log.debug("ordered network %s" % self.network)
 
