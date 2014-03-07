@@ -21,6 +21,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+'''
+@author Ewan Higgs (Universiteit Gent)
+'''
+
 import unittest
 import hod.mpiservice as hm
 
