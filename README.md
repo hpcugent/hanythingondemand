@@ -80,3 +80,7 @@ EOF
  * Use hod with option `--hod_envscript=$HOME/hod/localenv`
  * Use `hod_main.py`
   * don't forget the `--hod_envscript` option
+
+## Wiki
+For more documentation, check the wiki
+[here](http://github.com/hpcugent/hanythingondemand/wiki/)
