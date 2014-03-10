@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# ##
-# Copyright 2009-2013 Ghent University
+###
+# Copyright 2009-2014 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -22,28 +21,26 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-"""
-Main hanythingondemand script, should be invoked in a job
+'''
+@author Ewan Higgs (Universiteit Gent)
+'''
 
-@author: Stijn De Weirdt (Universiteit Gent)
-@author: Ewan Higgs (Universiteit Gent)
-"""
-from hod.config.hodoption import HodOption
-from hod.hodproc import Slave, HadoopMaster
-from hod.mpiservice import MASTERRANK
+import unittest
+import hod.config.hdfs as hch
 
-from mpi4py import MPI
+class HodConfigHDFSTestCase(unittest.TestCase):
+    '''Test the HdfsCfg class. Sadly we do not assert much here.'''
+    def test_hdfscfg_init(self):
+        '''test HdfsCfg init function'''
+        cfg = hch.HdfsCfg()
+        self.assertEqual(cfg.name, 'dfs') # TODO: should this be hdfs?
 
-options = HodOption()
+    def test_hdfsopts_init_defaults(self):
+        '''test HdfsCfg init_defaults'''
+        cfg = hch.HdfsOpts()
+        cfg.init_defaults()
 
-if MPI.COMM_WORLD.rank == MASTERRANK:
-    serv = HadoopMaster(options)
-else:
-    serv = Slave(options)
-
-try:
-    serv.run_dist()
-
-    serv.stop_service()
-except:
-    serv.log.exception("Main HanythingOnDemand failed")
+    def test_hdfsopts_init_security_defaults(self):
+        '''test HdfsCfg init_security_defaults'''
+        cfg = hch.HdfsOpts()
+        cfg.init_security_defaults()

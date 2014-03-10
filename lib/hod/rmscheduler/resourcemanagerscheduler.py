@@ -30,9 +30,9 @@ This module specifies the interface to implement for a ResourceNamagerScheduler
 from vsc import fancylogger
 
 
-class ResourceManagerScheduler:
+class ResourceManagerScheduler(object):
     """Class to implement"""
-    def __init__(self):
+    def __init__(self, options):
         self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
 
         self.vars = {

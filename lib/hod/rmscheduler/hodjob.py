@@ -197,10 +197,8 @@ class EasybuildMMHod(MympirunHod):
         # TODO this is undefined, module should be provided via E, eg EBMODULENAME
         ebmodname_envvar = 'EBMODNAME%s' % modname.upper()
 
-        ebmodname = None
-        if ebmodname_envvar in os.environ:
-            ebmodname = os.environ.get(ebmodulename)
-        else:
+        ebmodname =  os.environ.get(ebmodname_envvar, None)
+        if ebmodname is None:
             # TODO: is this environment modules specific?
             env_list = 'LOADEDMODULES'
             self.log.debug(('Missing environment variable %s,'

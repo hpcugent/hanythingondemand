@@ -32,6 +32,10 @@ from vsc import fancylogger
 
 import os
 import re
+import tempfile
+
+from PBSQuery import PBSQuery
+import pbs
 
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 
@@ -39,21 +43,13 @@ from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 class Pbs(ResourceManagerScheduler):
     """Interaction with torque"""
     def __init__(self, options):
+        super(Pbs, self).__init__(options)
         self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
         self.options = options
         self.log.debug("Provided options %s" % options)
 
-        global PBSQuery
-        global pbs
-        try:
-            from PBSQuery import PBSQuery
-            import pbs
-
-            self.pbs_server = pbs.pbs_default()
-            self.pbsconn = pbs.pbs_connect(self.pbs_server)
-
-        except ImportError:
-            self.log.error("Cannot import PBSQuery or pbs. Please make sure pbs_python is installed and usable.")
+        self.pbs_server = pbs.pbs_default()
+        self.pbsconn = pbs.pbs_connect(self.pbs_server)
 
         self.vars = {
             'cwd': 'PBS_O_WORKDIR',
@@ -109,7 +105,6 @@ class Pbs(ResourceManagerScheduler):
             x, os.environ.get(x, 'NOTFOUND_%s' % x)) for x in defvars])
         attropl.extend(tmpattropl)
 
-        import tempfile
         fh, scriptfn = tempfile.mkstemp()
         f = os.fdopen(fh, 'w')
         self.log.debug("Writing temp jobscript to %s" % scriptfn)

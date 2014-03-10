@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# ##
-# Copyright 2009-2013 Ghent University
+###
+# Copyright 2009-2014 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -22,28 +21,37 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-"""
-Main hanythingondemand script, should be invoked in a job
+'''
+@author Ewan Higgs (Universiteit Gent)
+'''
 
-@author: Stijn De Weirdt (Universiteit Gent)
-@author: Ewan Higgs (Universiteit Gent)
-"""
-from hod.config.hodoption import HodOption
-from hod.hodproc import Slave, HadoopMaster
-from hod.mpiservice import MASTERRANK
+import unittest
+import hod.config.mapred as hcm
 
-from mpi4py import MPI
+class HodConfigMapred(unittest.TestCase):
+    '''Test the MapredCfg class. Sadly we do not assert much here.'''
 
-options = HodOption()
+    def test_mapredcfg_init(self):
+        '''test MapredCfg init function'''
+        cfg = hcm.MapredCfg()
+        self.assertEqual(cfg.name, 'mapred')
 
-if MPI.COMM_WORLD.rank == MASTERRANK:
-    serv = HadoopMaster(options)
-else:
-    serv = Slave(options)
+    def test_mapredopts_init(self):
+        '''test MapredCfg init_defaults'''
+        cfg = hcm.MapredOpts()
+        cfg.init_defaults()
 
-try:
-    serv.run_dist()
+    def test_mapredopts_init_security_defaults(self):
+        '''test MapredCfg init_security_defaults'''
+        cfg = hcm.MapredOpts()
+        cfg.init_security_defaults()
 
-    serv.stop_service()
-except:
-    serv.log.exception("Main HanythingOnDemand failed")
+    def test_mapredopts_init_core_defaults_shared(self):
+        '''test MapredCfg init_core_defaults_shared'''
+        cfg = hcm.MapredOpts()
+        cfg.init_core_defaults_shared({})
+
+    def test_mapredopts_check_hbase(self):
+        '''test MapredCfg check_hbase'''
+        cfg = hcm.MapredOpts()
+        cfg.check_hbase()
