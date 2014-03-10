@@ -22,7 +22,7 @@ More on the history of HOD can be found in section 2 of [this paper on Yarn
 
 ## How does it work?
 hanythingondemand works by launching an MPI job which uses the reserved nodes 
-a cluster-in-a-cluster. These nodes then have the various Hadoop services
+as a cluster-in-a-cluster. These nodes then have the various Hadoop services
 started on them. Users can launch a job at startup or login to worker node
 and attach to a screen session where they can interact with their services.
 
@@ -40,13 +40,12 @@ and attach to a screen session where they can interact with their services.
  * [`pbs_python`](https://oss.trac.surfsara.nl/pbs_python) - Used for interacting with the PBS (aka Torque) server.
 * Java 
  * Oracle JDK 
- * OpenJDK `java-1.6.0-openjdk-1.6.0.0-65.1.11.1.fc16.x86_64`
+ * OpenJDK
  * Both installable with Easybuild
+* [Easybuild](https://github.com/hpcugent/easybuild) - we use Easybuild for installing software and hanythingondemand isn't tested without it.
 * Hadoop binaries
  * eg. the [Cloudera distribution versions](http://archive.cloudera.com/cdh4/cdh/4/) (used to test HOD)
 
-We prefer to use [Easybuild](https://github.com/hpcugent/easybuild) for
-installing all of this software on our clusters.
 
 ## Usage
 ### On a cluster
