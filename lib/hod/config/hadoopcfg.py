@@ -242,21 +242,22 @@ class HadoopCfg:
                 self.daemon_script = os.path.join(path, daemonname)
 
         # If they weren't found together, look them up.
-        for path in searchpaths:
-            startpath = os.path.join(path, startname)
-            if self.start_script is None and isfile(startpath):
-                self.start_script = startpath
-                self.log.debug("Found start_script %s for name %s" % (self.start_script, self.name))
+        if self.start_script is None:
+            for path in searchpaths:
+                startpath = os.path.join(path, startname)
+                if self.start_script is None and isfile(startpath):
+                    self.start_script = startpath
+                    self.log.debug("Found start_script %s for name %s" % (self.start_script, self.name))
 
-            stoppath = os.path.join(path, stopname)
-            if self.stop_script is None and isfile(stoppath):
-                self.stop_script = stoppath
-                self.log.debug("Found stop_script %s for name %s" % (self.stop_script, self.name))
+                stoppath = os.path.join(path, stopname)
+                if self.stop_script is None and isfile(stoppath):
+                    self.stop_script = stoppath
+                    self.log.debug("Found stop_script %s for name %s" % (self.stop_script, self.name))
 
-            daemonpath = os.path.join(path, daemonname)
-            if self.daemon_script is None and isfile(daemonpath):
-                self.daemon_script = daemonpath
-                self.log.debug("Found daemon_script %s for name %s daemonname %s" % (self.daemon_script, self.name, self.daemonname))
+                daemonpath = os.path.join(path, daemonname)
+                if self.daemon_script is None and isfile(daemonpath):
+                    self.daemon_script = daemonpath
+                    self.log.debug("Found daemon_script %s for name %s daemonname %s" % (self.daemon_script, self.name, self.daemonname))
 
         if self.start_script is None:
             self.log.error("start_script %s for name %s not found in paths %s" % (startname, self.name, searchpaths))
