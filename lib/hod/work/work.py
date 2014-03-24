@@ -38,12 +38,9 @@ from hod.mpiservice import MpiService
 
 class Work(MpiService):
     """Basic work class"""
-    def __init__(self, ranks, shared=None):
+    def __init__(self, ranks):
         self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
         MpiService.__init__(self, initcomm=False, log=self.log)
-
-        self.shared_work = shared  # shared is something that can be shared between work (eg common information)
-        self.log.debug("shared_work %s" % self.shared_work)
 
         self.allranks = ranks
 

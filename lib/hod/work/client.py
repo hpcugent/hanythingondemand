@@ -35,11 +35,11 @@ from hod.work.hadoop import Hadoop
 from hod.config.client import LocalClientOpts, RemoteClientOpts
 
 
-class LocalClient(LocalClientOpts, Hadoop):
+class LocalClient(Hadoop):
     """This class handles all client config and (if needed) extra services"""
-    def __init__(self, ranks, shared):
+    def __init__(self, ranks, options):
         Work.__init__(self, ranks)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
-        LocalClientOpts.__init__(self, shared)
+        self.opts = options
 
     def start_work_service_master(self):
         """If the script options is provided, start the screen session"""
@@ -83,11 +83,11 @@ class LocalClient(LocalClientOpts, Hadoop):
         self.log.debug("Stopping screen session not implemented")
 
 
-class RemoteClient(RemoteClientOpts, Hadoop):
+class RemoteClient(Hadoop):
     """This class handles all client config and (if needed) extra services"""
-    def __init__(self, ranks, shared):
+    def __init__(self, ranks, options):
         Work.__init__(self, ranks)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
-        RemoteClientOpts.__init__(self, shared)
+        self.opts = options
 
     def start_work_service_master(self):
         """Start the sshd server"""

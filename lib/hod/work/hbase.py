@@ -28,7 +28,6 @@
 """
 from hod.work.work import Work
 from hod.work.hadoop import Hadoop
-from hod.config.hbase import HbaseOpts
 
 from hod.config.customtypes import Directories, Servers
 from hod.commands.hadoop import HbaseZooKeeper, HbaseMaster, HbaseRegionServer
@@ -38,11 +37,11 @@ import os
 import copy
 
 
-class Hbase(HbaseOpts, Hadoop):
+class Hbase(Hadoop):
     """Base Hbase work class"""
-    def __init__(self, ranks, shared):
+    def __init__(self, ranks, options):
         Work.__init__(self, ranks)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
-        HbaseOpts.__init__(self, shared)
+        self.opts = options
 
     def set_service_defaults(self, mis):
         """Set service specific default"""
@@ -68,7 +67,7 @@ class Hbase(HbaseOpts, Hadoop):
             self.params[mis] = svs
         elif mis in ('hbase.zookeeper.property.dataDir', 'hbase.tmp.dir',):
             ## set directories relative to basedir
-            tmpdir = os.path.join(self.basedir, mis)
+            tmpdir = os.path.join(self.opts.basedir, mis)
             self.log.debug("%s not set. using  %s" % (mis, tmpdir))
             self.params[mis] = Directories(tmpdir)
         elif mis in ('HBASE_CONF_DIR', 'HBASE_PID_DIR', 'HBASE_LOG_DIR',):

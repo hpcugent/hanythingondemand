@@ -27,43 +27,44 @@
 
 import unittest
 import hod.work.hadoop as hwh
+from hod.config.hadoopopts import HadoopOpts
 
 class HodWorkHadoopTestCase(unittest.TestCase):
     '''Test Hadoop worker functions'''
 
     def test_work_hadoop_init(self):
         '''test Hadoop init function'''
-        o = hwh.Hadoop([0], {})
+        o = hwh.Hadoop([0], HadoopOpts({}))
 
     def test_work_hadoop_interface_to_nn(self):
         '''test Hadoop interfasce_to_nn'''
-        o = hwh.Hadoop([0], {})
+        o = hwh.Hadoop([0], HadoopOpts({}))
         o.interface_to_nn()
 
     def test_work_hadoop_prepare_extra_work_cfg(self):
         '''test Hadoop prepare_extra_work_cfg'''
-        o = hwh.Hadoop([0], {})
+        o = hwh.Hadoop([0], HadoopOpts({}))
         o.prepare_extra_work_cfg() # TODO: Remove
 
     def test_work_hadoop_prepare_work_cfg(self):
         '''test Hadoop prepare_work_cfg'''
-        o = hwh.Hadoop([0], {})
+        o = hwh.Hadoop([0], HadoopOpts({}))
         o.prepare_work_cfg()
 
     @unittest.expectedFailure
     def test_work_hadoop_use_sdp(self):
         '''test Hadoop user_sdp'''
-        o = hwh.Hadoop([0], {})
+        o = hwh.Hadoop([0], HadoopOpts({}))
         o.use_sdp()
 
     @unittest.expectedFailure
     def test_work_hadoop_use_sdp_java(self):
         '''test Hadoop user_sdp_java'''
-        o = hwh.Hadoop([0], {})
+        o = hwh.Hadoop([0], HadoopOpts({}))
         o.use_sdp_java()
 
     @unittest.expectedFailure
     def test_work_hadoop_use_sdp_libsdp(self):
         '''test Hadoop user_sdp_libsdp'''
-        o = hwh.Hadoop([0], {})
+        o = hwh.Hadoop([0], HadoopOpts({}))
         o.use_sdp_libsdp('intf')

@@ -25,8 +25,9 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
-import hod.work.client as hwc
 import unittest
+import hod.work.client as hwc
+from hod.config.client import LocalClientOpts, RemoteClientOpts
 
 class HodWorkLocalClientTestCase(unittest.TestCase):
     '''Test LocalClient functions'''
@@ -34,16 +35,16 @@ class HodWorkLocalClientTestCase(unittest.TestCase):
 
     def test_localclient_init(self):
         '''test LocalClient init function'''
-        o = hwc.LocalClient([0], {})
+        o = hwc.LocalClient([0], LocalClientOpts({}))
 
     def test_localclient_start_work_service_master(self):
         '''test LocalClient start_work_service_master'''
-        o = hwc.LocalClient([0], {})
+        o = hwc.LocalClient([0], LocalClientOpts({}))
         #o.start_work_service_master()
 
     def test_localclient_stop_work_service_master(self):
         '''test LocalClient stop_work_service_master'''
-        o = hwc.LocalClient([0], {})
+        o = hwc.LocalClient([0], LocalClientOpts({}))
         #o.stop_work_service_master()
 
 class HodWorkRemoteClientTestCase(unittest.TestCase):
@@ -51,14 +52,14 @@ class HodWorkRemoteClientTestCase(unittest.TestCase):
 
     def test_remoteclient_init(self):
         '''test RemoveClient init function'''
-        o = hwc.RemoteClient([0], {})
+        o = hwc.RemoteClient([0], RemoteClientOpts({}))
 
     def test_remoteclient_start_work_service_master(self):
         '''test RemoteClient start_work_service_master'''
-        o = hwc.RemoteClient([0], {})
+        o = hwc.RemoteClient([0], RemoteClientOpts({}))
         #o.start_work_service_master()
 
     def test_remoteclient_stop_work_service_master(self):
         '''test RemoteClient stop_work_service_master'''
-        o = hwc.RemoteClient([0], {})
+        o = hwc.RemoteClient([0], RemoteClientOpts({}))
         #o.start_work_service_master()

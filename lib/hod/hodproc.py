@@ -26,7 +26,12 @@
 
 @author: Stijn De Weirdt
 """
-from hod.mpiservice import MpiService
+from hod.mpiservice import MpiService, Task
+
+from hod.config.mapred import MapredOpts
+from hod.config.hbase import HbaseOpts
+from hod.config.hdfs import HdfsOpts
+from hod.config.client import LocalClientOpts, RemoteClientOpts
 
 from hod.work.work import TestWorkA, TestWorkB
 from hod.work.mapred import Mapred
@@ -49,9 +54,9 @@ class Master(MpiService):
 
         allranks = range(self.size)
         lim = self.size / 2
-        self.dists.append([TestWorkA, allranks[:max(
-            lim, 1)]])  # for lim == 0, make sure TestWorkA is started
-        self.dists.append([TestWorkB, allranks[lim:]])
+        # for lim == 0, make sure TestWorkA is started
+        self.dists.append(Task(TestWorkA, allranks[:max(lim, 1)], None, None))
+        self.dists.append(Task(TestWorkB, allranks[lim:], None, None))
 
 
 class Slave(MpiService):
@@ -124,12 +129,14 @@ class HadoopMaster(MpiService):
                            self.options.options.hod_script)
 
         client_ranks = [0]  # only on one rank
-        self.dists.append([LocalClient, client_ranks, shared_localclient])
+        self.dists.append(Task(LocalClient, client_ranks,
+            LocalClientOpts, shared_localclient))
 
         # # client with socks access
         shared_remoteclient = {'environment': environment}
         client_ranks = [0]  # only on one rank
-        self.dists.append([RemoteClient, client_ranks, shared_remoteclient])
+        self.dists.append(Task(RemoteClient, client_ranks,
+            RemoteClientOpts, shared_remoteclient))
 
     def distribution_HDFS(self):
         """HDFS distribution. Should be one of the first, sets the namenode"""
@@ -142,7 +149,7 @@ class HadoopMaster(MpiService):
             'Namenode on rank %s network_index %s' % (nn_rank, network_index)]
 
         sharedhdfs = {'params': ParamsDescr({'fs.default.name': nn_param})}
-        self.dists.append([Hdfs, hdfs_ranks, sharedhdfs])
+        self.dists.append(Task(Hdfs, hdfs_ranks, HdfsOpts, sharedhdfs))
 
     def distribution_Yarn(self):
         """Yarn distribution. Reuse HDFS namenode"""
@@ -153,8 +160,8 @@ class HadoopMaster(MpiService):
         network_index = self.select_network()
         sharedhdfs = None
         for d in self.dists:
-            if d[0].__name__ == 'Hdfs':
-                sharedhdfs = d[2]
+            if d.type.__name__ == 'Hdfs':
+                sharedhdfs = d.shared
                 break
         if sharedhdfs:
             self.log.debug("Found Hdfs work in dists with shared params %s" %
@@ -171,19 +178,19 @@ class HadoopMaster(MpiService):
         sharedmapred = {'params': ParamsDescr(
             {'mapred.job.tracker': jt_param})}
         sharedmapred['params'].update(sharedhdfs['params'])
-        self.dists.append([Mapred, mapred_ranks, sharedmapred])
+        self.dists.append(Task(Mapred, mapred_ranks, MapredOpts, sharedmapred))
 
     def distribution_Hbase(self):
         """HBase distribution. Reuse HDFS namenode"""
         sharedhdfs = None
         for d in self.dists:
             # # enable hdfs hbase tuning
-            d[2].setdefault('other_work', {})
-            d[2]['other_work'].setdefault('Hbase', True)
-            self.log.debug("Set shared Hbase for %s to true" % d[0].__name__)
+            d.shared.setdefault('other_work', {})
+            d.shared['other_work'].setdefault('Hbase', True)
+            self.log.debug("Set shared Hbase for %s to true" % d.type.__name__)
 
-            if d[0].__name__ == 'Hdfs':
-                sharedhdfs = d[2]
+            if d.type.__name__ == 'Hdfs':
+                sharedhdfs = d.shared
 
         if sharedhdfs:
             self.log.debug("Found Hdfs work in dists with shared params %s" %
@@ -196,7 +203,7 @@ class HadoopMaster(MpiService):
 
         sharedhbase = {'params': ParamsDescr({})}
         sharedhbase['params'].update(sharedhdfs['params'])
-        self.dists.append([Hbase, hm_ranks, sharedhbase])
+        self.dists.append(Task(Hbase, hm_ranks, Hbase, sharedhbase))
 
     def select_network(self):
         """Given the network info collected in self.allnodes[x]['network'], return the index of the network to use"""

@@ -27,6 +27,7 @@
 
 import unittest
 import os
+from mock import patch
 from xml.dom import minidom
 import hod.config.hadoopopts as hch
 
@@ -41,7 +42,6 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
         #TODO: Figure out how this function is supposed to work.
         cfg = hch.HadoopOpts()
         cfg.init_core_defaults_shared({'params': {'number': 42}, 'env_params': {'power_level': 9000}})
-        print cfg.env_params
         self.assertTrue('params' in cfg.env_params)
         self.assertTrue('env_params' in cfg.env_params)
         self.assertTrue('wibble' in cfg.env_params)
@@ -117,12 +117,16 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
     def test_hadoopopts_set_niceness(self):
         '''test HadoopOpts set_niceness'''
         cfg = hch.HadoopOpts()
-        cfg.set_niceness()
+        with patch('hod.config.hadoopopts.HadoopOpts.which_exe',
+                side_effect=lambda *args:''):
+            cfg.set_niceness()
 
     def test_hadoopopts_set_niceness_hwloc(self):
         '''test HadoopOpts set_niceness with the hwlochindopts param'''
         cfg = hch.HadoopOpts()
-        cfg.set_niceness(hwlocbindopts='')
+        with patch('hod.config.hadoopopts.HadoopOpts.which_exe',
+                side_effect=lambda *args:''):
+            cfg.set_niceness(hwlocbindopts='')
 
     @unittest.expectedFailure
     def test_hadoopopts_make_opts_env_defaults(self):

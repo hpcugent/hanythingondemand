@@ -31,11 +31,14 @@ from mpi4py import MPI
 
 from hod.node import Node
 from vsc import fancylogger
+from collections import namedtuple
 
 MASTERRANK = 0
 
 
-class MpiService:
+Task = namedtuple('Task', ['type', 'ranks', 'options', 'shared'])
+
+class MpiService(object):
     """Basic mpi based service class"""
     def __init__(self, initcomm=True, log=None):
         self.log = log
@@ -278,8 +281,6 @@ class MpiService:
         # Based on initial dist, create the groups and communicators and map with work
         self.log.debug("Starting the distribution.")
         for wrk in self.dists:
-            w_type = wrk[0]
-            w_ranks = wrk[1]
             # # pass any existing previous work
             w_shared = {'active_work': [],
                         'other_work': {},
@@ -296,22 +297,23 @@ class MpiService:
                 w_shared['active_work'].append(tmpdict)
 
             if len(wrk) == 3:
-                w_shared.update(wrk[2])
+                w_shared.update(wrk.shared)
 
             self.log.debug(
-                "newcomm for ranks %s for work %s" % (w_ranks, w_type))
-            newcomm = self.make_comm_group(w_ranks)
+                "newcomm for ranks %s for work %s" % (wrk.ranks, wrk.type))
+            newcomm = self.make_comm_group(wrk.ranks)
 
             if newcomm == MPI.COMM_NULL:
                 self.log.debug(
-                    "No work %s for this rank %s" % (w_type, self.rank))
+                    "No work %s for this rank %s" % (wrk.type, self.rank))
             else:
                 self.tempcomm.append(newcomm)
 
                 self.log.debug("work %s for ranks %s shared %s" %
-                               (w_type.__name__, w_ranks, w_shared))
-                tmp = w_type(w_ranks, w_shared)
-                self.log.debug("work %s begin" % (w_type.__name__))
+                               (wrk.type.__name__, wrk.ranks, w_shared))
+                tmpopts = wrk.options(w_shared)
+                tmp = wrk.type(wrk.ranks, tmpopts)
+                self.log.debug("work %s begin" % (wrk.type.__name__))
                 tmp.work_begin(newcomm)
                 # # adding started work
                 self.active_work.append(tmp)
@@ -326,8 +328,9 @@ class MpiService:
                 "amount of active work %s" % (len(self.active_work)))
             for act_work in self.active_work:
 
-                cleanup = act_work.do_work_wait(
-                )  # wait returns wheter or not to cleanup
+                # wait returns wheter or not to cleanup
+                cleanup = act_work.do_work_wait()
+
                 self.log.debug("wait for work %s returned cleanup %s" %
                                (act_work.__class__.__name__, cleanup))
                 if cleanup:

@@ -34,19 +34,18 @@ import socket
 
 from hod.node import ip_interface_to
 from hod.work.work import Work
-from hod.config.hadoopopts import HadoopOpts
 from hod.config.customtypes import Arguments
 
 
-class Hadoop(Work, HadoopOpts):
+class Hadoop(Work):
     """Base Hadoop work class"""
-    def __init__(self, ranks, shared):
+    def __init__(self, ranks, options):
         Work.__init__(self, ranks)
-        HadoopOpts.__init__(self, shared)
+        self.opts = options
 
     def interface_to_nn(self):
         """What interface can reach the namenode"""
-        nn = self.params.get('fs.default.name', self.default_fsdefault)
+        nn = self.opts.params.get('fs.default.name', self.opts.default_fsdefault)
         if None in nn:
             self.log.error("No namenode set")
             return None
@@ -64,29 +63,29 @@ class Hadoop(Work, HadoopOpts):
 
     def prepare_work_cfg(self):
         """prepare the config: collect the parameters and make the necessary xml cfg files"""
-        self.basic_cfg()
-        if self.basedir is None:
-            self.basedir = tempfile.mkdtemp(prefix='hod', suffix=".".join([
+        self.opts.basic_cfg()
+        if self.opts.basedir is None:
+            self.opts.basedir = tempfile.mkdtemp(prefix='hod', suffix=".".join([
                 pwd.getpwuid(os.getuid())[0],  # current user uid
                 "%d" % self.rank,
-                self.name]
+                self.opts.name]
             ))
 
         self.prepare_extra_work_cfg()
 
-        if None in self.default_fsdefault:
+        if None in self.opts.default_fsdefault:
             self.log.error("Primary nameserver still not set.")
 
         # # set the defaults
-        self.make_opts_env_defaults()
+        self.opts.make_opts_env_defaults()
 
         self.use_sdp(False)
 
         # # make the cfg
-        self.make_opts_env_cfg()
+        self.opts.make_opts_env_cfg()
 
         # # set the controldir to the confdir
-        self.controldir = self.confdir
+        self.controldir = self.opts.confdir
 
     def use_sdp(self, allowsdp=True):
         """When IB is being used, set jdk SDP support"""
@@ -131,13 +130,13 @@ class Hadoop(Work, HadoopOpts):
 
         # # refpath: the tasktracker config option hjas to exists everywhere (shared fs or identical structure (eg localclient with same name (eg not the MPI rank))
         # refdir = '$%s_CONF_DIR'%self.daemonname.upper() does not work, tasktracker does not export it to the task jvm shell
-        refdir = os.path.join(self.basedir, 'refdir')  # is part of basedir, so exists
+        refdir = os.path.join(self.opts.basedir, 'refdir')  # is part of basedir, so exists
 
         content = "\n".join(sdpconf + [''])
 
         fn_name = 'sdp.conf'
 
-        sdpconf_fn = os.path.join(self.confdir, fn_name)
+        sdpconf_fn = os.path.join(self.opts.confdir, fn_name)
         fh = open(sdpconf_fn, 'w')
         fh.write(content)
         fh.close()
@@ -193,7 +192,7 @@ class Hadoop(Work, HadoopOpts):
 
         content = '\n'.join(sdpconf + [''])  # add newline
 
-        sdpconf_fn = os.path.join(self.confdir, 'sdp.conf')
+        sdpconf_fn = os.path.join(self.opts.confdir, 'sdp.conf')
         fh = open(sdpconf_fn, 'w')
         fh.write(content)
         fh.close()
