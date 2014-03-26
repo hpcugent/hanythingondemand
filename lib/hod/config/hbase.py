@@ -30,12 +30,16 @@ HDFS config and options
 
 import re
 import os
-from hod.config.customtypes import Servers, HdfsFs, ParamsDescr, Boolean
+import glob
 
+from hod.config.customtypes import Servers, HdfsFs, ParamsDescr, Boolean
 from hod.config.hadoopopts import HadoopOpts
-from hod.config.hadoopcfg import HadoopCfg
+from hod.config.hadoopcfg import HadoopCfg, which_exe
 from hod.commands.hadoop import HbaseVersion
 
+from vsc.utils import fancylogger
+
+_log = fancylogger.getLogger(fname=False)
 
 # # namenode is set in core
 HBASE_OPTS = ParamsDescr({
@@ -100,6 +104,35 @@ HBASE_ENV_OPTS = ParamsDescr({
     'HBASE_HEAPSIZE': [None, 'HBase heapsize'],
 })
 
+def _which_hbase():
+    """Locate HBASE_HOME and hadoop"""
+    hbase = which_exe('hbase')
+    hbasehome = which_exe('hbase', stripbin=True)
+    return hbase, hbasehome
+
+def _hbase_version():
+    """Set the major and minor hadoopversion"""
+    hv = HbaseVersion()  # not i all versions?
+    hv_out, hv_err = hv.run()
+
+    hbaseVerRegExp = re.compile("^\s*Hadoop\s+(\d+)\.(\d+)(?:\.(\d+)(?:(?:-|_)(\S+))?)?\s*$", re.M)
+    verMatch = hbaseVerRegExp.search(hv_out)
+    hbaseversion = {}
+    if verMatch:
+        hbaseversion['major'] = int(verMatch.group(1))
+        hbaseversion['minor'] = int(verMatch.group(2))
+        if verMatch.group(3):
+            hbaseversion['small'] = int(verMatch.group(3))
+        if verMatch.group(4):
+            hbaseversion['suffix'] = verMatch.group(4)
+        _log.debug(
+            'Version found from hbase command: %s' % hbaseversion)
+    else:
+        _log.error("No HBase hbaseversion found (output %s err %s)" %
+                       (hv_out, hv_err))
+    return hbaseversion
+
+
 
 class HbaseCfg(HadoopCfg):
     """Hbase cfg"""
@@ -120,11 +153,10 @@ class HbaseCfg(HadoopCfg):
 
     def basic_cfg_extra(self):
         self.log.debug("Setting hbase location and version")
-        self.which_hbase()
-        self.hbase_version()
+        self.hbase, self.hbasehome = _which_hbase()
+        self.hbaseversion = _hbase_version()
 
         # # add the habse required jars
-        import glob
         self.hbase_jars += glob.glob("%s/hbase*jar" % self.hbasehome)
         self.hbase_jars += glob.glob("%s/conf")
         self.hbase_jars += glob.glob("%s/lib/zookeeper*jar" % self.hbasehome)
@@ -133,31 +165,6 @@ class HbaseCfg(HadoopCfg):
         self.extrasearchpaths.append(os.path.join(self.hbasehome, 'bin'))
         self.extrasearchpaths.append(os.path.join(self.hbasehome, 'sbin'))
         self.log.debug("hbase extrasearchpaths %s" % self.extrasearchpaths)
-
-    def which_hbase(self):
-        """Locate HBASE_HOME and hadoop"""
-        self.hbase = self.which_exe('hbase')
-        self.hbasehome = self.which_exe('hbase', stripbin=True)
-
-    def hbase_version(self):
-        """Set the major and minor hadoopversion"""
-        hv = HbaseVersion()  # not i all versions?
-        hv_out, hv_err = hv.run()
-
-        hbaseVerRegExp = re.compile("^\s*Hadoop\s+(\d+)\.(\d+)(?:\.(\d+)(?:(?:-|_)(\S+))?)?\s*$", re.M)
-        verMatch = hbaseVerRegExp.search(hv_out)
-        if verMatch:
-            self.hbaseversion['major'] = int(verMatch.group(1))
-            self.hbaseversion['minor'] = int(verMatch.group(2))
-            if verMatch.group(3):
-                self.hbaseversion['small'] = int(verMatch.group(3))
-            if verMatch.group(4):
-                self.hbaseversion['suffix'] = verMatch.group(4)
-            self.log.debug(
-                'Version found from hbase command: %s' % self.hbaseversion)
-        else:
-            self.log.error("No HBase hbaseversion found (output %s err %s)" %
-                           (hv_out, hv_err))
 
 
 class HbaseOpts(HbaseCfg, HadoopOpts):
@@ -189,4 +196,4 @@ class HbaseOpts(HbaseCfg, HadoopOpts):
         varname = 'HBASE_CONF_DIR'
         varvalue = self.confdir
         self.log.debug("set %s in environment to %s" % (varname, varvalue))
-        self.setenv(varname, varvalue)
+        os.putenv(varname, varvalue)

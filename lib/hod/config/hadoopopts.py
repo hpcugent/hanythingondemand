@@ -41,7 +41,7 @@ import pwd
 from hod.config.customtypes import HdfsFs, Directories, Arguments, Params, ParamsDescr, UserGroup
 from xml.dom import getDOMImplementation
 
-from hod.config.hadoopcfg import HadoopCfg
+from hod.config.hadoopcfg import HadoopCfg, which_exe
 
 
 CORE_OPTS = ParamsDescr({
@@ -639,11 +639,11 @@ class HadoopOpts(HadoopCfg):
         varname = 'HADOOP_CONF_DIR'
         varvalue = self.confdir
         self.log.debug("set %s in environment to %s" % (varname, varvalue))
-        self.setenv(varname, varvalue)
+        os.putenv(varname, varvalue)
 
     def set_niceness(self, nicelevel=5, ioniceclass=2, ionicelevel=9, hwlocbindopts=None, varname='HADOOP_NICENESS'):
         """Set the HADOOP_NICENESS. (Due to bug in HADOOP_NICENESS in start scripts, this actually works"""
-        ionice = self.which_exe('ionice')
+        ionice = which_exe('ionice')
         if ionice:
             ionice_opt = [ionice, '-c', "%d" % ioniceclass]
             if ioniceclass in (2, 3,):
@@ -655,7 +655,7 @@ class HadoopOpts(HadoopCfg):
             ionice_opt = []
             self.log.warn('ionice not found, ignoring ionice options')
 
-        hwlocbind = self.which_exe('hwloc-bind')
+        hwlocbind = which_exe('hwloc-bind')
         if hwlocbind:
             if hwlocbindopts:
                 if type(hwlocbindopts) == str:
@@ -671,7 +671,7 @@ class HadoopOpts(HadoopCfg):
 
         varvalue = " ".join(["%d" % nicelevel] + ionice_opt + hwloc_opt)
         self.log.debug("set %s in environment to %s" % (varname, varvalue))
-        self.setenv(varname, varvalue)
+        os.putenv(varname, varvalue)
 
     def make_opts_env_defaults(self):
         """Set the defaults"""

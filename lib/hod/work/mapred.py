@@ -37,8 +37,8 @@ from hod.commands.hadoop import Jobtracker, Tasktracker
 
 class Mapred(Hadoop):
     """Base Mapred work class"""
-    def __init__(self, ranks, options):
-        Work.__init__(self, ranks)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
+    def __init__(self, options):
+        Work.__init__(self)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
         self.opts = options
 
     def set_service_defaults(self, mis):

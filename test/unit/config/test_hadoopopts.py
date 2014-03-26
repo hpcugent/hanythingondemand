@@ -117,14 +117,14 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
     def test_hadoopopts_set_niceness(self):
         '''test HadoopOpts set_niceness'''
         cfg = hch.HadoopOpts()
-        with patch('hod.config.hadoopopts.HadoopOpts.which_exe',
+        with patch('hod.config.hadoopopts.which_exe',
                 side_effect=lambda *args:''):
             cfg.set_niceness()
 
     def test_hadoopopts_set_niceness_hwloc(self):
         '''test HadoopOpts set_niceness with the hwlochindopts param'''
         cfg = hch.HadoopOpts()
-        with patch('hod.config.hadoopopts.HadoopOpts.which_exe',
+        with patch('hod.config.hadoopopts.which_exe',
                 side_effect=lambda *args:''):
             cfg.set_niceness(hwlocbindopts='')
 

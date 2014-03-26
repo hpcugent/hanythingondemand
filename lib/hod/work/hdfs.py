@@ -30,23 +30,22 @@ import os
 
 from hod.work.work import Work
 from hod.work.hadoop import Hadoop
-from hod.config.hdfs import HdfsOpts
 
 from hod.config.customtypes import HostnamePort, Directories
 from hod.commands.hadoop import NameNode, DataNode, FormatHdfs
 
 
-class Hdfs(HdfsOpts, Hadoop):
+class Hdfs(Hadoop):
     """Base Hdfs work class"""
-    def __init__(self, ranks, shared):
-        Work.__init__(self, ranks)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
-        HdfsOpts.__init__(self, shared)
+    def __init__(self, options):
+        Work.__init__(self)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
+        self.opts = options
 
     def set_service_defaults(self, mis):
         """Set service specific default"""
         self.log.debug("Setting servicedefaults for %s" % mis)
         if mis in ('dfs.name.dir', 'dfs.data.dir',):
-            tmpdir = os.path.join(self.basedir, mis)
+            tmpdir = os.path.join(self.opts.basedir, mis)
             self.log.debug("%s not set. using  %s" % (mis, tmpdir))
             self.params[mis] = Directories(tmpdir)
         elif mis in ('dfs.datanode.address',):

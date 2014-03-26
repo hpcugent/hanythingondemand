@@ -43,15 +43,13 @@ class HodConfigHBase(unittest.TestCase):
     @unittest.expectedFailure
     def test_hbasecfg_which_hbase(self):
         '''test HbaseCfg which_hbase'''
-        cfg = hch.HbaseCfg()
-        cfg.which_hbase()
-        self.assertTrue(cfg.hbase is not None)
-        self.assertTrue(cfg.hbasehome is not None)
+        hbase, hbasehome = hch._which_hbase()
+        self.assertTrue(hbase is not None)
+        self.assertTrue(hbasehome is not None)
 
     def test_hbasecfg_hbase_version(self):
         '''test HbaseCfg which_hbase_version'''
-        cfg = hch.HbaseCfg()
-        cfg.hbase_version()
+        hbaseversion = hch._hbase_version()
 
     def test_hbase_opts_init(self):
         '''test HbaseCfg init_defaults'''

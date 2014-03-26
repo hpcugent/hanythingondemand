@@ -35,33 +35,33 @@ class HodWorkHDFSTestCase(unittest.TestCase):
 
     def test_work_hdfs_init(self):
         '''test Hdfs init function'''
-        o = hwh.Hdfs([0], HdfsOpts({}))
+        o = hwh.Hdfs(HdfsOpts({}))
 
     def test_work_hdfs_set_service_defaults(self):
         '''test Hdfs set_service_defaults'''
-        o = hwh.Hdfs([0], HdfsOpts({}))
+        o = hwh.Hdfs(HdfsOpts({}))
         o.set_service_defaults('mis') # TODO: what is 'mis'? A string, but what?
 
     def test_work_hdfs_start_work_service_master(self):
         '''test Hdfs start_work_service_master'''
-        o = hwh.Hdfs([0], HdfsOpts({}))
+        o = hwh.Hdfs(HdfsOpts({}))
         #o.locate_start_stop_daemon()
         #o.start_work_service_master()
 
     def test_work_hdfs_start_work_service_slaves(self):
         '''test Hdfs start_work_service_slaves'''
-        o = hwh.Hdfs([0], HdfsOpts({}))
+        o = hwh.Hdfs(HdfsOpts({}))
         #o.locate_start_stop_daemon()
         #o.start_work_service_slaves()
 
     def test_work_hdfs_stop_work_service_master(self):
         '''test Hdfs stop_work_service_master'''
-        o = hwh.Hdfs([0], HdfsOpts({}))
+        o = hwh.Hdfs(HdfsOpts({}))
         #o.locate_start_stop_daemon()
         #o.stop_work_service_master()
 
     def test_work_hdfse_stop_work_service_slaves(self):
         '''test Hdfs stop_work_service_slaves'''
-        o = hwh.Hdfs([0], HdfsOpts({}))
+        o = hwh.Hdfs(HdfsOpts({}))
         #o.locate_start_stop_daemon()
         #o.stop_work_service_slaves()

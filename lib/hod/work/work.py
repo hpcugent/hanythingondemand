@@ -38,13 +38,9 @@ from hod.mpiservice import MpiService
 
 class Work(MpiService):
     """Basic work class"""
-    def __init__(self, ranks):
+    def __init__(self):
         self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
         MpiService.__init__(self, initcomm=False, log=self.log)
-
-        self.allranks = ranks
-
-        self.commands = {}  # dict with command : list of ranks
 
         self.work_max_age = 3600 * 71
         self.work_start_time = time.time()

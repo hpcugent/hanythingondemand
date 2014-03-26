@@ -34,31 +34,19 @@ class HodConfigHadoopCfg(unittest.TestCase):
     def test_hadoopcfg(self):
         '''Test the HadoopCfg class can create objects.'''
         cfg = hch.HadoopCfg()
-        assert cfg.is_version_ok() is None
-        assert cfg.is_version_ok('9001') is None
 
     def test_hadoopcfg_which_hadoop(self):
         '''Test the HadoopCfg which_hadoop function can find Hadoop.'''
-        cfg = hch.HadoopCfg()
-        assert cfg.hadoop is None
-        assert cfg.hadoophome is None
-
-        assert cfg.which_hadoop() is None
-
-        assert cfg.hadoop is not None
-        assert cfg.hadoophome is not None
+        hadoop, hadoophome = hch._which_hadoop()
+        self.assertTrue(hadoop is not None)
+        self.assertTrue(hadoophome is not None)
 
     def test_hadoopcfg_java_version(self):
         '''Test the HadoopCfg can find the Java version.'''
-        cfg = hch.HadoopCfg()
-        self.assertEqual(len(cfg.javaversion), 3)
-        self.assertEqual(cfg.javaversion['major'], -1)
-        self.assertEqual(cfg.javaversion['minor'], -1 )
-        self.assertTrue(cfg.javaversion['suffix'] is None)
-        self.assertTrue(cfg.java_version() is None) # TODO: Move java version string manip to JavaVersion.
-        self.assertEqual(cfg.javaversion['major'], 1)
-        self.assertTrue(cfg.javaversion['minor'] > 4)
-        self.assertTrue(cfg.javaversion['suffix'] > 4)
+        javaversion = hch.java_version() # TODO: Move java version string manip to JavaVersion.
+        self.assertEqual(javaversion['major'], 1)
+        self.assertTrue(javaversion['minor'] > 4)
+        self.assertTrue(javaversion['suffix'] > 4)
 
     @unittest.expectedFailure
     def test_hadoopcfg_locate_start_stop_daemon(self):

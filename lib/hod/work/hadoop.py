@@ -39,8 +39,8 @@ from hod.config.customtypes import Arguments
 
 class Hadoop(Work):
     """Base Hadoop work class"""
-    def __init__(self, ranks, options):
-        Work.__init__(self, ranks)
+    def __init__(self, options):
+        Work.__init__(self)
         self.opts = options
 
     def interface_to_nn(self):

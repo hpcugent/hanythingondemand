@@ -34,31 +34,31 @@ class HodWorkHbaseTestCase(unittest.TestCase):
 
     def test_work_hbase_init(self):
         '''test Hbase init function'''
-        o = hwh.Hbase([0], HbaseOpts({}))
+        o = hwh.Hbase(HbaseOpts({}))
 
     def test_work_hbase_set_service_defaults(self):
         '''test Hbase set_service_defaults'''
-        o = hwh.Hbase([0], HbaseOpts({}))
+        o = hwh.Hbase(HbaseOpts({}))
         o.set_service_defaults('mis') # TODO: what is 'mis'? A string, but what?
 
     def test_work_hbase_start_work_service_master(self):
         '''test Hbase start_work_service_master'''
-        o = hwh.Hbase([0], HbaseOpts({}))
+        o = hwh.Hbase(HbaseOpts({}))
         #o.start_work_service_master()
 
     def test_work_hbase_start_work_service_slaves(self):
         '''test Hbase start_work_service_slaves'''
-        o = hwh.Hbase([0], HbaseOpts({}))
+        o = hwh.Hbase(HbaseOpts({}))
         #o.start_work_service_slaves()
 
     @unittest.expectedFailure
     def test_work_hbase_stop_work_service_master(self):
         '''test Hbase stop_work_service_master'''
-        o = hwh.Hbase([0], HbaseOpts({}))
+        o = hwh.Hbase(HbaseOpts({}))
         o.stop_work_service_master()
 
     @unittest.expectedFailure
     def test_work_hbase_stop_work_service_slaves(self):
         '''test Hbase stop_work_service_slaves'''
-        o = hwh.Hbase([0], HbaseOpts({}))
+        o = hwh.Hbase(HbaseOpts({}))
         o.stop_work_service_slaves()
