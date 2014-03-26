@@ -34,12 +34,6 @@ import hod.hodproc as hh
 class HodProcTestCase(unittest.TestCase):
     '''Test HodProc functions'''
 
-    def test_slave_init_options(self):
-        '''test slave init options blank'''
-        opts = sentinel.opts
-        s = hh.Slave(opts)
-        self.assertTrue( s.options == opts)
-
     def test_hadoop_master_init(self):
         '''test hadoop master init'''
         opts = sentinel.opts

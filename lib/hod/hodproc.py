@@ -33,7 +33,6 @@ from hod.config.hbase import HbaseOpts
 from hod.config.hdfs import HdfsOpts
 from hod.config.client import LocalClientOpts, RemoteClientOpts
 
-from hod.work.work import TestWorkA, TestWorkB
 from hod.work.mapred import Mapred
 from hod.work.hdfs import Hdfs
 from hod.work.hbase import Hbase
@@ -42,28 +41,6 @@ from hod.work.client import LocalClient, RemoteClient
 
 from hod.config.customtypes import HostnamePort, HdfsFs, ParamsDescr
 from hod.config.hodoption import HodOption
-
-
-class Master(MpiService):
-    """Basic Master"""
-
-    def distribution(self):
-        """Master makes the distribution"""
-        # # example part one on half one, part 2 on second half (make sure one is always started)
-        self.dists = []
-
-        allranks = range(self.size)
-        lim = self.size / 2
-        # for lim == 0, make sure TestWorkA is started
-        self.dists.append(Task(TestWorkA, allranks[:max(lim, 1)], None, None))
-        self.dists.append(Task(TestWorkB, allranks[lim:], None, None))
-
-
-class Slave(MpiService):
-    """Basic Slave"""
-    def __init__(self, options):
-        MpiService.__init__(self)
-        self.options = options
 
 
 class HadoopMaster(MpiService):

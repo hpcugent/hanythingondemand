@@ -37,8 +37,8 @@ from hod.config.client import LocalClientOpts, RemoteClientOpts
 
 class LocalClient(Hadoop):
     """This class handles all client config and (if needed) extra services"""
-    def __init__(self, ranks, options):
-        Work.__init__(self, ranks)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
+    def __init__(self, options):
+        Work.__init__(self)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
         self.opts = options
 
     def start_work_service_master(self):
@@ -85,8 +85,8 @@ class LocalClient(Hadoop):
 
 class RemoteClient(Hadoop):
     """This class handles all client config and (if needed) extra services"""
-    def __init__(self, ranks, options):
-        Work.__init__(self, ranks)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
+    def __init__(self, options):
+        Work.__init__(self)  # don't use Hadoop.__init__, better to redo Hadoop.__init__ with work + opts
         self.opts = options
 
     def start_work_service_master(self):

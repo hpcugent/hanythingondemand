@@ -166,23 +166,3 @@ class Work(MpiService):
             # # slaves and in case there is only one node (master=slave)
             self.stop_work_service_slaves()
         self.post_run_any_service()
-
-
-class SleepWork(Work):
-    def do_work(self):
-        """Just sleep"""
-        sleeptime = 3
-        self.log.debug("do_work: sleep %d" % sleeptime)
-
-        import time
-        time.sleep(sleeptime)
-
-        self.log.debug("do_work: end sleep %d" % sleeptime)
-
-
-class TestWorkA(SleepWork):
-    """TestWorkA for testing"""
-
-
-class TestWorkB(SleepWork):
-    """TestWorkB for testing"""
