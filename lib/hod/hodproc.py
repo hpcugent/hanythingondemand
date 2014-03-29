@@ -43,6 +43,9 @@ from hod.config.customtypes import HostnamePort, HdfsFs, ParamsDescr
 from hod.config.hodoption import HodOption
 
 
+def _rank(size):
+    return 0, range(size)
+
 class HadoopMaster(MpiService):
     """Basic Master Hdfs and MR1"""
     def __init__(self, options):
@@ -120,7 +123,7 @@ class HadoopMaster(MpiService):
         network_index = self.select_network()
 
         # # namenode on rank 0, jobtracker of last one
-        nn_rank, hdfs_ranks = self.select_hdfs_ranks()
+        nn_rank, hdfs_ranks = _rank(self.size)
         nn_param = [HdfsFs(
             "%s:8020" % self.allnodes[nn_rank]['network'][network_index][0]),
             'Namenode on rank %s network_index %s' % (nn_rank, network_index)]
@@ -147,7 +150,7 @@ class HadoopMaster(MpiService):
             self.log.error(
                 "No previous Hdfs work found in dists %s" % self.dists)
 
-        jt_rank, mapred_ranks = self.select_mapred_ranks()
+        jt_rank, mapred_ranks = _rank(self.size)
         jt_param = [HostnamePort(
             "%s:9000" % self.allnodes[jt_rank]['network'][network_index][0]),
             'Jobtracker on rank %s network_index %s' % (jt_rank, network_index)]
@@ -176,7 +179,7 @@ class HadoopMaster(MpiService):
             self.log.error(
                 "No previous Hdfs work found in dists %s" % self.dists)
 
-        hm_rank, hm_ranks = self.select_hbasemaster_ranks()
+        hm_rank, hm_ranks = _rank(self.size)
 
         sharedhbase = {'params': ParamsDescr({})}
         sharedhbase['params'].update(sharedhdfs['params'])
@@ -189,42 +192,3 @@ class HadoopMaster(MpiService):
 
         self.log.debug("using network index %s" % index)
         return index
-
-    def select_hdfs_ranks(self):
-        """return namenode rank and all datanode ranks"""
-        allranks = range(self.size)
-        rank = allranks[0]
-
-        # # set jt_rank as first rank
-        oldindex = allranks.index(rank)
-        val = allranks.pop(oldindex)
-        allranks.insert(rank, val)
-
-        self.log.debug("Simple hdfs distribution: nn is first of allranks and all slaves are datanode: %s, %s" % (rank, allranks))
-        return rank, allranks
-
-    def select_mapred_ranks(self):
-        """return jobtracker rank and all tasktracker ranks"""
-        allranks = range(self.size)
-        rank = allranks[0]
-
-        # # set jt_rank as first rank
-        oldindex = allranks.index(rank)
-        val = allranks.pop(oldindex)
-        allranks.insert(rank, val)
-
-        self.log.debug("Simple mapred distribution: jt is first of allranks and all slaves are tasktracker: %s , %s" % (rank, allranks))
-        return rank, allranks
-
-    def select_hbasemaster_ranks(self):
-        """return hbasemaster/zookeeper rank and all regionservers ranks"""
-        allranks = range(self.size)
-        rank = allranks[0]
-
-        # # set jt_rank as first rank
-        oldindex = allranks.index(rank)
-        val = allranks.pop(oldindex)
-        allranks.insert(rank, val)
-
-        self.log.debug("Simple hbase distribution: hm is first of allranks and all slaves are regioserver: %s , %s" % (rank, allranks))
-        return rank, allranks

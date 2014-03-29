@@ -40,126 +40,128 @@ import pwd
 
 from hod.config.customtypes import HdfsFs, Directories, Arguments, Params, ParamsDescr, UserGroup
 from xml.dom import getDOMImplementation
+from collections import namedtuple
 
 from hod.config.hadoopcfg import HadoopCfg, which_exe
 
+Option = namedtuple('Option', 'cls,default,desc')
 
 CORE_OPTS = ParamsDescr({
-    'fs.default.name': [
-        HdfsFs(':8020'),
+    'fs.default.name': Option(
+        HdfsFs, ':8020',
         'FINAL The name of the default file system.  A URI whose scheme and authority'
         'determine the FileSystem implementation.  The uris scheme determines the'
         'config property (fs.SCHEME.impl) naming the FileSystem implementation class.'
         'The uris authority is used to determine the host, port, etc. for a filesystem.'
-    ],
-    'hadoop.tmp.dir': [
-        Directories([None]),
+    ),
+    'hadoop.tmp.dir': Option(
+        Directories, [None],
         'FINAL Is used as the base for temporary kindoflist locally, and also in HDFS',
-    ],
-    'dfs.replication': [
-        1,
+    ),
+    'dfs.replication': Option(
+        str, 1,
         'FINAL Default block replication. The actual number of replications can be specified when the file is created.'
         'The default is used if replication is not specified in create time.',
-    ],
-    'fs.inmemory.size.mb': [
-        200,
+    ),
+    'fs.inmemory.size.mb': Option(
+        str, 200,
         'Larger amount of memory allocated for the in-memory filesystem used to merge map-outputs at the reduces.',
-    ],
-    'io.file.buffer.size': [128 * 1024, 'Size of read/write buffer used in SequenceFiles. (default 4kB)'],
-    'io.sort.factor': [64, 'More streams merged at once while sorting files. (default 10)'],
-    'io.sort.mb': [256, 'Higher memory - limit while sorting data. (default 100)'],
-    'hadoop.rpc.socket.factory.class.default': [
+    ),
+    'io.file.buffer.size': Option(str, 128 * 1024, 'Size of read/write buffer used in SequenceFiles. (default 4kB)'),
+    'io.sort.factor': Option(str, 64, 'More streams merged at once while sorting files. (default 10)'),
+    'io.sort.mb': Option(str, 256, 'Higher memory - limit while sorting data. (default 100)'),
+    'hadoop.rpc.socket.factory.class.default': Option(
+        str,
         'org.apache.hadoop.net.StandardSocketFactory',
         'FINAL Force standard sockets for non-clients',
-    ],
+    ),
 })
 
 CORE_SECURITY_SERVICE = ParamsDescr({
-    'security.refresh.policy.protocol.acl': [
-        UserGroup(),
+    'security.refresh.policy.protocol.acl': Option(
+        UserGroup, None,
         'ACL for RefreshAuthorizationPolicyProtocol, used by the dfsadmin and mradmin commands to refresh the security'
         'policy in-effect.',
-    ],
+    ),
 })
 
 
 MYHADOOP_OPTS = ParamsDescr({
-    'io.file.buffer.size': [128 * 1024, 'Size of read/write buffer'],
-    'fs.inmemory.size.mb': [650, 'Size of in-memory FS for merging outputs'],
-    'io.sort.mb': [650, 'Memory limit for sorting data'],
+    'io.file.buffer.size': Option(str, 128 * 1024, 'Size of read/write buffer'),
+    'fs.inmemory.size.mb': Option(str, 650, 'Size of in-memory FS for merging outputs'),
+    'io.sort.mb': Option(str, 650, 'Memory limit for sorting data'),
 
-    #'dfs.replication': [ 2, 'Number of times data is replicated'],
-    'dfs.block.size': [128 * 1024 * 1024, 'HDFS block size in bytes'],
-    'dfs.datanode.handler.count': [64, 'Number of handlers to serve block requests'],
+    #'dfs.replication': Option( 2, 'Number of times data is replicated'),
+    'dfs.block.size': Option(str, 128 * 1024 * 1024, 'HDFS block size in bytes'),
+    'dfs.datanode.handler.count': Option(str, 64, 'Number of handlers to serve block requests'),
 
-    'mapred.reduce.parallel.copies': [4, 'Number of parallel copies run by reducers'],
-    'mapred.tasktracker.map.tasks.maximum': [4, 'Max map tasks to run simultaneously'],
-    'mapred.tasktracker.reduce.tasks.maximum': [2, 'Max reduce tasks to run simultaneously'],
-    'mapred.job.reuse.jvm.num.tasks': [1, 'Reuse the JVM between tasks'],
-    'mapred.child.java.opts': [Arguments('-Xmx1024m'), 'Large heap size for child JVMs'],
+    'mapred.reduce.parallel.copies': Option(str, 4, 'Number of parallel copies run by reducers'),
+    'mapred.tasktracker.map.tasks.maximum': Option(str, 4, 'Max map tasks to run simultaneously'),
+    'mapred.tasktracker.reduce.tasks.maximum': Option(str, 2, 'Max reduce tasks to run simultaneously'),
+    'mapred.job.reuse.jvm.num.tasks': Option(str, 1, 'Reuse the JVM between tasks'),
+    'mapred.child.java.opts': Option(Arguments, '-Xmx1024m', 'Large heap size for child JVMs'),
 })
 ## tuned options for sort900 benchmark
 SORT900_OPTS = ParamsDescr({
-    'dfs.block.size': [128 * 1024 * 1024, 'HDFS blocksize of 128MB for large file-systems.'],
-    'dfs.namenode.handler.count': [40, 'More NameNode server threads to handle RPCs from large number of DataNodes.'],
+    'dfs.block.size': Option(str, 128 * 1024 * 1024, 'HDFS blocksize of 128MB for large file-systems.'),
+    'dfs.namenode.handler.count': Option(str, 40, 'More NameNode server threads to handle RPCs from large number of DataNodes.'),
 
-    'mapred.reduce.parallel.copies': [
-        20,
+    'mapred.reduce.parallel.copies': Option(
+        str, 20,
         'Higher number of parallel copies run by reduces to fetch outputs from very large number of maps.',
-    ],
-    'mapred.map.child.java.opts': [Arguments(['-Xmx512M']), 'Larger heapsize for child jvms of maps.'],
-    'mapred.reduce.child.java.opts': [Arguments(['-Xmx512M']), 'Larger heapsize for child jvms of reduces.'],
-    'io.sort.factor': [100, 'More streams merged at once while sorting files.'],
-    'io.sort.mb': [200, 'Higher memory - limit while sorting data.'],
+    ),
+    'mapred.map.child.java.opts': Option(Arguments, ['-Xmx512M'], 'Larger heapsize for child jvms of maps.'),
+    'mapred.reduce.child.java.opts': Option(Arguments, ['-Xmx512M'], 'Larger heapsize for child jvms of reduces.'),
+    'io.sort.factor': Option(str, 100, 'More streams merged at once while sorting files.'),
+    'io.sort.mb': Option(str, 200, 'Higher memory - limit while sorting data.'),
 
-    'fs.inmemory.size.mb': [
-        200,
+    'fs.inmemory.size.mb': Option(
+        str, 200,
         'Larger amount of memory allocated for the in-memory filesystem used to merge map-outputs at the reduces.',
-    ],
-    'io.file.buffer.size': [128 * 1024, 'Size of read/write buffer used in SequenceFiles.'],
+    ),
+    'io.file.buffer.size': Option(str, 128 * 1024, 'Size of read/write buffer used in SequenceFiles.'),
 })
 
 ## more tuning for the sort1400 benchmark
 SORT1400_OPTS = ParamsDescr({
-    'mapred.job.tracker.handler.count': [
-        60,
+    'mapred.job.tracker.handler.count': Option(
+        str, 60,
         'More JobTracker server threads to handle RPCs from large number of TaskTrackers.',
-    ],
-    'mapred.reduce.parallel.copies': [50, ' '],
-    'tasktracker.http.threads': [
-        50,
+    ),
+    'mapred.reduce.parallel.copies': Option(str, 50, ' '),
+    'tasktracker.http.threads': Option(
+        str, 50,
         'More worker threads for the TaskTrackers http server. The http server is used by reduces to fetch intermediate'
         'map-outputs.',
-    ],
-    'mapred.map.child.java.opts': [Arguments(['-Xmx512M']), 'Larger heap-size for child jvms of maps.'],
-    'mapred.reduce.child.java.opts': [Arguments(['-Xmx1024M']), 'Larger heap-size for child jvms of reduces.'],
+    ),
+    'mapred.map.child.java.opts': Option(Arguments, ['-Xmx512M'], 'Larger heap-size for child jvms of maps.'),
+    'mapred.reduce.child.java.opts': Option(Arguments, ['-Xmx1024M'], 'Larger heap-size for child jvms of reduces.'),
 })
 
 
 #For example, To configure Namenode to use parallelGC, the following statement should be added in hadoop-env.sh :
 #export HADOOP_NAMENODE_OPTS="-XX:+UseParallelGC ${HADOOP_NAMENODE_OPTS}"
 HADOOP_ENV_OPTS = ParamsDescr({
-    'HADOOP_CONF_DIR': [None, 'The directory where the config files are located. Default is HADOOP_PREFIX/conf.'],
-    'HADOOP_LOG_DIR': [
-        None,
+    'HADOOP_CONF_DIR': Option(str, None, 'The directory where the config files are located. Default is HADOOP_PREFIX/conf.'),
+    'HADOOP_LOG_DIR': Option(
+        str, None,
         'The directory where the daemons log files are stored. They are automatically created if they dont exist.',
-    ],
-    'HADOOP_PID_DIR': [
-        None,
+    ),
+    'HADOOP_PID_DIR': Option(
+        str, None,
         'The directory where the daemons pid files are stored. They are automatically created if they dont exist.',
-    ],
-    'HADOOP_HEAPSIZE': [
-        1000,
+    ),
+    'HADOOP_HEAPSIZE': Option(
+        str, 1000,
         'The maximum amount of heapsize to use, in MB e.g. 1000MB. This is used to configure the heap size for the'
         'hadoop daemon. By default, the value is 1000MB.',
-    ],
-    'HADOOP_OPTS': [Arguments('-server'), 'Java options for all hadoop processes (-server should be default)']
+    ),
+    'HADOOP_OPTS': Option(Arguments, '-server', 'Java options for all hadoop processes (-server should be default)')
 })
 
 ## Don't set the niceness
 ##     'HADOOP_NICENESS' : [0, 'Run the daemons with nice factor.'],
 ##
-
 
 class HadoopOpts(HadoopCfg):
     """Hadoop options class. Determine optimal default values and other explicit settings"""
@@ -206,7 +208,7 @@ class HadoopOpts(HadoopCfg):
         else:
             self.log.debug("Not setting core security options")
 
-        self.tuning = self.basic_tuning()
+        self.tuning = self._basic_tuning()
 
         self.init_defaults()
 
@@ -338,22 +340,12 @@ class HadoopOpts(HadoopCfg):
 
     def add_from_opts_dict(self, optsdict, update_env=False):
         """Parse an opts dictionary and update params and description (overrides values!)"""
-        self.log.debug("add_from_opts_dict optsdict %s" % optsdict)
+        self.log.debug("add_from_opts_dict optsdict %s" % str(optsdict))
         params = Params()
         description = Params()
         for k, v in optsdict.items():
-            if type(v) in (list, tuple,):
-                if len(v) == 2:
-                    params[k] = v[0]
-                    description[k] = v[1]
-                else:
-                    self.log.error('Unknown length of list of value %s for key %s (optsdict %s)' % (v, k, optsdict))
-            elif type(v) == str:
-                ## only description, no value (esp not None)
-                description[k] = v
-            else:
-                self.log.error('Unknown format of value %s for key %s (optsdict %s)' % (v, k, optsdict))
-
+            params[k] = v.cls() if v.default is None else v.cls(v.default)
+            description[k] = v.desc
         self.log.debug("Going to update with params %s and description %s" % (params, description))
         if update_env:
             self.env_params.update(params)
@@ -390,7 +382,7 @@ class HadoopOpts(HadoopCfg):
                 self.log.debug("None found for %s %s " % (typ, tocheck))
         return tocheck
 
-    def basic_tuning(self):
+    def _basic_tuning(self):
         """Some basic tuning options to add"""
         s1400 = ParamsDescr()
         s1400.update(SORT900_OPTS)
@@ -433,7 +425,7 @@ class HadoopOpts(HadoopCfg):
 
         return prop
 
-    def prep_dir(self, directory, basedirsubdir='default'):
+    def _prep_dir(self, directory, basedirsubdir='default'):
         """Prepare a directory"""
         if directory is None or None in directory:
             if self.basedir is None:
@@ -451,19 +443,19 @@ class HadoopOpts(HadoopCfg):
 
         return directory
 
-    def prep_conf_dir(self):
+    def _prep_conf_dir(self):
         """Prepare config/log/pid directory"""
         self.log.debug("Prepare config and other dirs")
-        self.confdir = self.prep_dir(self.confdir, 'config')
+        self.confdir = self._prep_dir(self.confdir, 'config')
         self.log.debug("confdir set to %s" % self.confdir)
 
-        self.logdir = self.prep_dir(self.logdir, 'logs')
+        self.logdir = self._prep_dir(self.logdir, 'logs')
         self.log.debug("logdir set to %s" % self.logdir)
 
-        self.piddir = self.prep_dir(self.piddir, 'pid')
+        self.piddir = self._prep_dir(self.piddir, 'pid')
         self.log.debug("piddir set to %s" % self.piddir)
 
-    def gen_conf_xml_new(self):
+    def _gen_conf_xml_new(self):
         """Generate config xml files"""
         self.log.debug("Generate and write the xml configs")
         ## based upon the files in hadoopDir/etc/hadoop
@@ -471,24 +463,6 @@ class HadoopOpts(HadoopCfg):
         ## - all unmatched go to defaultdestination
 
         defaultdestination = 'core-site'  # no regexps for this
-
-        ## mapping based on share/hadoop/templates/conf
-        ## whitelist
-        dest2whitereg = {
-            'capacity-scheduler': [r'^mapred\.capacity-scheduler'],
-            'mapred-queue-acls': [r'^mapred\.queue.*?\.acl'],
-            'hdfs-site': [r'^dfs\.'],
-            'mapred-site': [r'^mapred(uce)?\.', r'^jetty\.connector', r'^tasktracker\.', r'^job\.end\.retry\.',
-                            r'^hadoop\.job\.history', r'^io\.(sort|map)\.', r'^jobclient\.output\.filter',
-                            r'^keep.failed.task.files',
-                            ],
-            'hadoop-policy': [r'^security\.'],
-            'hbase-site': [r'^hbase\.']
-        }
-        ## blacklist
-        dest2blackreg = {
-            'mapred-site': dest2whitereg['capacity-scheduler'] + dest2whitereg['mapred-queue-acls'],
-        }
 
         ## default xsl
         defaultxsl = 'configuration'
@@ -511,6 +485,20 @@ class HadoopOpts(HadoopCfg):
             self.log.debug("hadoophome not set. ignoring default xsl")
             defaultxsl = ''
 
+        ## mapping based on share/hadoop/templates/conf
+        ## whitelist
+        dest2whitereg = {
+            'capacity-scheduler': [r'^mapred\.capacity-scheduler'],
+            'mapred-queue-acls': [r'^mapred\.queue.*?\.acl'],
+            'hdfs-site': [r'^dfs\.'],
+            'mapred-site': [r'^mapred(uce)?\.', r'^jetty\.connector', r'^tasktracker\.', r'^job\.end\.retry\.',
+                            r'^hadoop\.job\.history', r'^io\.(sort|map)\.', r'^jobclient\.output\.filter',
+                            r'^keep.failed.task.files',
+                            ],
+            'hadoop-policy': [r'^security\.'],
+            'hbase-site': [r'^hbase\.']
+        }
+
         ## make fullDict map with destination -> list of keys
         alldests = [defaultdestination]
         dest2whiteregcomp = {}
@@ -521,6 +509,10 @@ class HadoopOpts(HadoopCfg):
             if not dest in alldests:
                 alldests.append(dest)
 
+        ## blacklist
+        dest2blackreg = {
+            'mapred-site': dest2whitereg['capacity-scheduler'] + dest2whitereg['mapred-queue-acls'],
+        }
         dest2blackregcomp = {}
         for dest, regtxts in dest2blackreg.items():
             dest2blackregcomp[dest] = []
@@ -589,7 +581,7 @@ class HadoopOpts(HadoopCfg):
             doc.writexml(sitefile, indent=" " * 0, addindent=" " * 0, newl="\n" * 0)
             sitefile.close()
 
-    def gen_conf_env(self):
+    def _gen_conf_env(self):
         """Create the shell env config file"""
         txt = ["# Generated with HOD", '']
         for variable, value in self.env_params.items():
@@ -676,7 +668,7 @@ class HadoopOpts(HadoopCfg):
     def make_opts_env_defaults(self):
         """Set the defaults"""
         self.log.debug("Prepare configdir")
-        self.prep_conf_dir()
+        self._prep_conf_dir()
 
         nr_iter = 3
         for x in range(nr_iter):
@@ -690,5 +682,5 @@ class HadoopOpts(HadoopCfg):
         self.params_env_sanity_check()
 
         self.log.debug("start writing files")
-        self.gen_conf_xml_new()  # write xml files
-        self.gen_conf_env()  # create the env.sh file
+        self._gen_conf_xml_new()  # write xml files
+        self._gen_conf_env()  # create the env.sh file

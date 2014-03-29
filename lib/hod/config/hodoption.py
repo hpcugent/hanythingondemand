@@ -75,7 +75,9 @@ class HodOption(GeneralOption):
 
     def mapred_options(self):
         """Some mapred presets"""
-        opts = {'off': ("Don't start MapRed (MR1)", None, "store_true", False)}
+        opts = {'off': ("Don't start MapRed (MR1)", None, "store_true", False),
+                'config': ("HOD Configuration file for the MR1 service", "string", "store", ''),
+               }
         descr = ['MapReduce', 'Provide MapReduce (MR1) related options']
         prefix = 'mr1'
 
@@ -86,7 +88,9 @@ class HodOption(GeneralOption):
     def hadoop_options(self):
         """Some hadoop presets"""
         opts = {'module': ("Use Hadoop module version", "string",
-                           "store", os.environ.get("EBVERSIONHADOOP", ''))}
+                           "store", os.environ.get("EBVERSIONHADOOP", '')),
+                'config': ("HOD Configuration file for the Hadoop service", "string", "store", ''),
+               }
         descr = ['Hadoop', 'Provide Hadoop related options']
         prefix = 'hadoop'
 
@@ -112,6 +116,7 @@ class HodOption(GeneralOption):
         """Some hbase presets"""
         opts = {'on': ("Start HBase", None, "store_true", False),
                 'module': ("Use HBase module version", "string", "store", "0.90.4-cdh3u3"),
+                'config': ("HOD Configuration file for the Hbase service", "string", "store", ''),
                 }
         descr = ['HBase', 'Provide HBase related options']
         prefix = 'hbase'
@@ -124,6 +129,7 @@ class HodOption(GeneralOption):
         """Some hbase presets"""
         # Yarn install seems default on newer hadoop versions, so switch to the old mapreduce path
         opts = {'on': ("Start Yarn instead of MapRed (SWITCHING NOT IMPLEMENTED)", None, "store_true", False),  # TODO remove when implemented
+                'config': ("HOD Configuration file for the Yarn service", "string", "store", ''),
                 }
         descr = ['Yarn', 'Provide Yarn related options']
         prefix = 'yarn'

@@ -34,6 +34,18 @@ import hod.hodproc as hh
 class HodProcTestCase(unittest.TestCase):
     '''Test HodProc functions'''
 
+    def test_rank_1(self):
+        '''Test rank with size 1'''
+        r, ar = hh._rank(1)
+        self.assertEqual(r, 0)
+        self.assertEqual(ar, range(1))
+
+    def test_rank_5(self):
+        '''Test rank with size 5'''
+        r, ar = hh._rank(5)
+        self.assertEqual(r, 0)
+        self.assertEqual(ar, range(5))
+
     def test_hadoop_master_init(self):
         '''test hadoop master init'''
         opts = sentinel.opts
@@ -91,33 +103,3 @@ class HodProcTestCase(unittest.TestCase):
         hm = hh.HadoopMaster(opts)
         idx = hm.select_network()
         self.assertEqual(idx, 0)  #TODO: 5 line Function which just returns 0... remove.
-
-    def test_hadoop_master_select_hdfs_ranks(self):
-        '''test hadoop master select hdfs ranks'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        ranks, allranks = hm.select_hdfs_ranks() # TODO: Remove convoluted nonsense.
-        self.assertTrue(isinstance(ranks, int))
-        self.assertTrue(isinstance(allranks, list))
-        self.assertEqual(ranks, 0)
-        self.assertEqual(allranks, range(hm.size))
-
-    def test_hadoop_master_select_mapred_ranks(self):
-        '''test hadoop master select mapred ranks'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts) 
-        ranks, allranks = hm.select_mapred_ranks() # TODO: Remove convoluted nonsense.
-        self.assertTrue(isinstance(ranks, int))
-        self.assertTrue(isinstance(allranks, list))
-        self.assertEqual(ranks, 0)
-        self.assertEqual(allranks, range(hm.size))
-
-    def test_hadoop_master_select_hbasemaster_ranks(self):
-        '''test hadoop master select hbasemaster ranks'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        ranks, allranks = hm.select_hbasemaster_ranks() # TODO: Remove convoluted nonsense.
-        self.assertTrue(isinstance(ranks, int))
-        self.assertTrue(isinstance(allranks, list))
-        self.assertEqual(ranks, 0)
-        self.assertEqual(allranks, range(hm.size))

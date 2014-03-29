@@ -28,7 +28,7 @@ HOD Client
 import re
 import os
 
-from hod.config.hadoopopts import HadoopOpts
+from hod.config.hadoopopts import HadoopOpts, Option
 from hod.config.hadoopcfg import HadoopCfg
 
 from hod.commands.command import GenerateSshKey, RunSshd, KillPidFile
@@ -41,15 +41,15 @@ CLIENT_OPTS = ParamsDescr({
 })
 
 CLIENT_SOCKS_OPTS = ParamsDescr({
-    'hadoop.socks.server': [HostnamePort('localhost:10000'), 'Use this SOCKS server'],
-    'hadoop.rpc.socket.factory.class.default': ['org.apache.hadoop.net.SocksSocketFactory', 'Use SOCKS sockets']
+    'hadoop.socks.server': Option(HostnamePort, 'localhost:10000', 'Use this SOCKS server'),
+    'hadoop.rpc.socket.factory.class.default': Option(str, 'org.apache.hadoop.net.SocksSocketFactory', 'Use SOCKS sockets')
 })
 
 CLIENT_SOCKS_ENV_OPTS = ParamsDescr({
-    'HADOOP_OPTS': [Arguments([
+    'HADOOP_OPTS': Option(Arguments, [
         '-Dsun.net.spi.nameservice.provider.1="dns,sun"',
         '-Dsun.net.spi.nameservice.nameservers=',
-    ]), 'Specify the DNS server Sun JDK will use']
+    ], 'Specify the DNS server Sun JDK will use')
 })
 
 

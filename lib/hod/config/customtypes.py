@@ -182,7 +182,7 @@ class ParamsDescr(dict):
             if type(v) in (list, tuple,):
                 tmp[k] = ["%s" % x for x in v]
             else:
-                tmp[k] = "%s" % v
+                tmp[k] = "%s" % str(v)
         return "%s" % tmp
 
 

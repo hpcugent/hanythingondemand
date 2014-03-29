@@ -33,7 +33,7 @@ import os
 import glob
 
 from hod.config.customtypes import Servers, HdfsFs, ParamsDescr, Boolean
-from hod.config.hadoopopts import HadoopOpts
+from hod.config.hadoopopts import HadoopOpts, Option
 from hod.config.hadoopcfg import HadoopCfg, which_exe
 from hod.commands.hadoop import HbaseVersion
 
@@ -43,51 +43,51 @@ _log = fancylogger.getLogger(fname=False)
 
 # # namenode is set in core
 HBASE_OPTS = ParamsDescr({
-    'hbase.rootdir': [
-        HdfsFs(),
+    'hbase.rootdir': Option(
+        HdfsFs, None,
         'FINAL The directory shared by RegionServers (eg hdfs://namenode.example.org:8020/hbase)',
-    ],
-    'hbase.cluster.distributed': [
-        Boolean(True),
+    ),
+    'hbase.cluster.distributed': Option(
+        Boolean, True,
         'FINAL The mode the cluster will be in. Possible values are  false: standalone and pseudo - distributed setups'
         'with managed Zookeeper true: fully - distributed with unmanaged Zookeeper Quorum (see hbase - env.sh)'
-    ],
-    'hbase.zookeeper.property.clientPort': [
-        2222,
+    ),
+    'hbase.zookeeper.property.clientPort': Option(
+        str, 2222,
         'Property from ZooKeepers config zoo.cfg. The port at which the clients will connect.',
-    ],
-    'hbase.zookeeper.quorum': [
-        Servers(),
+    ),
+    'hbase.zookeeper.quorum': Option(
+        Servers, None,
         'Comma separated list of servers in the ZooKeeper Quorum. For example,'
         ' "host1.mydomain.com,host2.mydomain.com,host3.mydomain.com".By default this is set to localhost for local and'
         ' pseudo-distributed modes of operation. For a fully-distributed setup, this should be set to a full list of'
         ' ZooKeeper quorum servers. If HBASE_MANAGES_ZK is set in hbase-env.sh this is the list of servers which we will'
         ' start/stop ZooKeeper on.',
-    ],
-    'hbase.zookeeper.property.dataDir': [
-        None,
+    ),
+    'hbase.zookeeper.property.dataDir': Option(
+        str, None,
         'Property from ZooKeepers config zoo.cfg. The directory where the snapshot is stored.',
-    ],
-    'hbase.tmp.dir': [
-        None,
+    ),
+    'hbase.tmp.dir': Option(
+        str, None,
         "Temporary directory on the local filesystem. Change this setting to point to a location more permanent than"
         " '/tmp' (The '/tmp' directory is often cleared on machine restart).",
-    ],
+    ),
 
-    'hbase.zookeeper.dns.interface': [
-        None,
+    'hbase.zookeeper.dns.interface': Option(
+        str, None,
         'The name of the Network Interface from which a ZooKeeper server should report its IP address.',
-    ],
-    'hbase.regionserver.dns.interface': [
-        None,
+    ),
+    'hbase.regionserver.dns.interface': Option(
+        str, None,
         'The name of the Network Interface from which a region server should report its IP address.',
-    ],
-    'hbase.master.dns.interface': [
-        None,
+    ),
+    'hbase.master.dns.interface': Option(
+        str, None,
         'The name of the Network Interface from which a master should report its IP address.',
-    ],
+    ),
 
-    'hbase.client.scanner.caching': [100, 'Default 1 is too low'],
+    'hbase.client.scanner.caching': Option(str, '100', 'Default 1 is too low'),
 
     # # 'mapred.mapred.child.java.opts':[,'']
 })
@@ -96,12 +96,12 @@ HBASE_SECURITY_SERVICE = ParamsDescr({
 })
 
 HBASE_ENV_OPTS = ParamsDescr({
-    'HBASE_CONF_DIR': [None, 'The directory where the config files are located. Default is HBASE_HOME/conf.'],
-    'HBASE_LOG_DIR': [None, 'The directory where the daemons log files are stored. They are automatically created if they dont exist.'],
-    'HBASE_PID_DIR': [None, 'The directory where the daemons pid files are stored. They are automatically created if they dont exist.'],
+    'HBASE_CONF_DIR': Option(str, None, 'The directory where the config files are located. Default is HBASE_HOME/conf.'),
+    'HBASE_LOG_DIR': Option(str, None, 'The directory where the daemons log files are stored. They are automatically created if they dont exist.'),
+    'HBASE_PID_DIR': Option(str, None, 'The directory where the daemons pid files are stored. They are automatically created if they dont exist.'),
 
-    'HBASE_MANAGE_ZK': [Boolean(True), 'Use HBase ZooKeeper (true) or external one (false)'],
-    'HBASE_HEAPSIZE': [None, 'HBase heapsize'],
+    'HBASE_MANAGE_ZK': Option(Boolean, True, 'Use HBase ZooKeeper (true) or external one (false)'),
+    'HBASE_HEAPSIZE': Option(str, None, 'HBase heapsize'),
 })
 
 def _which_hbase():

@@ -65,7 +65,7 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
     def test_hadoopopts_basic_tuning(self):
         '''test HadoopOpts basic_tuning'''
         cfg = hch.HadoopOpts()
-        cfg.basic_tuning()
+        cfg._basic_tuning()
         self.assertTrue('sort900' in cfg.tuning)
         self.assertTrue('sort1400' in cfg.tuning)
 
