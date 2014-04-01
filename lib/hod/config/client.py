@@ -53,10 +53,10 @@ CLIENT_SOCKS_ENV_OPTS = ParamsDescr({
 })
 
 
-class ClientCfg(HadoopCfg):
-    """Client cfg"""
-    def __init__(self, name='localclient'):
-        HadoopCfg.__init__(self)
+class LocalClientOpts(HadoopOpts):
+    """Local client options"""
+    def __init__(self, shared=None, basedir=None, name='localclient'):
+        HadoopOpts.__init__(self, shared=shared, basedir=basedir)
         self.name = name
         self.environment_script = None
 
@@ -64,12 +64,6 @@ class ClientCfg(HadoopCfg):
         """Not needed here"""
         self.log.debug("Not setting the start/stop/daemon scripts")
 
-
-class LocalClientOpts(ClientCfg, HadoopOpts):
-    """Local client options"""
-    def __init__(self, shared=None, basedir=None, name='localclient'):
-        HadoopOpts.__init__(self, shared=shared, basedir=basedir)
-        ClientCfg.__init__(self, name=name)
 
     def init_defaults(self):
         """Create the default list of params and description"""

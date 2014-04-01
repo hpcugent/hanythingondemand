@@ -38,11 +38,15 @@ import shutil
 import re
 import pwd
 
+
 from hod.config.customtypes import HdfsFs, Directories, Arguments, Params, ParamsDescr, UserGroup
 from xml.dom import getDOMImplementation
 from collections import namedtuple
 
 from hod.config.hadoopcfg import HadoopCfg, which_exe
+
+from vsc.utils import fancylogger
+_log = fancylogger.getLogger(fname=False)
 
 Option = namedtuple('Option', 'cls,default,desc')
 
@@ -163,6 +167,39 @@ HADOOP_ENV_OPTS = ParamsDescr({
 ##     'HADOOP_NICENESS' : [0, 'Run the daemons with nice factor.'],
 ##
 
+def _check_params_or_env(check_what, do_error=True):
+    """Check for params or env_params containing None"""
+    tocheck = []
+    for k, v in check_what.items():
+        is_not_ok = False
+        try:
+            is_not_ok = None in v
+        except TypeError:
+            is_not_ok = None is v
+        if is_not_ok:
+            _log.debug("None found for %s with value %s (type %s)" % (k, v, v.__class__.__name__))
+            tocheck.append(k)
+    if tocheck:
+        if do_error:
+            ## when call as standalone sanity check
+            _log.error("None found for %s " % tocheck)
+        else:
+            _log.debug("None found for %s " % tocheck)
+    return tocheck
+
+def _add_param(where, name, value):
+    """Add value to name (adding, not overriding)"""
+    whattxt = "name %s value %s (type %s)" % (name, value, value.__class__.__name__)
+    if name in where:
+        _log.debug("Previous value %s (type %s)" % (where[name], where[name].__class__.__name__))
+        where[name] += value
+        _log.debug("Added value %s (previous found). New value %s  (type %s)" % (value, where[name], where[name].__class__.__name__))
+    else:
+        where[name] = value
+        _log.debug("Add: set value %s (no previous found). New value %s (type %s)" % (value, where[name], where[name].__class__.__name__))
+
+
+
 class HadoopOpts(HadoopCfg):
     """Hadoop options class. Determine optimal default values and other explicit settings"""
 
@@ -200,29 +237,29 @@ class HadoopOpts(HadoopCfg):
         self.set_default_funcs = [self.set_core_service_defaults, self.set_service_defaults]
 
         ## run intialisation
-        self.init_core_defaults()
+        self._init_core_defaults()
 
         if self.security:
             self.log.debug("Setting core security related options")
-            self.init_core_security_defaults()
+            self._init_core_security_defaults()
         else:
             self.log.debug("Not setting core security options")
 
         self.tuning = self._basic_tuning()
 
-        self.init_defaults()
+        self._init_defaults()
 
         if self.security:
             self.log.debug("Setting security related options")
-            self.init_security_defaults()
+            self._init_security_defaults()
         else:
             self.log.debug("Not setting security options")
 
-        self.init_core_defaults_shared(shared)  # add the shared last (will override through update)
+        self._init_core_defaults_shared(shared)  # add the shared last (will override through update)
 
         self.attrs_to_share = ['params', 'env_params', 'basedir', 'confdir', 'hadoop', 'hadoophome', 'java', 'javahome']
 
-    def init_core_defaults(self):
+    def _init_core_defaults(self):
         """Create the core default list of params and description"""
         self.log.debug("Adding init core defaults")
         self.add_from_opts_dict(CORE_OPTS)
@@ -230,15 +267,15 @@ class HadoopOpts(HadoopCfg):
         self.log.debug("Adding init core env_params. Adding HADOOP_ENV_OPTS %s" % HADOOP_ENV_OPTS)
         self.add_from_opts_dict(HADOOP_ENV_OPTS, update_env=True)
 
-    def init_core_security_defaults(self):
+    def _init_core_security_defaults(self):
         """Add core security options"""
         self.add_from_opts_dict(CORE_SECURITY_SERVICE)
 
-    def init_security_defaults(self):
+    def _init_security_defaults(self):
         """Add security options"""
         self.log.debug("init security defaults not implemented")
 
-    def init_core_defaults_shared(self, shared):
+    def _init_core_defaults_shared(self, shared):
         """Create the core default list of params and description"""
         if shared is None:
             shared = {}
@@ -248,16 +285,16 @@ class HadoopOpts(HadoopCfg):
         self.log.debug("Adding init shared core env_params")
         self.add_from_opts_dict(shared.get('env_params', ParamsDescr({})), update_env=True)
 
-    def init_defaults(self):
+    def _init_defaults(self):
         """Create the default list of params and description"""
         self.log.warn("Adding init defaults. Not implemented here.")
 
     def set_defaults(self):
         """Set some defaults if required"""
         self.log.debug("set_defaults")
-        missing = self.check_params_or_env(do_error=False)
+        missing = _check_params_or_env(self.params, do_error=False)
         self.log.debug("set_defaults missing params %s" % missing)
-        missingenv = self.check_params_or_env(do_error=False, check_env=True)
+        missingenv = _check_params_or_env(self.env_params, do_error=False)
         self.log.debug("set_defaults missing env %s" % missingenv)
 
         for mis in missing + missingenv:
@@ -308,24 +345,6 @@ class HadoopOpts(HadoopCfg):
         self.log.warn("Setting servicedefaults. Not implemented here. Skipping %s" % mis)
         return True  # not_mis_found
 
-    def add_param(self, name, value, is_env=False):
-        """Add value to name (adding, not overriding)"""
-        whattxt = "name %s value %s (type %s)" % (name, value, value.__class__.__name__)
-        if is_env:
-            where = self.env_params
-            self.log.debug("Adding to environment params %s" % whattxt)
-        else:
-            where = self.params
-            self.log.debug("Adding to params %s" % whattxt)
-
-        if name in where:
-            self.log.debug("Previous value %s (type %s)" % (where[name], where[name].__class__.__name__))
-            where[name] += value
-            self.log.debug("Added value %s (previous found). New value %s  (type %s)" % (value, where[name], where[name].__class__.__name__))
-        else:
-            where[name] = value
-            self.log.debug("Add: set value %s (no previous found). New value %s (type %s)" % (value, where[name], where[name].__class__.__name__))
-
     def set_param(self, name, value, is_env=False):
         """Set value to name (adding, not overriding)"""
         if is_env:
@@ -354,33 +373,6 @@ class HadoopOpts(HadoopCfg):
             self.params.update(params)
             self.description.update(description)
             self.log.debug("New params %s and description %s" % (self.params, self.description))
-
-    def check_params_or_env(self, do_error=True, check_env=False):
-        """Check for params or env_params containing None"""
-        tocheck = []
-        if check_env:
-            check_what = self.env_params
-            typ = 'env_params'
-        else:
-            check_what = self.params
-            typ = 'params'
-
-        for k, v in check_what.items():
-            is_not_ok = False
-            try:
-                is_not_ok = None in v
-            except TypeError:
-                is_not_ok = None is v
-            if is_not_ok:
-                self.log.debug("None found for %s %s with value %s (type %s)" % (typ, k, v, v.__class__.__name__))
-                tocheck.append(k)
-        if tocheck:
-            if do_error:
-                ## when call as standalone sanity check
-                self.log.error("None found for %s %s " % (typ, tocheck))
-            else:
-                self.log.debug("None found for %s %s " % (typ, tocheck))
-        return tocheck
 
     def _basic_tuning(self):
         """Some basic tuning options to add"""
@@ -611,9 +603,9 @@ class HadoopOpts(HadoopCfg):
     def params_env_sanity_check(self):
         """Run sanity check on params and env variables"""
         self.log.debug("params sanity check")
-        self.check_params_or_env()  # sanity check
+        _check_params_or_env(self.params)  # sanity check
         self.log.debug("env_params sanity check")
-        self.check_params_or_env(check_env=True)
+        _check_params_or_env(self.env_params)
 
         ## more detailed checks
         for param, val in self.params.items():

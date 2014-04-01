@@ -33,6 +33,7 @@ from hod.work.hadoop import Hadoop
 
 from hod.config.customtypes import Directories, HostnamePort
 from hod.commands.hadoop import Jobtracker, Tasktracker
+from hod.node import interface_to_nn
 
 
 class Mapred(Hadoop):
@@ -49,7 +50,7 @@ class Mapred(Hadoop):
             self.log.debug("%s not set. using  %s" % (mis, tmpdir))
             self.opts.params[mis] = Directories(tmpdir)
         elif mis in ('mapred.job.tracker',):
-            intf = self.interface_to_nn()
+            intf = interface_to_nn(self.thisnode, self.opts.params.get('fs.default.name'))
             if intf:
                 val = HostnamePort('%s:9000' % intf[0])
                 self.opts.params[mis] = val

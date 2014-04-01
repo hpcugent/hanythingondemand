@@ -41,7 +41,7 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
         '''test HadoopOpts core_ddefaults_shared.'''
         #TODO: Figure out how this function is supposed to work.
         cfg = hch.HadoopOpts()
-        cfg.init_core_defaults_shared({'params': {'number': 42}, 'env_params': {'power_level': 9000}})
+        cfg._init_core_defaults_shared({'params': {'number': 42}, 'env_params': {'power_level': 9000}})
         self.assertTrue('params' in cfg.env_params)
         self.assertTrue('env_params' in cfg.env_params)
         self.assertTrue('wibble' in cfg.env_params)
@@ -50,7 +50,7 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
     def test_hadoopopts_init_defaults(self):
         '''test HadoopOpts init_defaults'''
         cfg = hch.HadoopOpts()
-        cfg.init_defaults() # TODO: Remove.
+        cfg._init_defaults() # TODO: Remove.
 
     def test_hadoopopts_set_defaults(self):
         '''test HadoopOpts set_defaults'''

@@ -34,17 +34,17 @@ class HodConfigMapred(unittest.TestCase):
     def test_mapredopts_init(self):
         '''test MapredCfg init_defaults'''
         cfg = hcm.MapredOpts()
-        cfg.init_defaults()
+        cfg._init_defaults()
 
     def test_mapredopts_init_security_defaults(self):
         '''test MapredCfg init_security_defaults'''
         cfg = hcm.MapredOpts()
-        cfg.init_security_defaults()
+        cfg._init_security_defaults()
 
     def test_mapredopts_init_core_defaults_shared(self):
         '''test MapredCfg init_core_defaults_shared'''
         cfg = hcm.MapredOpts()
-        cfg.init_core_defaults_shared({})
+        cfg._init_core_defaults_shared({})
 
     def test_mapredopts_check_hbase(self):
         '''test MapredCfg check_hbase'''

@@ -34,9 +34,9 @@ class HodConfigHDFSTestCase(unittest.TestCase):
     def test_hdfsopts_init_defaults(self):
         '''test HdfsCfg init_defaults'''
         cfg = hch.HdfsOpts()
-        cfg.init_defaults()
+        cfg._init_defaults()
 
     def test_hdfsopts_init_security_defaults(self):
         '''test HdfsCfg init_security_defaults'''
         cfg = hch.HdfsOpts()
-        cfg.init_security_defaults()
+        cfg._init_security_defaults()

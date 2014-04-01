@@ -289,10 +289,10 @@ class MpiService(object):
             for x in self.active_work:
                 act_name = x.__class__.__name__
                 self.log.debug("adding active work from %s attr_to_share %s" %
-                               (act_name, x.attrs_to_share))
+                               (act_name, x.opts.attrs_to_share))
                 tmpdict = {'work_name': act_name}
                 tmpdict.update(dict(
-                    [(name, getattr(x, name)) for name in x.attrs_to_share]))
+                    [(name, getattr(x.opts, name)) for name in x.opts.attrs_to_share]))
 
                 w_shared['active_work'].append(tmpdict)
 
@@ -312,7 +312,7 @@ class MpiService(object):
                 self.log.debug("work %s for ranks %s shared %s" %
                                (wrk.type.__name__, wrk.ranks, w_shared))
                 tmpopts = wrk.options(w_shared)
-                tmp = wrk.type(wrk.ranks, tmpopts)
+                tmp = wrk.type(tmpopts)
                 self.log.debug("work %s begin" % (wrk.type.__name__))
                 tmp.work_begin(newcomm)
                 # # adding started work

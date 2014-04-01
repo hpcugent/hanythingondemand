@@ -37,7 +37,9 @@ import struct
 import multiprocessing
 
 from vsc.utils.affinity import sched_getaffinity
+
 from vsc import fancylogger
+_log = fancylogger.getLogger(fname=False)
 
 def netmask2maskbits(netmask):
     """Find the number of bits in a netmask."""
@@ -86,6 +88,21 @@ def ip_interface_to(networks, ip):
         if address_in_network(ip, net):
             return intf
     return None
+
+def interface_to_nn(thisnode, namenode):
+    """What interface can reach the namenode"""
+    if None in namenode:
+        _log.error("No namenode set")
+        return None
+
+    hostip = socket.gethostbyname(namenode.hostname) # can throw.
+    intf = ip_interface_to(thisnode.network, hostip)
+    if intf:
+        _log.debug("namenode can be reached by intf %s" % intf)
+        return intf
+    else:
+        _log.error("namenode %s cannot be reached by any of the local interfaces %s" % (namenode, thisnode.network))
+
 
 def get_memory():
     """Extract information about the available memory"""

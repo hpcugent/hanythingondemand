@@ -26,15 +26,15 @@
 
 @author: Stijn De Weirdt
 """
+import os
+import copy
+
 from hod.work.work import Work
 from hod.work.hadoop import Hadoop
 
 from hod.config.customtypes import Directories, Servers
 from hod.commands.hadoop import HbaseZooKeeper, HbaseMaster, HbaseRegionServer
-
-
-import os
-import copy
+from hod.node import interface_to_nn
 
 
 class Hbase(Hadoop):
@@ -54,13 +54,15 @@ class Hbase(Hadoop):
             self.params[mis] = rootdir
         elif mis.startswith('hbase.') and mis.endswith('dns.interface'):
             ## use the interface name that can reach the namenode
-            intf = self.interface_to_nn()
+            #intf = interface_to_nn(self.thisnode, self.opts.params.get('fs.default.name', self.opts.default_fsdefault)
+            intf = interface_to_nn(self.thisnode, self.opts.params.get('fs.default.name'))
             self.log.debug(
                 "Set mis %s to interface %s (%s)" % (mis, intf[2], intf))
             self.params[mis] = intf[2]
         elif mis in ('hbase.zookeeper.quorum',):
             ## add master as quorum node
-            nn_idx = self.thisnode.network.index(self.interface_to_nn())
+            intf = interface_to_nn(self.thisnode, self.opts.params.get('fs.default.name'))
+            nn_idx = self.thisnode.network.index(intf)
             master_intf = self.allnodes[self.masterrank]['network'][nn_idx]
             svs = Servers(master_intf[0])
             self.log.debug("Set mis %s for masterrank %s and interface_index_to_nn %s to %s" % (mis, self.masterrank, nn_idx, svs))

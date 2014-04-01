@@ -30,13 +30,6 @@ import hod.config.client as hcc
 
 class HodConfigClient(unittest.TestCase):
     '''Test CleintCfg functions'''
-
-    def test_client_cfg(self):
-        '''test client cfg'''
-        o = hcc.ClientCfg()
-        self.assertEqual(o.name, 'localclient')
-        self.assertEqual(o.environment_script, None)
-
     def test_local_client_opts_init(self):
         '''test client opts init'''
         o = hcc.LocalClientOpts()

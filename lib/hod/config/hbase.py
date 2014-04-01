@@ -33,8 +33,7 @@ import os
 import glob
 
 from hod.config.customtypes import Servers, HdfsFs, ParamsDescr, Boolean
-from hod.config.hadoopopts import HadoopOpts, Option
-from hod.config.hadoopcfg import HadoopCfg, which_exe
+from hod.config.hadoopopts import HadoopOpts, Option, which_exe
 from hod.commands.hadoop import HbaseVersion
 
 from vsc.utils import fancylogger
@@ -168,7 +167,7 @@ class HbaseOpts(HadoopOpts):
 
         self.attrs_to_share += ['hbase', 'hbasehome', 'hbase_jars']
 
-    def init_defaults(self):
+    def _init_defaults(self):
         """Create the default list of params and description"""
         self.log.debug("Adding init defaults.")
         self.add_from_opts_dict(HBASE_OPTS)
@@ -177,7 +176,7 @@ class HbaseOpts(HadoopOpts):
                        HBASE_ENV_OPTS)
         self.add_from_opts_dict(HBASE_ENV_OPTS, update_env=True)
 
-    def init_security_defaults(self):
+    def _init_security_defaults(self):
         """Add security options"""
         self.log.debug("Add HDFS security settings")
         self.add_from_opts_dict(HBASE_SECURITY_SERVICE)

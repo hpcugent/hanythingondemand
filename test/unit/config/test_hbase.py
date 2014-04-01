@@ -51,12 +51,12 @@ class HodConfigHBase(unittest.TestCase):
     def test_hbase_opts_init(self):
         '''test HbaseOpts init_defaults'''
         cfg = hch.HbaseOpts()
-        cfg.init_defaults()
+        cfg._init_defaults()
 
     def test_hbaseopts_init_security_defaults(self):
         '''test HbaseOpts init_security_defaults'''
         cfg = hch.HbaseOpts()
-        cfg.init_security_defaults()
+        cfg._init_security_defaults()
 
     @unittest.expectedFailure
     def test_hbaseopts_pre_run_any_service(self):

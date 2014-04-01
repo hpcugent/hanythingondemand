@@ -36,11 +36,6 @@ class HodWorkHadoopTestCase(unittest.TestCase):
         '''test Hadoop init function'''
         o = hwh.Hadoop(HadoopOpts({}))
 
-    def test_work_hadoop_interface_to_nn(self):
-        '''test Hadoop interfasce_to_nn'''
-        o = hwh.Hadoop(HadoopOpts({}))
-        o.interface_to_nn()
-
     def test_work_hadoop_prepare_extra_work_cfg(self):
         '''test Hadoop prepare_extra_work_cfg'''
         o = hwh.Hadoop(HadoopOpts({}))

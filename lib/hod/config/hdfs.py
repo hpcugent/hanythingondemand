@@ -31,7 +31,6 @@ HDFS config and options
 from hod.config.customtypes import HostnamePort, Directories, Arguments, ParamsDescr, UserGroup, Boolean
 
 from hod.config.hadoopopts import HadoopOpts, Option
-from hod.config.hadoopcfg import HadoopCfg
 
 
 # # namenode is set in core
@@ -99,7 +98,7 @@ class HdfsOpts(HadoopOpts):
         HadoopOpts.__init__(self, shared=shared, basedir=basedir)
         self.name = 'dfs'
 
-    def init_defaults(self):
+    def _init_defaults(self):
         """Create the default list of params and description"""
         self.log.debug("Adding init defaults.")
         self.add_from_opts_dict(HDFS_OPTS)
@@ -107,7 +106,7 @@ class HdfsOpts(HadoopOpts):
             self.log.debug("Adding Hbase HDFS params")
             self.add_from_opts_dict(HDFS_HBASE_OPTS)
 
-    def init_security_defaults(self):
+    def _init_security_defaults(self):
         """Add security options"""
         self.log.debug("Add HDFS security settings")
         self.add_from_opts_dict(HDFS_SECURITY_SERVICE)

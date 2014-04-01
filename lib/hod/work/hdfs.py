@@ -33,6 +33,7 @@ from hod.work.hadoop import Hadoop
 
 from hod.config.customtypes import HostnamePort, Directories
 from hod.commands.hadoop import NameNode, DataNode, FormatHdfs
+from hod.node import interface_to_nn
 
 
 class Hdfs(Hadoop):
@@ -49,7 +50,7 @@ class Hdfs(Hadoop):
             self.log.debug("%s not set. using  %s" % (mis, tmpdir))
             self.params[mis] = Directories(tmpdir)
         elif mis in ('dfs.datanode.address',):
-            intf = self.interface_to_nn()
+            intf = interface_to_nn(self.thisnode, self.opts.params.get('fs.default.name'))
             if intf:
                 val = HostnamePort('%s:50090' % intf[0])
                 self.params[mis] = val
@@ -57,7 +58,7 @@ class Hdfs(Hadoop):
             else:
                 self.log.warn("could not set %s. no intf found for namenode")
         elif mis in ('dfs.datanode.ipc.address',):
-            intf = self.interface_to_nn()
+            intf = interface_to_nn(self.thisnode, self.opts.params.get('fs.default.name'))
             if intf:
                 val = HostnamePort('%s:50020' % intf[0])
                 self.params[mis] = val
@@ -65,8 +66,7 @@ class Hdfs(Hadoop):
             else:
                 self.log.warn("could not set %s. no intf found for namenode")
         else:
-            self.log.warn("Variable %s not found in service defaults" %
-                          mis)  # TODO is warn enough?
+            self.log.warn("Variable %s not found in service defaults" % mis)  # TODO is warn enough?
             return True  # not_mis_found
 
     def start_work_service_master(self):

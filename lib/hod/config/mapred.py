@@ -30,7 +30,6 @@ Mapred config and options
 
 from hod.config.customtypes import HostnamePort, Directories, Arguments, ParamsDescr, UserGroup, Params, Boolean
 from hod.config.hadoopopts import HadoopOpts, Option
-from hod.config.hadoopcfg import HadoopCfg
 import re
 
 MAPRED_OPTS = ParamsDescr({
@@ -123,17 +122,17 @@ class MapredOpts(HadoopOpts):
         HadoopOpts.__init__(self, shared=shared, basedir=basedir)
         self.name = 'mapred'  # MR1
 
-    def init_defaults(self):
+    def _init_defaults(self):
         """Create the default list of params and description"""
         self.log.debug("Adding init defaults.")
         self.add_from_opts_dict(MAPRED_OPTS)
 
-    def init_security_defaults(self):
+    def _init_security_defaults(self):
         """Add security options"""
         self.log.debug("Add mapred security settings")
         self.add_from_opts_dict(MAPRED_SECURITY_SERVICE)
 
-    def init_core_defaults_shared(self, shared):
+    def _init_core_defaults_shared(self, shared):
         """Add hbase code"""
         self.check_hbase()
 
