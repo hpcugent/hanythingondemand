@@ -28,22 +28,28 @@ Main hanythingondemand script, should be invoked in a job
 @author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
+import sys
+
 from hod.config.hodoption import HodOption
 from hod.hodproc import Slave, HadoopMaster
 from hod.mpiservice import MASTERRANK
 
 from mpi4py import MPI
 
-options = HodOption()
+def main(args):
+    options = HodOption(go_args=args)
 
-if MPI.COMM_WORLD.rank == MASTERRANK:
-    serv = HadoopMaster(options)
-else:
-    serv = Slave(options)
+    if MPI.COMM_WORLD.rank == MASTERRANK:
+        serv = HadoopMaster(options)
+    else:
+        serv = Slave(options)
 
-try:
-    serv.run_dist()
+    try:
+        serv.run_dist()
 
-    serv.stop_service()
-except:
-    serv.log.exception("Main HanythingOnDemand failed")
+        serv.stop_service()
+    except:
+        serv.log.exception("Main HanythingOnDemand failed")
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
