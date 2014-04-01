@@ -29,40 +29,37 @@ import unittest
 import hod.config.hbase as hch
 
 class HodConfigHBase(unittest.TestCase):
-    def test_hbasecfg_init(self):
-        '''test HbaseCfg init function'''
-        cfg = hch.HbaseCfg()
-        self.assertEqual(cfg.daemonname, 'hbase')
+    '''HodConfigHBase tests'''
 
     @unittest.expectedFailure
-    def test_hbasecfg_basic_cfg_extra(self):
-        '''test HbaseCfg basic_cfg_extra'''
-        cfg = hch.HbaseCfg()
+    def test_hbase_opts_basic_cfg_extra(self):
+        '''test HbaseOpts basic_cfg_extra'''
+        cfg = hch.HbaseOpts()
         cfg.basic_cfg_extra()
 
     @unittest.expectedFailure
     def test_hbasecfg_which_hbase(self):
-        '''test HbaseCfg which_hbase'''
+        '''test _which_hbase'''
         hbase, hbasehome = hch._which_hbase()
         self.assertTrue(hbase is not None)
         self.assertTrue(hbasehome is not None)
 
     def test_hbasecfg_hbase_version(self):
-        '''test HbaseCfg which_hbase_version'''
+        '''test _which_hbase_version'''
         hbaseversion = hch._hbase_version()
 
     def test_hbase_opts_init(self):
-        '''test HbaseCfg init_defaults'''
+        '''test HbaseOpts init_defaults'''
         cfg = hch.HbaseOpts()
         cfg.init_defaults()
 
     def test_hbaseopts_init_security_defaults(self):
-        '''test HbaseCfg init_security_defaults'''
+        '''test HbaseOpts init_security_defaults'''
         cfg = hch.HbaseOpts()
         cfg.init_security_defaults()
 
     @unittest.expectedFailure
     def test_hbaseopts_pre_run_any_service(self):
-        '''test HbaseCfg pre_run_any_service'''
+        '''test HbaseOpts pre_run_any_service'''
         cfg = hch.HbaseOpts()
         cfg.pre_run_any_service()

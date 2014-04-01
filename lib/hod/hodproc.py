@@ -46,6 +46,32 @@ from hod.config.hodoption import HodOption
 def _rank(size):
     return 0, range(size)
 
+
+class Master(MpiService):
+    """Basic Master"""
+
+    def __init__(self, options):
+        MpiService.__init__(self)
+        self.options = options
+
+    def distribution(self):
+        """Master makes the distribution"""
+        # # example part one on half one, part 2 on second half (make sure one is always started)
+        self.dists = []
+
+        allranks = range(self.size)
+        lim = self.size / 2
+        self.dists.append([TestWorkA, allranks[:max(
+            lim, 1)]]) # for lim == 0, make sure TestWorkA is started
+        self.dists.append([TestWorkB, allranks[lim:]])
+
+
+class Slave(MpiService):
+    """Basic Slave"""
+    def __init__(self, options):
+        MpiService.__init__(self)
+        self.options
+
 class HadoopMaster(MpiService):
     """Basic Master Hdfs and MR1"""
     def __init__(self, options):

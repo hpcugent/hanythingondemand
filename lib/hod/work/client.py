@@ -58,12 +58,12 @@ class LocalClient(Hadoop):
         sc = RunInScreen(screenname)
 
         self.log.debug(
-            "Source the environment script %s" % self.environment_script)
-        sc.run('. %s' % self.environment_script)
+            "Source the environment script %s" % self.opts.environment_script)
+        sc.run('. %s' % self.opts.environment_script)
         time.sleep(slp)
 
-        if self.shared_opts.get('work_script', None):
-            script = os.path.abspath(self.shared_opts['work_script'])
+        if self.opts.shared_opts.get('work_script', None):
+            script = os.path.abspath(self.opts.shared_opts['work_script'])
             if os.path.isfile(script):
                 sc.run('%s' % script)
                 time.sleep(slp)
@@ -92,9 +92,9 @@ class RemoteClient(Hadoop):
     def start_work_service_master(self):
         """Start the sshd server"""
         self.log.debug("Starting sshd server")
-        self.sshdstart.run()
+        self.opts.sshdstart.run()
 
     def stop_work_service_master(self):
         """Stop the sshd server"""
         self.log.debug("Stopping sshd server")
-        self.sshdstop.run()
+        self.opts.sshdstop.run()

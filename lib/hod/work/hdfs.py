@@ -71,11 +71,11 @@ class Hdfs(Hadoop):
 
     def start_work_service_master(self):
         """Start service on master"""
-        self.set_niceness(1, 2, 0, 'socket:0')
-        if self.format_hdfs:
+        self.opts.set_niceness(1, 2, 0, 'socket:0')
+        if self.opts.format_hdfs:
             self.log.info("Formatting HDFS")
-            name_dir = self.params.get('dfs.name.dir', None)
-            if name_dir:
+            name_dir = self.opts.params.get('dfs.name.dir', None)
+            if str(name_dir):
                 dest_dir = "%s.renamebeforeformat" % name_dir
                 self.log.debug('Namedir %s found during format. Going to rename it to %s.' % (name_dir, dest_dir))
                 os.rename("%s" % name_dir, dest_dir)
@@ -86,24 +86,24 @@ class Hdfs(Hadoop):
             self.log.debug("No HDFS format")
 
         self.log.info("Start namenode service on master.")
-        command = NameNode(self.daemon_script, start=True)
+        command = NameNode(self.opts.daemon_script, start=True)
         command.run()
 
     def start_work_service_slaves(self):
         """Run start_service on slaves"""
-        self.set_niceness(5, 2, 3, 'socket:0')
+        self.opts.set_niceness(5, 2, 3, 'socket:0')
         self.log.info("Start datanode service on slaves.")
-        command = DataNode(self.daemon_script, start=True)
+        command = DataNode(self.opts.daemon_script, start=True)
         command.run()
 
     def stop_work_service_master(self):
         """Stop service on master"""
         self.log.info("Stop namenode service on master.")
-        command = NameNode(self.daemon_script, start=False)
+        command = NameNode(self.opts.daemon_script, start=False)
         command.run()
 
     def stop_work_service_slaves(self):
         """Run start_service on slaves"""
         self.log.info("Stop datanode service on slaves.")
-        command = DataNode(self.daemon_script, start=False)
+        command = DataNode(self.opts.daemon_script, start=False)
         command.run()

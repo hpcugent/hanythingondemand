@@ -102,13 +102,13 @@ class LocalClientOpts(ClientCfg, HadoopOpts):
             for k, v in params.items():
                 for excl_k in exclude_params:
                     if not excl_k.search(k):
-                        prev_params.update({k: [v, '']})
+                        prev_params.update({k: Option(str, v, '')})
                         continue
 
             for k, v in env_params.items():
                 for excl_k in exclude_env_params:
                     if not excl_k.search(k):
-                        prev_env_params.update({k: [v, '']})
+                        prev_env_params.update({k: Option(str, v, '')})
                         continue
 
         self.add_from_opts_dict(prev_params)

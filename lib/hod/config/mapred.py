@@ -35,7 +35,7 @@ import re
 
 MAPRED_OPTS = ParamsDescr({
     'mapred.job.tracker': Option(HostnamePort, ':9000', 'The host and port that the MapReduce job tracker runs at.  If "local", then jobs are run in-process as a single map and reduce task.'),
-    'mapred.local.dir': Option(Directories, [None], 'The local directory where MapReduce stores intermediate data files. May be a comma-separated list of kindoflist on different devices in order to spread disk i/o. Directories that do not exist are ignored.'),
+    'mapred.local.dir': Option(Directories, None, 'The local directory where MapReduce stores intermediate data files. May be a comma-separated list of kindoflist on different devices in order to spread disk i/o. Directories that do not exist are ignored.'),
     'mapred.map.tasks': Option(str, None, 'As a rule of thumb, use 10x the number of slaves (i.e., number of TaskTrackers).'),
     'mapred.reduce.tasks': Option(str, None, 'As a rule of thumb, use 2x the number of slave processors (i.e., number of TaskTrackers).'),
 
@@ -117,19 +117,11 @@ MAPRED_ENV_OPTS = ParamsDescr({
 })
 
 
-class MapredCfg(HadoopCfg):
-    """Mapred MR1 cfg"""
-    def __init__(self):
-        HadoopCfg.__init__(self)
-        self.name = 'mapred'  # MR1
-        self.log.debug('name set to %s' % self.name)
-
-
-class MapredOpts(MapredCfg, HadoopOpts):
+class MapredOpts(HadoopOpts):
     """Mapred options"""
     def __init__(self, shared=None, basedir=None):
         HadoopOpts.__init__(self, shared=shared, basedir=basedir)
-        MapredCfg.__init__(self)
+        self.name = 'mapred'  # MR1
 
     def init_defaults(self):
         """Create the default list of params and description"""

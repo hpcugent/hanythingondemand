@@ -35,12 +35,12 @@ from hod.config.hadoopcfg import HadoopCfg
 
 
 # # namenode is set in core
-HDFS_OPTS = ParamsDescr({ 'dfs.name.dir': Option(Directories, [None], '''Determines
+HDFS_OPTS = ParamsDescr({ 'dfs.name.dir': Option(Directories, None, '''Determines
     where on the local filesystem the DFS name node should store the name
     table(fsimage). If this is a comma-delimited list of kindoflist then the
     name table is replicated in all of the kindoflist, for redundancy. def
     ${hadoop.tmp.dir}/dfs/name'''),
-    'dfs.data.dir': Option(Directories, [None], '''Determines where on the local
+    'dfs.data.dir': Option(Directories, None, '''Determines where on the local
         filesystem an DFS data node should store its blocks. If this is a
         comma-delimited list of kindoflist, then data will be stored in all
         named kindoflist, typically on different devices. Directories that do
@@ -91,20 +91,13 @@ HDFS_HBASE_OPTS = ParamsDescr({
 })
 
 
-class HdfsCfg(HadoopCfg):
-    """Hdfs cfg"""
-    def __init__(self):
-        HadoopCfg.__init__(self)
-        self.name = 'dfs'
-        self.log.debug('name set to %s' % self.name)
-
-class HdfsOpts(HdfsCfg, HadoopOpts):
+class HdfsOpts(HadoopOpts):
     """Hdfs options"""
     def __init__(self, shared=None, basedir=None):
         self.format_hdfs = True
 
         HadoopOpts.__init__(self, shared=shared, basedir=basedir)
-        HdfsCfg.__init__(self)
+        self.name = 'dfs'
 
     def init_defaults(self):
         """Create the default list of params and description"""

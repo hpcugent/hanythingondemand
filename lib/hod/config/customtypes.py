@@ -153,9 +153,10 @@ class Directories(KindOfList):
     def check(self):
         """Check if directories exist, if not create them with proper permissions"""
         for d in self.kindoflist:
-            if not os.path.isdir(d):
-                os.makedirs(d, self.perms)
-            os.chmod(d, self.perms)
+            if d is not None:
+                if not os.path.isdir(d):
+                    os.makedirs(d, self.perms)
+                os.chmod(d, self.perms)
 
 
 class Arguments(KindOfList):

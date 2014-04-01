@@ -134,13 +134,11 @@ def _hbase_version():
 
 
 
-class HbaseCfg(HadoopCfg):
-    """Hbase cfg"""
-    def __init__(self):
-        HadoopCfg.__init__(self)
+class HbaseOpts(HadoopOpts):
+    """Hbase options"""
+    def __init__(self, shared=None, basedir=None):
+        HadoopOpts.__init__(self, shared=shared, basedir=basedir)
         self.name = 'hbase'
-        self.log.debug('name set to %s' % self.name)
-
         self.daemonname = 'hbase'
 
         self.hbasehome = None
@@ -167,11 +165,6 @@ class HbaseCfg(HadoopCfg):
         self.log.debug("hbase extrasearchpaths %s" % self.extrasearchpaths)
 
 
-class HbaseOpts(HbaseCfg, HadoopOpts):
-    """Hbase options"""
-    def __init__(self, shared=None, basedir=None):
-        HadoopOpts.__init__(self, shared=shared, basedir=basedir)
-        HbaseCfg.__init__(self)
 
         self.attrs_to_share += ['hbase', 'hbasehome', 'hbase_jars']
 
