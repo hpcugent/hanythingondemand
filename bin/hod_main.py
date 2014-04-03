@@ -28,11 +28,20 @@ Main hanythingondemand script, should be invoked in a job
 @author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
+import os
 from hod.config.hodoption import HodOption
 from hod.hodproc import Slave, HadoopMaster
 from hod.mpiservice import MASTERRANK
 
 from mpi4py import MPI
+
+# allow early hook to make quick modifications
+# while reworking the code is in progress
+monkeypatch_variable = 'HOD_MONKEYPATCH_HOOK'
+if monkeypatch_variable in os.environ:
+    fn = os.environ[monkeypatch_variable]
+    if os.path.isfile(fn):
+        execfile(fn)
 
 options = HodOption()
 
