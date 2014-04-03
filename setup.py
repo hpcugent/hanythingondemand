@@ -42,7 +42,7 @@ shared_setup.SHARED_TARGET.update({
 
 PACKAGE = {
     'name': 'hanythingondemand',
-    'version': '2.1.2',
+    'version': '2.1.3',
     'author': [sdw, jt],
     'maintainer': [sdw, jt],
     'license': "GPL v2",
