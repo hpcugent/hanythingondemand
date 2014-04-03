@@ -47,24 +47,26 @@ class MPIServiceTestCase(unittest.TestCase):
     def test_mpiservice_barrier(self):
         '''test mpiservice barrier'''
         ms = hm.MpiService()
-        ms.barrier('Wibble')
+        hm.barrier(ms.comm, 'Wibble')
 
     def test_mpiservice_collectnodes(self):
         '''test mpiservice collectnodes'''
         ms = hm.MpiService()
-        ms.collect_nodes()
+        ms.init_comm()
+        allnodes = hm._collect_nodes(ms.comm, ms.thisnode, ms.size)
 
     def test_mpiservice_make_topoplogy_comm(self):
         '''test mpiservice make topology comm'''
         ms = hm.MpiService()
-        ms.make_topology_comm()
+        ms.init_comm()
+        topocom =  hm._make_topology_comm(ms.comm, ms.allnodes, ms.size, ms.rank)
+        print topocom
 
     def test_mpiservice_who_is_out_there(self):
         '''test mpiservice who is out there'''
         ms = hm.MpiService()
         ms.init_comm()
-        others = ms.who_is_out_there(ms.comm)
-        print others
+        others = hm._who_is_out_there(ms.comm, ms.rank)
 
     def test_mpiservice_stop_comm(self):
         '''test mpiservice stop comm'''
@@ -81,15 +83,15 @@ class MPIServiceTestCase(unittest.TestCase):
         '''test mpiservice check group'''
         ms = hm.MpiService()
         ms.init_comm()
-        ms.check_group(ms.comm.Get_group())
+        hm._check_group(ms.comm.Get_group(), 'some text')
 
     def test_mpiservice_check_comm(self):
         '''test mpiservice check comm'''
         ms = hm.MpiService()
         ms.init_comm()
-        ms.check_comm(ms.comm)
+        hm._check_comm(ms.comm, 'blah')
 
-    def test_mpiservice_make_comm_group(self):
+    def test_make_comm_group(self):
         '''test mpiservice make check group'''
         ms = hm.MpiService()
         ms.make_comm_group(range(1))
@@ -99,10 +101,17 @@ class MPIServiceTestCase(unittest.TestCase):
         ms = hm.MpiService()
         ms.distribution() # TODO:  Does nothing. If it's an interface, make abstract.
 
-    def test_mpiservice_spread(self):
-        '''test mpiservice spread'''
+    def test_master_spread(self):
+        '''test master spread'''
         ms = hm.MpiService()
-        ms.spread()
+        ms.init_comm()
+        hm._master_spread(ms.comm, None, 0)
+
+    def test_slave_spread(self):
+        '''test master spread'''
+        ms = hm.MpiService()
+        ms.init_comm()
+        hm._slave_spread(ms.comm, None, 0)
 
     @unittest.expectedFailure
     def test_mpiservice_run_dist(self):

@@ -163,6 +163,14 @@ class HadoopMaster(MpiService):
 
     def distribution_Mapred(self):
         """Mapred distribution. Reuse HDFS namenode"""
+        print '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
+        print 'ConfigOpts being made? : ', self.options.options.mr1_config
+        print '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
+        if self.options.options.mr1_config:
+            from hod.config.config import ConfigOpts
+            conf = ConfigOpts(self.options.options.mr1_config)
+            self.dists.append(Mapred, self.options.options.nodes, conf, sharedhdfs)
+
         network_index = self.select_network()
         sharedhdfs = None
         for d in self.dists:

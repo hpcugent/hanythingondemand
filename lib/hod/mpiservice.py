@@ -33,10 +33,162 @@ from hod.node import Node
 from vsc import fancylogger
 from collections import namedtuple
 
+from vsc.utils import fancylogger
+_log = fancylogger.getLogger(fname=False)
+
 MASTERRANK = 0
 
-
 Task = namedtuple('Task', ['type', 'ranks', 'options', 'shared'])
+
+def _who_is_out_there(comm, rank):
+    """Get all self.ranks of members of communicator"""
+    others = comm.allgather(rank)
+    _log.debug("Are out there %s on comm %s" % (others, comm))
+    return others
+
+def _check_comm(comm, txt):
+    """Report details about communicator"""
+    if comm == MPI.COMM_NULL:
+        _log.debug("%scomm %s" % (txt, comm))
+    else:
+        myrank = comm.Get_rank()
+        mysize = comm.Get_size()
+        if comm == MPI.COMM_WORLD:
+            _log.debug("%s comm WORLD %s size %d rank %d" %
+                           (txt, comm, mysize, myrank))
+        else:
+            _log.debug(
+                "%scomm %s size %d rank %d" % (txt, comm, mysize, myrank))
+
+def barrier(comm, txt):
+    """Perform MPI.barrier"""
+    _log.debug("%s with barrier" % txt)
+    comm.barrier()
+    _log.debug("%s with barrier DONE" % txt)
+
+def _make_topology_comm(comm, allnodes, size, rank):
+    """Given the Node topology info, make communicator per dimension"""
+    topocomm = [] # comm not part of topocomm by default
+
+    topo = allnodes[rank]['topology']
+    dimension = len(
+        topo)  # all nodes have same dimension (see sanity check)
+    mykeys = [[]] * dimension
+
+    # # sanity check
+    # # - all topologies have same length
+    foundproblem = False
+    for n in range(size):
+        sometopo = allnodes[n]['topology']
+        if dimension == len(sometopo):
+            for dim in range(dimension):
+                if topo[dim] == sometopo[dim]:
+                    mykeys[dim].append(n)  # add the rank of somenode to the mykeys list in proper dimension
+        else:
+            _log.error("Topology size of this Node %d does not match that of rank %d (size %d)" % (dimension, n, len(sometopo)))
+            foundproblem = True
+
+    if foundproblem:
+        _log.error("Found an irregularity. Not creating the topology communicators")
+        return
+
+    _log.debug("List to determine keys %s" % mykeys)
+    _log.debug("Creating communicators per dimension (total dimension %d)" % dimension)
+    for dimind in range(dimension):
+        color = topo[dimind]  # identify newcomm
+        key = mykeys[dimind].index(rank)  # rank in newcomm
+        newcomm = comm.Split(
+            color, key)  # non-overlapping communicator
+        _check_comm(newcomm, "Topologycomm dimensionindex %d color %d key %d" % (dimind, color, key))
+        # # sanity check
+        others = _who_is_out_there(newcomm, rank)
+        _log.debug(
+            "Others found %s; based on %s" % (others, mykeys[dimind]))
+        if mykeys[dimind] == others:
+            _log.debug("Others %s in comm matches based input %s. Adding to topocomm." % (others, mykeys[dimind]))
+            topocomm.append(newcomm)
+        else:
+            _log.error("Others %s in comm don't match based input %s. Adding COMM_NULL to topocomm." % (others, mykeys[dimind]))  # TODO is adding COMM_NULL a good idea?
+            topocomm.append(MPI.COMM_NULL)
+    return topocomm
+
+def _collect_nodes(comm, node, size):
+    """Collect local Node info and distribute it over all nodes"""
+    descr = node.go()
+    _log.debug("Got Node %s" % node)
+
+    allnodes = comm.alltoall([descr] * size)
+
+    # # TODO proper sanity check to see if all nodes have similar network
+    # (ie that the netmask of the selected index can reach the other indices)
+    _log.debug(
+        "Sanity check: do all nodes have same network adapters?")
+    is_ok = True
+    for intf in descr['network']:
+        dev = intf[2]
+        alldevs = [[y[2] for y in x['network']] for x in allnodes]
+        for rnk in range(size):
+            if not dev in alldevs[rnk]:
+                _log.error("no dev %s found in alldevs %s of rank %s" %
+                               (dev, alldevs[rnk], rnk))
+                is_ok = False
+
+    if is_ok:
+        _log.debug("Sanity check ok")
+    else:
+        _log.error("Sanity check failed")
+
+    return allnodes
+
+def _check_group(group, txt):
+    """Report details about group"""
+    myrank = group.Get_rank()
+    mysize = group.Get_size()
+    _log.debug(
+        "%s group %s size %d rank %d" % (txt, group, mysize, myrank))
+
+def _make_comm_group(comm, ranks):
+    """Make a new communicator based on set of ranks"""
+    mygroup = comm.Get_group()
+    _log.debug("Creating newgroup using ranks %s from group %s" %
+                   (ranks, mygroup))
+    newgroup = mygroup.Incl(ranks)
+    _check_group(newgroup, 'make_comm_group')
+
+    newcomm = comm.Create(newgroup)
+    _check_comm(newcomm, 'make_comm_group')
+
+    return newcomm
+
+def _stop_comm(comm):
+    """Stop a single communicator"""
+    _check_comm(comm, 'Stopping')
+
+    if comm == MPI.COMM_NULL:
+        _log.debug("No disconnect COMM_NULL")
+        return
+
+    barrier(comm, 'Stop')
+
+    if comm == MPI.COMM_WORLD:
+        _log.debug("No disconnect COMM_WORLD")
+    else:
+        _log.debug("Stop disconnect")
+        comm.Disconnect()
+
+
+def _master_spread(comm, dists, masterrank):
+    retval = comm.bcast(dists, root=masterrank)
+    _log.debug("Distributed dists %s from masterrank %s" % (dists, masterrank))
+    return retval 
+
+def _slave_spread(comm, dists, masterrank):
+    dists = comm.bcast(root=masterrank)
+    _log.debug("Received dists %s from masterrank %s" %
+                       (dists, masterrank))
+
+    return dists
+     
 
 class MpiService(object):
     """Basic mpi based service class"""
@@ -50,10 +202,6 @@ class MpiService(object):
         self.rank = -1
 
         self.masterrank = MASTERRANK
-
-        self.barriercounter = 0
-
-        self.stopwithbarrier = True
 
         self.wait_iter_sleep = 60  # run through all active work, then wait wait_iter_sleep seconds
 
@@ -86,197 +234,41 @@ class MpiService(object):
         self.log.debug("Init with COMM_WORLD size %d rank %d masterrank %d communicator %s" % (self.size, self.rank, self.masterrank, self.comm))
 
         if startwithbarrier:
-            self.barrier('Start ')
+            barrier(self.comm, 'Start ')
 
         # # init all nodes from original COMM_WORLD
         self.thisnode = Node()
-        self.collect_nodes()
-
+        self.allnodes = _collect_nodes(self.comm, self.thisnode, self.size)
+        self.topocom =  _make_topology_comm(self.comm, self.allnodes, self.size,
+                self.rank)
         self.dists = None
-
-    def barrier(self, txt=''):
-        """Perform MPI.barrier"""
-        if not txt.endswith(' '):
-            txt += " "
-        self.log.debug("%swith barrier %d" % (txt, self.barriercounter))
-        self.comm.barrier()
-        self.log.debug("%swith barrier %d DONE" % (txt, self.barriercounter))
-        self.barriercounter += 1
-
-    def collect_nodes(self):
-        """Collect local Node info and distribute it over all nodes"""
-        descr = self.thisnode.go()
-        self.log.debug("Got Node %s" % self.thisnode)
-
-        self.allnodes = self.comm.alltoall([descr] * self.size)
-        self.log.debug("Got allnodes %s" % (self.allnodes))
-
-        # # TODO proper sanity check to see if all nodes have similar network
-        # (ie that the netmask of the selected index can reach the other indices)
-        self.log.debug(
-            "Sanity check: do all nodes have same network adapters?")
-        is_ok = True
-        for intf in descr['network']:
-            dev = intf[2]
-            alldevs = [[y[2] for y in x['network']] for x in self.allnodes]
-            for rnk in range(self.size):
-                if not dev in alldevs[rnk]:
-                    self.log.error("no dev %s found in alldevs %s of rank %s" %
-                                   (dev, alldevs[rnk], rnk))
-                    is_ok = False
-
-        if is_ok:
-            self.log.debug("Sanity check ok")
-        else:
-            self.log.error("Sanity check failed")
-
-        self.make_topology_comm()
-
-    def make_topology_comm(self):
-        """Given the Node topology info, make communicator per dimension"""
-        self.topocomm = []  # self.comm not part of topocomm by default
-
-        topo = self.allnodes[self.rank]['topology']
-        dimension = len(
-            topo)  # all nodes have same dimension (see sanity check)
-        mykeys = [[]] * dimension
-
-        # # sanity check
-        # # - all topologies have same length
-        foundproblem = False
-        for n in range(self.size):
-            sometopo = self.allnodes[n]['topology']
-            if dimension == len(sometopo):
-                for dim in range(dimension):
-                    if topo[dim] == sometopo[dim]:
-                        mykeys[dim].append(n)  # add the rank of somenode to the mykeys list in proper dimension
-            else:
-                self.log.error("Topology size of this Node %d does not match that of rank %d (size %d)" % (dimension, n, len(sometopo)))
-                foundproblem = True
-
-        if foundproblem:
-            self.log.error("Found an irregularity. Not creating the topology communicators")
-            return
-
-        self.log.debug("List to determine keys %s" % mykeys)
-        self.log.debug("Creating communicators per dimension (total dimension %d)" % dimension)
-        for dimind in range(dimension):
-            color = topo[dimind]  # identify newcomm
-            key = mykeys[dimind].index(self.rank)  # rank in newcomm
-            newcomm = self.comm.Split(
-                color, key)  # non-overlapping communicator
-            self.check_comm(newcomm, "Topologycomm dimensionindex %d color %d key %d" % (dimind, color, key))
-            # # sanity check
-            others = self.who_is_out_there(newcomm)
-            self.log.debug(
-                "Others found %s; based on %s" % (others, mykeys[dimind]))
-            if mykeys[dimind] == others:
-                self.log.debug("Others %s in comm matches based input %s. Adding to topocomm." % (others, mykeys[dimind]))
-                self.topocomm.append(newcomm)
-            else:
-                self.log.error("Others %s in comm don't match based input %s. Adding COMM_NULL to topocomm." % (others, mykeys[dimind]))  # TODO is adding COMM_NULL a good idea?
-                self.topocomm.append(MPI.COMM_NULL)
-
-    def who_is_out_there(self, comm):
-        """Get all self.ranks of members of communicator"""
-        others = comm.allgather(self.rank)
-        self.log.debug("Are out there %s on comm %s" % (others, comm))
-        return others
-
-    def stop_comm(self, comm):
-        """Stop a single communicator"""
-        self.check_comm(comm, 'Stopping')
-
-        if comm == MPI.COMM_NULL:
-            self.log.debug("No disconnect COMM_NULL")
-            return
-
-        if self.stopwithbarrier:
-            self.barrier('Stop')
-        else:
-            self.log.debug("Stop without barrier")
-
-        if comm == MPI.COMM_WORLD:
-            self.log.debug("No disconnect COMM_WORLD")
-        else:
-            self.log.debug("Stop disconnect")
-            comm.Disconnect()
 
     def stop_service(self):
         """End all communicators"""
-        if self.topocomm is not None:
-            self.log.debug("Stopping topocomm")
-            for comm in self.topocomm:
-                self.stop_comm(comm)
         self.log.debug("Stopping tempcomm")
         for comm in self.tempcomm:
-            self.stop_comm(comm)
+            _stop_comm(comm)
         self.log.debug("Stopping self.comm")
-        self.stop_comm(self.comm)
-
-    def check_group(self, group, txt=''):
-        """Report details about group"""
-        if not txt.endswith(' '):
-            txt += " "
-        myrank = group.Get_rank()
-        mysize = group.Get_size()
-        self.log.debug(
-            "%sgroup %s size %d rank %d" % (txt, group, mysize, myrank))
-
-    def check_comm(self, comm, txt=''):
-        """Report details about communicator"""
-        if not txt.endswith(' '):
-            txt += " "
-        if comm == MPI.COMM_NULL:
-            self.log.debug("%scomm %s" % (txt, comm))
-        else:
-            myrank = comm.Get_rank()
-            mysize = comm.Get_size()
-            if comm == MPI.COMM_WORLD:
-                self.log.debug("%scomm WORLD %s size %d rank %d" %
-                               (txt, comm, mysize, myrank))
-            else:
-                self.log.debug(
-                    "%scomm %s size %d rank %d" % (txt, comm, mysize, myrank))
-
-    def make_comm_group(self, ranks):
-        """Make a new communicator based on set of ranks"""
-        mygroup = self.comm.Get_group()
-        self.log.debug("Creating newgroup using ranks %s from group %s" %
-                       (ranks, mygroup))
-        newgroup = mygroup.Incl(ranks)
-        self.check_group(newgroup, 'make_comm_group')
-
-        newcomm = self.comm.Create(newgroup)
-        self.check_comm(newcomm, 'make_comm_group')
-
-        return newcomm
+        _stop_comm(self.comm)
 
     def distribution(self):
         """Master makes the distribution"""
         if self.rank == MASTERRANK:
             self.log.error("Redefine this in proper master service")
-        else:
-            pass
 
-    def spread(self):
-        """bcast the master distribution"""
-        if self.rank == self.masterrank:
-            # master bcast to slaves
-            self.comm.bcast(self.dists, root=self.masterrank)
-            self.log.debug("Distributed dists %s from masterrank %s" %
-                           (self.dists, self.masterrank))
-        else:
-            self.dists = self.comm.bcast(root=self.masterrank)
-            self.log.debug("Received dists %s from masterrank %s" %
-                           (self.dists, self.masterrank))
-
+   
     def run_dist(self):
         """Make communicators for dists and execute the work there"""
         if self.dists is None:
+            for k in dir(self):
+                self.log.warn('%s, %s, %s' % (type(self), k, getattr(self, k)))
+            raise RuntimeError()
             self.log.debug("No dists found. Running distribution and spread.")
             self.distribution()
-            self.spread()
+            if self.rank == self.masterank:
+                master_spread(self.comm, self.dists, self.masterrank)
+            else:
+                self.dists = slave_spread(self.comm, self.dists, self.masterrank)
 
         # Based on initial dist, create the groups and communicators and map with work
         self.log.debug("Starting the distribution.")
@@ -301,7 +293,7 @@ class MpiService(object):
 
             self.log.debug(
                 "newcomm for ranks %s for work %s" % (wrk.ranks, wrk.type))
-            newcomm = self.make_comm_group(wrk.ranks)
+            newcomm = _make_comm_group(self.comm, wrk.ranks)
 
             if newcomm == MPI.COMM_NULL:
                 self.log.debug(

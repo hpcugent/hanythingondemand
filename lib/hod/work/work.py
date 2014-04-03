@@ -33,7 +33,7 @@ import time
 import os
 import tempfile
 
-from hod.mpiservice import MpiService
+from hod.mpiservice import MpiService, barrier
 
 
 class Work(MpiService):
@@ -117,19 +117,19 @@ class Work(MpiService):
     def do_work_start(self):
         """Start the work"""
         self.pre_run_any_service()
-        self.barrier("Going to start work on master only and on slaves only")
+        barrier(self.comm, "Going to start work on master only and on slaves only")
         if self.rank == self.masterrank:
             self.start_work_service_master()
         if self.rank != self.masterrank or self.size == 1:
             # # slaves and in case there is only one node (master=slave)
             self.start_work_service_slaves()
-        self.barrier("Going to start work on all")
+        barrier(self.comm, "Going to start work on all")
         self.start_work_service_all()
         self.post_run_any_service()
 
     def do_work_wait(self):
         self.pre_run_any_service()
-        self.barrier("Going to wait work on all. Return True when all is over")
+        barrier(self.comm, "Going to wait work on all. Return True when all is over")
 
         ans = self.work_wait()  # True when wait is over
 
@@ -156,10 +156,10 @@ class Work(MpiService):
         """Start the work"""
         self.pre_run_any_service()
 
-        self.barrier("Going to stop work on all")
+        barrier(self.comm, "Going to stop work on all")
         self.stop_work_service_all()
 
-        self.barrier("Going to stop work on master only and on lsaves only")
+        barrier(self.comm, "Going to stop work on master only and on lsaves only")
         if self.rank == self.masterrank:
             self.stop_work_service_master()
         if self.rank != self.masterrank or self.size == 1:
