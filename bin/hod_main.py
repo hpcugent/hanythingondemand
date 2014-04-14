@@ -32,7 +32,7 @@ import sys
 
 from hod.config.hodoption import HodOption
 from hod.hodproc import Slave, HadoopMaster
-from hod.mpiservice import MASTERRANK
+from hod.mpiservice import MASTERRANK, run_dist, setup_distribution
 
 from mpi4py import MPI
 
@@ -45,7 +45,8 @@ def main(args):
         serv = Slave(options)
 
     try:
-        serv.run_dist()
+        setup_distribution(serv)
+        run_dist(serv)
 
         serv.stop_service()
     except:

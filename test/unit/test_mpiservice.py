@@ -72,7 +72,7 @@ class MPIServiceTestCase(unittest.TestCase):
         '''test mpiservice stop comm'''
         ms = hm.MpiService()
         ms.init_comm()
-        ms.stop_comm(ms.comm)
+        hm._stop_comm(ms.comm)
 
     def test_mpiservice_stop_service(self):
         '''test mpiservice stop service'''
@@ -94,7 +94,8 @@ class MPIServiceTestCase(unittest.TestCase):
     def test_make_comm_group(self):
         '''test mpiservice make check group'''
         ms = hm.MpiService()
-        ms.make_comm_group(range(1))
+        ms.init_comm()
+        hm._make_comm_group(ms.comm, range(1))
 
     def test_mpiservice_distribution(self):
         '''test mpiservice distribution'''

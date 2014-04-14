@@ -38,6 +38,7 @@ from hod.work.hdfs import Hdfs
 from hod.work.hbase import Hbase
 from hod.work.client import LocalClient, RemoteClient
 
+from hod.rmscheduler.hodjob import Job
 
 from hod.config.customtypes import HostnamePort, HdfsFs, ParamsDescr
 from hod.config.hodoption import HodOption
@@ -111,7 +112,6 @@ class HadoopMaster(MpiService):
         """Create the client configs"""
         # # recreate the job environment
         if self.options.options.hod_envclass:
-            from hod.rmscheduler.hodjob import Job
             job = Job.get_job(self.options.options.hod_envclass, self.options)
             environment = "\n".join(job.generate_environment())
             self.log.debug('Generated environment %s from option hod_envclass %s' % (environment, self.options.options.hod_envclass))

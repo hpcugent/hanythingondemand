@@ -188,7 +188,91 @@ def _slave_spread(comm, dists, masterrank):
                        (dists, masterrank))
 
     return dists
-     
+
+
+def setup_distribution(svc):
+    """Setup the per node services and spread the tasks out."""
+    _log.debug("No dists found. Running distribution and spread.")
+    svc.distribution()
+    if svc.rank == svc.masterrank:
+        _master_spread(svc.comm, svc.dists, svc.masterrank)
+    else:
+        svc.dists = _slave_spread(svc.comm, svc.dists, svc.masterrank)
+
+def run_dist(svc):
+    """Make communicators for dists and execute the work there"""
+    # Based on initial dist, create the groups and communicators and map with work
+    _log.debug("Starting the distribution.")
+    for wrk in svc.dists:
+        # # pass any existing previous work
+        w_shared = {'active_work': [],
+                    'other_work': {},
+                    }
+
+        for x in svc.active_work:
+            act_name = x.__class__.__name__
+            _log.debug("adding active work from %s attr_to_share %s" %
+                           (act_name, x.opts.attrs_to_share))
+            tmpdict = {'work_name': act_name}
+            tmpdict.update(dict(
+                [(name, getattr(x.opts, name)) for name in x.opts.attrs_to_share]))
+
+            w_shared['active_work'].append(tmpdict)
+
+        if len(wrk) == 3:
+            w_shared.update(wrk.shared)
+
+        _log.debug(
+            "newcomm for ranks %s for work %s" % (wrk.ranks, wrk.type))
+        newcomm = _make_comm_group(svc.comm, wrk.ranks)
+
+        if newcomm == MPI.COMM_NULL:
+            _log.debug(
+                "No work %s for this rank %s" % (wrk.type, svc.rank))
+        else:
+            svc.tempcomm.append(newcomm)
+
+            _log.debug("work %s for ranks %s shared %s" %
+                           (wrk.type.__name__, wrk.ranks, w_shared))
+            tmpopts = wrk.options(w_shared)
+            tmp = wrk.type(tmpopts)
+            svc.log.debug("work %s begin" % (wrk.type.__name__))
+            tmp.work_begin(newcomm)
+            # # adding started work
+            svc.active_work.append(tmp)
+
+    for act_work in svc.active_work:
+        svc.log.debug("work %s start" % (act_work.__class__.__name__))
+        act_work.do_work_start()
+
+    # # all work is started now
+    while len(svc.active_work):
+        svc.log.debug(
+            "amount of active work %s" % (len(svc.active_work)))
+        for act_work in svc.active_work:
+
+            # wait returns wheter or not to cleanup
+            cleanup = act_work.do_work_wait()
+
+            _log.debug("wait for work %s returned cleanup %s" %
+                           (act_work.__class__.__name__, cleanup))
+            if cleanup:
+                _log.debug(
+                    "work %s stop" % (act_work.__class__.__name__))
+                act_work.do_work_stop()
+                _log.debug(
+                    "work %s end" % (act_work.__class__.__name__))
+                act_work.work_end()
+
+                _log.debug("Removing %s from active_work" % act_work)
+                svc.active_work.remove(act_work)
+        if len(svc.active_work):
+            _log.debug('Still %s active work left. sleeping %s seconds' % (len(svc.active_work), svc.wait_iter_sleep))
+            time.sleep(svc.wait_iter_sleep)
+        else:
+            _log.debug('No more active work, not going to sleep.')
+    _log.debug("No more active work left.")
+
 
 class MpiService(object):
     """Basic mpi based service class"""
@@ -234,7 +318,7 @@ class MpiService(object):
         self.log.debug("Init with COMM_WORLD size %d rank %d masterrank %d communicator %s" % (self.size, self.rank, self.masterrank, self.comm))
 
         if startwithbarrier:
-            barrier(self.comm, 'Start ')
+            barrier(self.comm, 'Start')
 
         # # init all nodes from original COMM_WORLD
         self.thisnode = Node()
@@ -251,93 +335,8 @@ class MpiService(object):
         self.log.debug("Stopping self.comm")
         _stop_comm(self.comm)
 
+
     def distribution(self):
         """Master makes the distribution"""
         if self.rank == MASTERRANK:
             self.log.error("Redefine this in proper master service")
-
-   
-    def run_dist(self):
-        """Make communicators for dists and execute the work there"""
-        if self.dists is None:
-            for k in dir(self):
-                self.log.warn('%s, %s, %s' % (type(self), k, getattr(self, k)))
-            raise RuntimeError()
-            self.log.debug("No dists found. Running distribution and spread.")
-            self.distribution()
-            if self.rank == self.masterank:
-                master_spread(self.comm, self.dists, self.masterrank)
-            else:
-                self.dists = slave_spread(self.comm, self.dists, self.masterrank)
-
-        # Based on initial dist, create the groups and communicators and map with work
-        self.log.debug("Starting the distribution.")
-        for wrk in self.dists:
-            # # pass any existing previous work
-            w_shared = {'active_work': [],
-                        'other_work': {},
-                        }
-
-            for x in self.active_work:
-                act_name = x.__class__.__name__
-                self.log.debug("adding active work from %s attr_to_share %s" %
-                               (act_name, x.opts.attrs_to_share))
-                tmpdict = {'work_name': act_name}
-                tmpdict.update(dict(
-                    [(name, getattr(x.opts, name)) for name in x.opts.attrs_to_share]))
-
-                w_shared['active_work'].append(tmpdict)
-
-            if len(wrk) == 3:
-                w_shared.update(wrk.shared)
-
-            self.log.debug(
-                "newcomm for ranks %s for work %s" % (wrk.ranks, wrk.type))
-            newcomm = _make_comm_group(self.comm, wrk.ranks)
-
-            if newcomm == MPI.COMM_NULL:
-                self.log.debug(
-                    "No work %s for this rank %s" % (wrk.type, self.rank))
-            else:
-                self.tempcomm.append(newcomm)
-
-                self.log.debug("work %s for ranks %s shared %s" %
-                               (wrk.type.__name__, wrk.ranks, w_shared))
-                tmpopts = wrk.options(w_shared)
-                tmp = wrk.type(tmpopts)
-                self.log.debug("work %s begin" % (wrk.type.__name__))
-                tmp.work_begin(newcomm)
-                # # adding started work
-                self.active_work.append(tmp)
-
-        for act_work in self.active_work:
-            self.log.debug("work %s start" % (act_work.__class__.__name__))
-            act_work.do_work_start()
-
-        # # all work is started now
-        while len(self.active_work):
-            self.log.debug(
-                "amount of active work %s" % (len(self.active_work)))
-            for act_work in self.active_work:
-
-                # wait returns wheter or not to cleanup
-                cleanup = act_work.do_work_wait()
-
-                self.log.debug("wait for work %s returned cleanup %s" %
-                               (act_work.__class__.__name__, cleanup))
-                if cleanup:
-                    self.log.debug(
-                        "work %s stop" % (act_work.__class__.__name__))
-                    act_work.do_work_stop()
-                    self.log.debug(
-                        "work %s end" % (act_work.__class__.__name__))
-                    act_work.work_end()
-
-                    self.log.debug("Removing %s from active_work" % act_work)
-                    self.active_work.remove(act_work)
-            if len(self.active_work):
-                self.log.debug('Still %s active work left. sleeping %s seconds' % (len(self.active_work), self.wait_iter_sleep))
-                time.sleep(self.wait_iter_sleep)
-            else:
-                self.log.debug('No more active work, not going to sleep.')
-        self.log.debug("No more active work left.")
