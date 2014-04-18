@@ -1,0 +1,9 @@
+[run]
+omit =
+     */test_*
+    *__init__.py
+[report]
+exclude_lines =
+    def __repr__
+    raise NotImplementedError
+    raise AssertionError

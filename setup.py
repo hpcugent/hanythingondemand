@@ -26,48 +26,70 @@
 # #
 """
 Setup for Hanything on Demand
-
-@author: Stijn De Weirdt
-@author: Jens Timmerman
 """
 import os
-import vsc.install.shared_setup as shared_setup
-from vsc.install.shared_setup import jt, sdw
+import sys
+import subprocess
+from setuptools import setup, Command
 
-shared_setup.SHARED_TARGET.update({
-    'url': 'https://github.com/hpcugent/hanythingondemand',
-    'download_url': 'https://github.com/hpcugent/hanythingondemand',
-})
+def setup_openmp_libpath():
+    libpath = os.getenv('LD_LIBRARY_PATH')
+    os.environ['LD_LIBRARY_PATH'] = '/usr/lib64/openmpi/lib:%s' % libpath
+
+class BaseCommand(Command):
+    user_options = []
+    def initialize_options(self):
+        pass
+    def finalize_options(self):
+        pass
+
+class TestCommand(BaseCommand):
+    description = "Run unit tests."
+
+    def run(self):
+        # Cheeky cheeky LD_LIBRARY_PATH hack for Fedora
+        setup_openmp_libpath()
+        ret = subprocess.call("python -m unittest discover -b -s test/unit -v".split(' '))
+        sys.exit(ret)
+
+class CoverageCommand(BaseCommand):
+    description = "Run unit tests."
+
+    def run(self):
+        setup_openmp_libpath()
+        ret = subprocess.call(["coverage", "run", "--source=hod", "-m", "unittest", "discover", "-b", "-s", "test/unit/ -v"])
+        ret = subprocess.call(["coverage", "report"])
+        sys.exit(ret)
 
 
 PACKAGE = {
     'name': 'hanythingondemand',
-    'version': '2.1.2',
-    'author': [sdw, jt],
-    'maintainer': [sdw, jt],
+    'version': '2.1.3',
+    'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
+    'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'license': "GPL v2",
-    'package_dir': {'': 'lib', 'tests': ''},
-    'test-requires': [
-        'mock',
-    ],
     'install_requires': [
         'vsc-base >= 1.7.3',
-        'vsc-mympirun >= 3.2.3',
         'mpi4py',
-        'netaddr',
+        'pbs-python',
         'netifaces',
+        'netaddr',
     ],
+    'tests_require': ['tox', 'pytest', 'coverage', 'mock'],
     'packages': [
-        'tests',
         'hod',
         'hod.work',
         'hod.commands',
         'hod.config',
         'hod.rmscheduler',
     ],
+    'data_files': [
+        #('config', 'etc/Hadoop-2.0.0-cdh4.4.0/hadoop.conf')
+        ],
     'scripts': ['bin/hod_main.py', 'bin/hod_pbs.py'],
+    'cmdclass' : {'test': TestCommand, 'cov': CoverageCommand},
     'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
 }
 
 if __name__ == '__main__':
-    shared_setup.action_target(PACKAGE)
+    setup(**PACKAGE)

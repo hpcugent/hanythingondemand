@@ -1,0 +1,3 @@
+include *.md *.py
+recursive-include docs *.conf *.py 
+prune docs/_build
