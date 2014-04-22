@@ -50,7 +50,7 @@ class Mapred(Hadoop):
             self.log.debug("%s not set. using  %s" % (mis, tmpdir))
             self.opts.params[mis] = Directories(tmpdir)
         elif mis in ('mapred.job.tracker',):
-            intf = interface_to_nn(self.thisnode, self.opts.params.get('fs.default.name'))
+            intf = interface_to_nn(self.svc.thisnode, self.opts.params.get('fs.default.name'))
             if intf:
                 val = HostnamePort('%s:9000' % intf[0])
                 self.opts.params[mis] = val
@@ -60,10 +60,10 @@ class Mapred(Hadoop):
         elif mis in ('mapred.map.tasks', 'mapred.tasktracker.map.tasks.maximum',):
             if mis.endswith('maximum'):
                 tasks = int(len(
-                    self.thisnode.usablecores) / 2)  # avg 2 cores per task
+                    self.svc.thisnode.usablecores) / 2)  # avg 2 cores per task
             else:
                 mapfactor = len(self.reduce_tasks_maximumthisnode.usablecores) * 2
-                tasks = int(len(self.allnodes) * mapfactor)
+                tasks = int(len(self.svc.allnodes) * mapfactor)
             self.log.debug("%s not set. using  %s" % (mis, tasks))
             self.opts.params[mis] = tasks
         elif mis in ('mapred.reduce.tasks', 'mapred.tasktracker.reduce.tasks.maximum',):

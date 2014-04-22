@@ -50,7 +50,7 @@ class Hadoop(Work):
         if self.opts.basedir is None:
             self.opts.basedir = tempfile.mkdtemp(prefix='hod', suffix=".".join([
                 pwd.getpwuid(os.getuid())[0],  # current user uid
-                "%d" % self.rank,
+                "%d" % self.svc.rank,
                 self.opts.name]
             ))
 

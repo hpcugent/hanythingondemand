@@ -28,6 +28,7 @@
 import unittest
 from mock import patch, Mock
 import hod.work.mapred as hwm
+from hod.mpiservice import MpiService
 from hod.config.mapred import MapredOpts
 
 class HodWorkMapredTestCase(unittest.TestCase):
@@ -46,6 +47,7 @@ class HodWorkMapredTestCase(unittest.TestCase):
     def test_work_mapred_set_service_defaults_jobtracker(self):
         '''test Hbase set_service_defaults function'''
         o = hwm.Mapred(MapredOpts({}, 'basedir'))
+        o.svc = MpiService()
         o.set_service_defaults('mapred.job.tracker')
 
     def test_work_mapred_set_service_defaults_reduce_tasks(self):

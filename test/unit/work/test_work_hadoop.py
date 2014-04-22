@@ -27,6 +27,7 @@
 
 import unittest
 import hod.work.hadoop as hwh
+from hod.mpiservice import MpiService
 from hod.config.hadoopopts import HadoopOpts
 
 class HodWorkHadoopTestCase(unittest.TestCase):
@@ -44,6 +45,7 @@ class HodWorkHadoopTestCase(unittest.TestCase):
     def test_work_hadoop_prepare_work_cfg(self):
         '''test Hadoop prepare_work_cfg'''
         o = hwh.Hadoop(HadoopOpts({}))
+        o.svc = MpiService()
         o.prepare_work_cfg()
 
     @unittest.expectedFailure

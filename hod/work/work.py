@@ -36,11 +36,11 @@ import tempfile
 from hod.mpiservice import MpiService, barrier
 
 
-class Work(MpiService):
+class Work(object):
     """Basic work class"""
     def __init__(self):
         self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
-        MpiService.__init__(self, initcomm=False, log=self.log)
+        self.svc = None
 
         self.work_max_age = 3600 * 71
         self.work_start_time = time.time()
@@ -65,7 +65,8 @@ class Work(MpiService):
 
     def work_begin(self, comm):
         """Prepartion of work, previous to start"""
-        self.init_comm(comm, startwithbarrier=True)
+        self.svc = MpiService(log=self.log)
+        barrier(self.svc.comm, "Start")
 
         self.log.debug("run do_work")
 
@@ -73,7 +74,7 @@ class Work(MpiService):
 
     def work_end(self):
         """Cleanup work"""
-        self.stop_service()
+        self.svc.stop_service()
 
     def start_work_service_master(self):
         """Start service on master only"""
@@ -117,19 +118,19 @@ class Work(MpiService):
     def do_work_start(self):
         """Start the work"""
         self.pre_run_any_service()
-        barrier(self.comm, "Going to start work on master only and on slaves only")
-        if self.rank == self.masterrank:
+        barrier(self.svc.comm, "Going to start work on master only and on slaves only")
+        if self.svc.rank == self.svc.masterrank:
             self.start_work_service_master()
-        if self.rank != self.masterrank or self.size == 1:
+        if self.svc.rank != self.svc.masterrank or self.svc.size == 1:
             # # slaves and in case there is only one node (master=slave)
             self.start_work_service_slaves()
-        barrier(self.comm, "Going to start work on all")
+        barrier(self.svc.comm, "Going to start work on all")
         self.start_work_service_all()
         self.post_run_any_service()
 
     def do_work_wait(self):
         self.pre_run_any_service()
-        barrier(self.comm, "Going to wait work on all. Return True when all is over")
+        barrier(self.svc.comm, "Going to wait work on all. Return True when all is over")
 
         ans = self.work_wait()  # True when wait is over
 
@@ -156,13 +157,13 @@ class Work(MpiService):
         """Start the work"""
         self.pre_run_any_service()
 
-        barrier(self.comm, "Going to stop work on all")
+        barrier(self.svc.comm, "Going to stop work on all")
         self.stop_work_service_all()
 
-        barrier(self.comm, "Going to stop work on master only and on lsaves only")
-        if self.rank == self.masterrank:
+        barrier(self.svc.comm, "Going to stop work on master only and on lsaves only")
+        if self.svc.rank == self.svc.masterrank:
             self.stop_work_service_master()
-        if self.rank != self.masterrank or self.size == 1:
+        if self.svc.rank != self.svc.masterrank or self.svc.size == 1:
             # # slaves and in case there is only one node (master=slave)
             self.stop_work_service_slaves()
         self.post_run_any_service()

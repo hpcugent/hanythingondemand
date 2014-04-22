@@ -36,6 +36,9 @@ from collections import namedtuple
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
+__all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_distribution',
+        'run_dist']
+
 MASTERRANK = 0
 
 Task = namedtuple('Task', ['type', 'ranks', 'options', 'shared'])
@@ -68,7 +71,7 @@ def barrier(comm, txt):
 
 def _make_topology_comm(comm, allnodes, size, rank):
     """Given the Node topology info, make communicator per dimension"""
-    topocomm = [] # comm not part of topocomm by default
+    topocom = [] # comm not part of topocom by default
 
     topo = allnodes[rank]['topology']
     dimension = len(
@@ -105,12 +108,12 @@ def _make_topology_comm(comm, allnodes, size, rank):
         _log.debug(
             "Others found %s; based on %s" % (others, mykeys[dimind]))
         if mykeys[dimind] == others:
-            _log.debug("Others %s in comm matches based input %s. Adding to topocomm." % (others, mykeys[dimind]))
-            topocomm.append(newcomm)
+            _log.debug("Others %s in comm matches based input %s. Adding to topocom." % (others, mykeys[dimind]))
+            topocom.append(newcomm)
         else:
-            _log.error("Others %s in comm don't match based input %s. Adding COMM_NULL to topocomm." % (others, mykeys[dimind]))  # TODO is adding COMM_NULL a good idea?
-            topocomm.append(MPI.COMM_NULL)
-    return topocomm
+            _log.error("Others %s in comm don't match based input %s. Adding COMM_NULL to topocom." % (others, mykeys[dimind]))  # TODO is adding COMM_NULL a good idea?
+            topocom.append(MPI.COMM_NULL)
+    return topocom
 
 def _collect_nodes(comm, node, size):
     """Collect local Node info and distribute it over all nodes"""
@@ -177,16 +180,14 @@ def _stop_comm(comm):
         comm.Disconnect()
 
 
-def _master_spread(comm, dists, masterrank):
-    retval = comm.bcast(dists, root=masterrank)
-    _log.debug("Distributed dists %s from masterrank %s" % (dists, masterrank))
+def _master_spread(comm, dists):
+    retval = comm.bcast(dists, root=MASTERRANK)
+    _log.debug("Distributed dists %s from masterrank %s" % (dists, MASTERRANK))
     return retval 
 
-def _slave_spread(comm, dists, masterrank):
-    dists = comm.bcast(root=masterrank)
-    _log.debug("Received dists %s from masterrank %s" %
-                       (dists, masterrank))
-
+def _slave_spread(comm, dists):
+    dists = comm.bcast(root=MASTERRANK)
+    _log.debug("Received dists %s from masterrank %s" % (dists, MASTERRANK))
     return dists
 
 
@@ -194,15 +195,18 @@ def setup_distribution(svc):
     """Setup the per node services and spread the tasks out."""
     _log.debug("No dists found. Running distribution and spread.")
     svc.distribution()
-    if svc.rank == svc.masterrank:
-        _master_spread(svc.comm, svc.dists, svc.masterrank)
+    if svc.rank == MASTERRANK:
+        _master_spread(svc.comm, svc.dists)
     else:
-        svc.dists = _slave_spread(svc.comm, svc.dists, svc.masterrank)
+        svc.dists = _slave_spread(svc.comm, svc.dists)
 
 def run_dist(svc):
     """Make communicators for dists and execute the work there"""
     # Based on initial dist, create the groups and communicators and map with work
     _log.debug("Starting the distribution.")
+    active_work = []
+    wait_iter_sleep = 60  # run through all active work, then wait wait_iter_sleep seconds
+
     for wrk in svc.dists:
         # # pass any existing previous work
         w_shared = {'active_work': [],
@@ -239,17 +243,16 @@ def run_dist(svc):
             svc.log.debug("work %s begin" % (wrk.type.__name__))
             tmp.work_begin(newcomm)
             # # adding started work
-            svc.active_work.append(tmp)
+            active_work.append(tmp)
 
-    for act_work in svc.active_work:
+    for act_work in active_work:
         svc.log.debug("work %s start" % (act_work.__class__.__name__))
         act_work.do_work_start()
 
     # # all work is started now
-    while len(svc.active_work):
-        svc.log.debug(
-            "amount of active work %s" % (len(svc.active_work)))
-        for act_work in svc.active_work:
+    while len(active_work):
+        _log.debug("amount of active work %s" % (len(active_work)))
+        for act_work in active_work:
 
             # wait returns wheter or not to cleanup
             cleanup = act_work.do_work_wait()
@@ -265,10 +268,10 @@ def run_dist(svc):
                 act_work.work_end()
 
                 _log.debug("Removing %s from active_work" % act_work)
-                svc.active_work.remove(act_work)
-        if len(svc.active_work):
-            _log.debug('Still %s active work left. sleeping %s seconds' % (len(svc.active_work), svc.wait_iter_sleep))
-            time.sleep(svc.wait_iter_sleep)
+                active_work.remove(act_work)
+        if len(active_work):
+            _log.debug('Still %s active work left. sleeping %s seconds' % (len(svc.active_work), wait_iter_sleep))
+            time.sleep(wait_iter_sleep)
         else:
             _log.debug('No more active work, not going to sleep.')
     _log.debug("No more active work left.")
@@ -276,56 +279,28 @@ def run_dist(svc):
 
 class MpiService(object):
     """Basic mpi based service class"""
-    def __init__(self, initcomm=True, log=None):
+    def __init__(self, log=None):
         self.log = log
         if self.log is None:
             self.log = fancylogger.getLogger(name=self.__class__.__name__, fname=False)
 
-        self.comm = None
-        self.size = -1
-        self.rank = -1
+        self.comm = MPI.COMM_WORLD
+        self.size = self.comm.Get_size()
+        self.rank = self.comm.Get_rank()
 
-        self.masterrank = MASTERRANK
-
-        self.wait_iter_sleep = 60  # run through all active work, then wait wait_iter_sleep seconds
-
-        self.allnodes = None  # Node info per rank
-        self.topocomm = None
         self.tempcomm = []
 
-        self.active_work = []
-
         self.dists = None
-        self.thisnode = None
 
-        if initcomm:
-            self.log.debug(
-                "Going to initialise the __init__ default communicators")
-            self.init_comm()
-        else:
-            self.log.debug("No communicators initialised in __init__")
+        # Maybe have a barrier here based on a param.
+        #if startwithbarrier:
+        #    barrier(self.comm, 'Start')
 
-    def init_comm(self, origcomm=MPI.COMM_WORLD, startwithbarrier=False):
-        self.log.debug('init_comm with origcomm %s and startwithbarrier %s' %
-                       (origcomm, startwithbarrier))
-        try:
-            self.comm = origcomm
-            self.size = self.comm.Get_size()
-            self.rank = self.comm.Get_rank()
-        except:
-            self.log.exception("Failed to initialise ")
-
-        self.log.debug("Init with COMM_WORLD size %d rank %d masterrank %d communicator %s" % (self.size, self.rank, self.masterrank, self.comm))
-
-        if startwithbarrier:
-            barrier(self.comm, 'Start')
-
-        # # init all nodes from original COMM_WORLD
         self.thisnode = Node()
         self.allnodes = _collect_nodes(self.comm, self.thisnode, self.size)
-        self.topocom =  _make_topology_comm(self.comm, self.allnodes, self.size,
+        self.topocom = _make_topology_comm(self.comm, self.allnodes, self.size,
                 self.rank)
-        self.dists = None
+
 
     def stop_service(self):
         """End all communicators"""
