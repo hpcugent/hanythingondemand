@@ -74,8 +74,7 @@ def _make_topology_comm(comm, allnodes, size, rank):
     topocom = [] # comm not part of topocom by default
 
     topo = allnodes[rank]['topology']
-    dimension = len(
-        topo)  # all nodes have same dimension (see sanity check)
+    dimension = len(topo)  # all nodes have same dimension (see sanity check)
     mykeys = [[]] * dimension
 
     # # sanity check
@@ -124,8 +123,7 @@ def _collect_nodes(comm, node, size):
 
     # # TODO proper sanity check to see if all nodes have similar network
     # (ie that the netmask of the selected index can reach the other indices)
-    _log.debug(
-        "Sanity check: do all nodes have same network adapters?")
+    _log.debug("Sanity check: do all nodes have same network adapters?")
     is_ok = True
     for intf in descr['network']:
         dev = intf[2]

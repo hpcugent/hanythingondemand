@@ -103,6 +103,45 @@ def interface_to_nn(thisnode, namenode):
     else:
         _log.error("namenode %s cannot be reached by any of the local interfaces %s" % (namenode, thisnode.network))
 
+def _sorted_network(network):
+    """Try to find a preferred network (can be advanced like IPoIB of high-speed ethernet)"""
+    nw = []
+    _log.debug("Preferred network selection")
+    # # step 1 alphabetical ordering (who knows in what order ip returns the addresses) on hostname field
+    network.sort()
+
+    # # look for ib network
+    ib_reg = re.compile("^(ib)\d+$")
+    for intf in network:
+        if ib_reg.search(intf[2]):
+            if not intf in nw:
+                _log.debug("Added intf %s as ib interface" % intf)
+                nw.append(intf)
+
+    # # final selection prefer non-vlan
+    vlan_reg = re.compile("^(.*)\.\d+$")
+    loopback_reg = re.compile("^(lo)\d*$")
+    for intf in network:
+        if not (vlan_reg.search(intf[2]) or loopback_reg.search(intf[2])):
+            if not intf in nw:
+                _log.debug("Added intf %s as non-vlan or non-loopback interface" % intf)
+                nw.append(intf)
+
+    # # add remainder non-loopback
+    for intf in network:
+        if not loopback_reg.search(intf[2]):
+            if not intf in nw:
+                _log.debug("Added intf %s as remaining non-loopback interface" % intf)
+                nw.append(intf)
+
+    # # add remainder
+    for intf in network:
+        if not intf in nw:
+            _log.debug("Added intf %s as remaining interface" % intf)
+            nw.append(intf)
+
+    _log.debug("ordered network %s" % nw)
+    return nw
 
 def get_memory():
     """Extract information about the available memory"""
@@ -157,11 +196,10 @@ class Node(object):
     def __str__(self):
         return "FQDN %s PID %s" % (self.fqdn, self.pid)
 
-    def go(self, ret=True):
+    def go(self):
         """A wrapper around some common functions"""
         self.fqdn = socket.getfqdn()
-        self.network = get_networks()
-        self.order_network() # order the network
+        self.network = _sorted_network(get_networks())
 
         self.pid = os.getpid()
         self.usablecores = [idx for idx, used in enumerate(sched_getaffinity().cpus) if used]
@@ -169,74 +207,15 @@ class Node(object):
 
         self.memory = get_memory()
 
-        if ret:
-            descr = {
-                'fqdn': self.fqdn,
-                'network': self.network,
-                'pid': self.pid,
-                'cores': self.cores,
-                'usablecores': self.usablecores,
-                'topology': self.topology,
-                'memory': self.memory,
-            }
-            return descr
+        descr = {
+            'fqdn': self.fqdn,
+            'network': self.network,
+            'pid': self.pid,
+            'cores': self.cores,
+            'usablecores': self.usablecores,
+            'topology': self.topology,
+            'memory': self.memory,
+        }
+        return descr
 
-        import struct
-
-        def calc_dotted_netmask(mask):
-            bits = 0
-            for i in xrange(32 - mask, 32):
-                bits |= (1 << i)
-            return "%d.%d.%d.%d" % ((bits & 0xff000000) >> 24, (bits & 0xff0000) >> 16, (bits & 0xff00) >> 8, (bits & 0xff))
-
-        endianness = '=L'
-        ipaddr = struct.unpack(endianness, socket.inet_aton(ip))[0]
-        netaddr, bits = net.split('/')
-        netmask = struct.unpack(
-            '=L', socket.inet_aton(calc_dotted_netmask(int(bits))))[0]
-        network = struct.unpack('=L', socket.inet_aton(netaddr))[0] & netmask
-
-        ans = (ipaddr & netmask) == (network & netmask)
-        self.log.debug("ip %s in net %s : %s" % (ip, net, ans))
-        return ans
-
-    def order_network(self):
-        """Try to find a preferred network (can be advanced like IPoIB of high-speed ethernet)"""
-        nw = []
-        self.log.debug("Preferred network selection")
-        # # step 1 alphabetical ordering (who knows in what order ip returns the addresses) on hostname field
-        self.network.sort()
-
-        # # look for ib network
-        ib_reg = re.compile("^(ib)\d+$")
-        for intf in self.network:
-            if ib_reg.search(intf[2]):
-                if not intf in nw:
-                    self.log.debug("Added intf %s as ib interface" % intf)
-                    nw.append(intf)
-
-        # # final selection prefer non-vlan
-        vlan_reg = re.compile("^(.*)\.\d+$")
-        loopback_reg = re.compile("^(lo)\d*$")
-        for intf in self.network:
-            if not (vlan_reg.search(intf[2]) or loopback_reg.search(intf[2])):
-                if not intf in nw:
-                    self.log.debug("Added intf %s as non-vlan or non-loopback interface" % intf)
-                    nw.append(intf)
-
-        # # add remainder non-loopback
-        for intf in self.network:
-            if not loopback_reg.search(intf[2]):
-                if not intf in nw:
-                    self.log.debug("Added intf %s as remaining non-loopback interface" % intf)
-                    nw.append(intf)
-
-        # # add remainder
-        for intf in self.network:
-            if not intf in nw:
-                self.log.debug("Added intf %s as remaining interface" % intf)
-                nw.append(intf)
-
-        self.network = nw
-        self.log.debug("ordered network %s" % self.network)
 
