@@ -211,7 +211,7 @@ def run_dist(svc):
                     'other_work': {},
                     }
 
-        for x in svc.active_work:
+        for x in active_work:
             act_name = x.__class__.__name__
             _log.debug("adding active work from %s attr_to_share %s" %
                            (act_name, x.opts.attrs_to_share))
@@ -268,7 +268,7 @@ def run_dist(svc):
                 _log.debug("Removing %s from active_work" % act_work)
                 active_work.remove(act_work)
         if len(active_work):
-            _log.debug('Still %s active work left. sleeping %s seconds' % (len(svc.active_work), wait_iter_sleep))
+            _log.debug('Still %s active work left. sleeping %s seconds' % (len(active_work), wait_iter_sleep))
             time.sleep(wait_iter_sleep)
         else:
             _log.debug('No more active work, not going to sleep.')

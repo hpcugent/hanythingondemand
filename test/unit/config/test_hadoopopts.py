@@ -71,15 +71,13 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
 
     def test_hadoopopts_create_xml_element(self):
         '''test HadoopOpts create_xml_element'''
-        cfg = hch.HadoopOpts()
         doc = minidom.Document()
-        cfg.create_xml_element(doc, 'wibble', '42', 'magic number')
+        hch._create_xml_element(doc, 'wibble', '42', 'magic number')
 
     def test_hadoopopts_create_xml_element_final(self):
         '''test HadoopOpts create_xml_element final'''
-        cfg = hch.HadoopOpts()
         doc = minidom.Document()
-        cfg.create_xml_element(doc, 'wibble', '42', 'magic number', True)
+        hch._create_xml_element(doc, 'wibble', '42', 'magic number', True)
 
     def test_hadoopopts_prep_dir(self):
         '''test HadoopOpts prep_dir'''
@@ -92,8 +90,7 @@ class HodConfigHadoopOptsTestCase(unittest.TestCase):
     @unittest.expectedFailure
     def test_hadoopopts_gen_conf_xml_new(self):
         '''test HadoopOpts gen_conf_xml_new'''
-        cfg = hch.HadoopOpts()
-        cfg.gen_conf_xml_new()
+        hch._gen_conf_xml_new('hadoophome', 'confdir', dict(), dict())
 
     @unittest.expectedFailure
     def test_hadoopopts_gen_conf_env(self):

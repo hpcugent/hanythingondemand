@@ -199,6 +199,164 @@ def _add_param(where, name, value):
         _log.debug("Add: set value %s (no previous found). New value %s (type %s)" % (value, where[name], where[name].__class__.__name__))
 
 
+def _create_xml_element(doc, name, value, description, final=False):
+    """Create the xml element"""
+    _log.debug("Creating element with name %s value %s description %s final %s doc %s" % (name, value, description, final, doc))
+    prop = doc.createElement("property")
+
+    nameP = doc.createElement("name")
+    string = doc.createTextNode(name)
+    nameP.appendChild(string)
+
+    valueP = doc.createElement("value")
+    string = doc.createTextNode("%s" % value)  # explicit cast to string for special types
+    valueP.appendChild(string)
+
+    if final:
+        finalP = doc.createElement("final")
+        string = doc.createTextNode("true")
+        finalP.appendChild(string)
+
+    if description:
+        descP = doc.createElement("description")
+        string = doc.createTextNode(description)
+        descP.appendChild(string)
+
+    prop.appendChild(nameP)
+    prop.appendChild(valueP)
+    if final:
+        prop.appendChild(finalP)
+    if description:
+        prop.appendChild(descP)
+
+    return prop
+
+def _gen_conf_xml_new(hadoophome, confdir, params, description):
+    """Generate config xml files"""
+    _log.debug("Generate and write the xml configs")
+    ## based upon the files in hadoopDir/etc/hadoop
+    ## - regexp strings (will be compiled in next step
+    ## - all unmatched go to defaultdestination
+
+    defaultdestination = 'core-site'  # no regexps for this
+
+    ## default xsl
+    defaultxsl = 'configuration'
+
+    ## try to copy the default xsl to the config dir.
+    ## - if not: don't set it
+    if hadoophome:
+        defaultxslfn = "%s.xsl" % defaultxsl
+        defaultxslpath = os.path.join(hadoophome, 'etc', 'hadoop', defaultxslfn)
+        if os.path.exists(defaultxslpath):
+            newxslpath = os.path.join(confdir, defaultxslfn)
+            try:
+                shutil.copy(defaultxslpath, newxslpath)
+                _log.debug("Copied defaultxsl from %s to %s" % (defaultxslpath, newxslpath))
+            except:
+                ## do nothing
+                _log.exception("Failed to Copy defaultxsl from %s to %s" % (defaultxslpath, newxslpath))
+                defaultxsl = ''
+    else:
+        _log.debug("hadoophome not set. ignoring default xsl")
+        defaultxsl = ''
+
+    ## mapping based on share/hadoop/templates/conf
+    ## whitelist
+    dest2whitereg = {
+        'capacity-scheduler': [r'^mapred\.capacity-scheduler'],
+        'mapred-queue-acls': [r'^mapred\.queue.*?\.acl'],
+        'hdfs-site': [r'^dfs\.'],
+        'mapred-site': [r'^mapred(uce)?\.', r'^jetty\.connector', r'^tasktracker\.', r'^job\.end\.retry\.',
+                        r'^hadoop\.job\.history', r'^io\.(sort|map)\.', r'^jobclient\.output\.filter',
+                        r'^keep.failed.task.files',
+                        ],
+        'hadoop-policy': [r'^security\.'],
+        'hbase-site': [r'^hbase\.']
+    }
+
+    ## make fullDict map with destination -> list of keys
+    alldests = [defaultdestination]
+    dest2whiteregcomp = {}
+    for dest, regtxts in dest2whitereg.items():
+        dest2whiteregcomp[dest] = []
+        for regtxt in regtxts:
+            dest2whiteregcomp[dest].append(re.compile(regtxt))
+        if not dest in alldests:
+            alldests.append(dest)
+
+    ## blacklist
+    dest2blackreg = {
+        'mapred-site': dest2whitereg['capacity-scheduler'] + dest2whitereg['mapred-queue-acls'],
+    }
+    dest2blackregcomp = {}
+    for dest, regtxts in dest2blackreg.items():
+        dest2blackregcomp[dest] = []
+        for regtxt in regtxts:
+            dest2blackregcomp[dest].append(re.compile(regtxt))
+        if not dest in alldests:
+            alldests.append(dest)
+
+    fullDict = {}
+    _log.debug("Following parameters are set %s" % params)
+    for k in params.keys():
+        for dest in alldests:
+            if dest in dest2blackregcomp and any([r.search(k) for r in dest2blackregcomp[dest]]):
+                ## found in blacklist. skip it.
+                continue
+            if dest in dest2whiteregcomp and any([r.search(k) for r in dest2whiteregcomp[dest]]):
+                if not dest in fullDict:
+                    fullDict[dest] = []
+                fullDict[dest].append(k)
+        ## if not in any of the matched values, add to default
+        if not any([k in v for v in fullDict.values()]):
+            if not defaultdestination in fullDict:
+                fullDict[defaultdestination] = []
+            fullDict[defaultdestination].append(k)
+
+    for dest in fullDict.keys():
+        fn = "%s.xml" % dest
+        _log.debug("Writing to dest %s params %s" % (fn, fullDict[dest]))
+
+        implementation = getDOMImplementation()
+        doc = implementation.createDocument('', 'configuration', None)
+        topElement = doc.documentElement
+        if defaultxsl and len(defaultxsl) > 0:
+            stylesheet = doc.createProcessingInstruction("xml-stylesheet", 'type="text/xsl" href="%s"' % defaultxslfn)
+            doc.insertBefore(stylesheet, topElement)
+
+        comment = doc.createComment("This is an auto-generated %s, do not modify" % fn)
+        doc.insertBefore(comment, topElement)
+
+        # generate the xml elements
+        for name in fullDict[dest]:
+            value = params[name]
+            desc = description.get(name, None)
+            final = (desc is not None) and (desc.startswith('FINAL'))
+
+            typ = type(value)
+            if  typ in (list, tuple):
+                value = list(value)
+            else:
+                value = [value]
+
+            for realvalue in value:
+                ## TODO: check if it is better to loop inside create_xml_element
+                try:
+                    prop = _create_xml_element(doc, name, realvalue, desc, final)
+                except TypeError:
+                    raise TypeError("Wrong type for name %s value '%s description '%s' final %s" % (name, realvalue, desc, final))
+
+                topElement.appendChild(prop)
+
+        siteFilename = os.path.join(confdir, fn)
+        _log.debug("Writing dest %s to %s" % (fn, siteFilename))
+        sitefile = file(siteFilename, 'w')
+        ## write from document
+        ## - no prettyprint to avoid indentation whitespaces in the values
+        doc.writexml(sitefile, indent=" " * 0, addindent=" " * 0, newl="\n" * 0)
+        sitefile.close()
+
 
 class HadoopOpts(HadoopCfg):
     """Hadoop options class. Determine optimal default values and other explicit settings"""
@@ -385,38 +543,6 @@ class HadoopOpts(HadoopCfg):
         }
         self.log.debug("Made basic preconfig tuning params %s" % self.tuning)
 
-    def create_xml_element(self, doc, name, value, description, final=False):
-        """Create the xml element"""
-        self.log.debug("Creating element with name %s value %s description %s final %s doc %s" % (name, value, description, final, doc))
-        prop = doc.createElement("property")
-
-        nameP = doc.createElement("name")
-        string = doc.createTextNode(name)
-        nameP.appendChild(string)
-
-        valueP = doc.createElement("value")
-        string = doc.createTextNode("%s" % value)  # explicit cast to string for special types
-        valueP.appendChild(string)
-
-        if final:
-            finalP = doc.createElement("final")
-            string = doc.createTextNode("true")
-            finalP.appendChild(string)
-
-        if description:
-            descP = doc.createElement("description")
-            string = doc.createTextNode(description)
-            descP.appendChild(string)
-
-        prop.appendChild(nameP)
-        prop.appendChild(valueP)
-        if final:
-            prop.appendChild(finalP)
-        if description:
-            prop.appendChild(descP)
-
-        return prop
-
     def _prep_dir(self, directory, basedirsubdir='default'):
         """Prepare a directory"""
         if directory is None or None in directory:
@@ -446,132 +572,6 @@ class HadoopOpts(HadoopCfg):
 
         self.piddir = self._prep_dir(self.piddir, 'pid')
         self.log.debug("piddir set to %s" % self.piddir)
-
-    def _gen_conf_xml_new(self):
-        """Generate config xml files"""
-        self.log.debug("Generate and write the xml configs")
-        ## based upon the files in hadoopDir/etc/hadoop
-        ## - regexp strings (will be compiled in next step
-        ## - all unmatched go to defaultdestination
-
-        defaultdestination = 'core-site'  # no regexps for this
-
-        ## default xsl
-        defaultxsl = 'configuration'
-
-        ## try to copy the default xsl to the config dir.
-        ## - if not: don't set it
-        if self.hadoophome:
-            defaultxslfn = "%s.xsl" % defaultxsl
-            defaultxslpath = os.path.join(self.hadoophome, 'etc', 'hadoop', defaultxslfn)
-            if os.path.exists(defaultxslpath):
-                newxslpath = os.path.join(self.confdir, defaultxslfn)
-                try:
-                    shutil.copy(defaultxslpath, newxslpath)
-                    self.log.debug("Copied defaultxsl from %s to %s" % (defaultxslpath, newxslpath))
-                except:
-                    ## do nothing
-                    self.log.exception("Failed to Copy defaultxsl from %s to %s" % (defaultxslpath, newxslpath))
-                    defaultxsl = ''
-        else:
-            self.log.debug("hadoophome not set. ignoring default xsl")
-            defaultxsl = ''
-
-        ## mapping based on share/hadoop/templates/conf
-        ## whitelist
-        dest2whitereg = {
-            'capacity-scheduler': [r'^mapred\.capacity-scheduler'],
-            'mapred-queue-acls': [r'^mapred\.queue.*?\.acl'],
-            'hdfs-site': [r'^dfs\.'],
-            'mapred-site': [r'^mapred(uce)?\.', r'^jetty\.connector', r'^tasktracker\.', r'^job\.end\.retry\.',
-                            r'^hadoop\.job\.history', r'^io\.(sort|map)\.', r'^jobclient\.output\.filter',
-                            r'^keep.failed.task.files',
-                            ],
-            'hadoop-policy': [r'^security\.'],
-            'hbase-site': [r'^hbase\.']
-        }
-
-        ## make fullDict map with destination -> list of keys
-        alldests = [defaultdestination]
-        dest2whiteregcomp = {}
-        for dest, regtxts in dest2whitereg.items():
-            dest2whiteregcomp[dest] = []
-            for regtxt in regtxts:
-                dest2whiteregcomp[dest].append(re.compile(regtxt))
-            if not dest in alldests:
-                alldests.append(dest)
-
-        ## blacklist
-        dest2blackreg = {
-            'mapred-site': dest2whitereg['capacity-scheduler'] + dest2whitereg['mapred-queue-acls'],
-        }
-        dest2blackregcomp = {}
-        for dest, regtxts in dest2blackreg.items():
-            dest2blackregcomp[dest] = []
-            for regtxt in regtxts:
-                dest2blackregcomp[dest].append(re.compile(regtxt))
-            if not dest in alldests:
-                alldests.append(dest)
-
-        fullDict = {}
-        self.log.debug("Following parameters are set %s" % self.params)
-        for k in self.params.keys():
-            for dest in alldests:
-                if dest in dest2blackregcomp and any([r.search(k) for r in dest2blackregcomp[dest]]):
-                    ## found in blacklist. skip it.
-                    continue
-                if dest in dest2whiteregcomp and any([r.search(k) for r in dest2whiteregcomp[dest]]):
-                    if not dest in fullDict:
-                        fullDict[dest] = []
-                    fullDict[dest].append(k)
-            ## if not in any of the matched values, add to default
-            if not any([k in v for v in fullDict.values()]):
-                if not defaultdestination in fullDict:
-                    fullDict[defaultdestination] = []
-                fullDict[defaultdestination].append(k)
-
-        for dest in fullDict.keys():
-            fn = "%s.xml" % dest
-            self.log.debug("Writing to dest %s params %s" % (fn, fullDict[dest]))
-
-            implementation = getDOMImplementation()
-            doc = implementation.createDocument('', 'configuration', None)
-            topElement = doc.documentElement
-            if defaultxsl and len(defaultxsl) > 0:
-                stylesheet = doc.createProcessingInstruction("xml-stylesheet", 'type="text/xsl" href="%s"' % defaultxslfn)
-                doc.insertBefore(stylesheet, topElement)
-
-            comment = doc.createComment("This is an auto-generated %s, do not modify" % fn)
-            doc.insertBefore(comment, topElement)
-
-            # generate the xml elements
-            for name in fullDict[dest]:
-                value = self.params[name]
-                description = self.description.get(name, None)
-                final = (description is not None) and (description.startswith('FINAL'))
-
-                typ = type(value)
-                if  typ in (list, tuple):
-                    value = list(value)
-                else:
-                    value = [value]
-
-                for realvalue in value:
-                    ## TODO: check if it is better to loop inside create_xml_element
-                    try:
-                        prop = self.create_xml_element(doc, name, realvalue, description, final)
-                    except TypeError:
-                        raise TypeError("Wrong type for name %s value '%s' description '%s' final %s" % (name, realvalue, description, final))
-
-                    topElement.appendChild(prop)
-
-            siteFilename = os.path.join(self.confdir, fn)
-            self.log.debug("Writing dest %s to %s" % (fn, siteFilename))
-            sitefile = file(siteFilename, 'w')
-            ## write from document
-            ## - no prettyprint to avoid indentation whitespaces in the values
-            doc.writexml(sitefile, indent=" " * 0, addindent=" " * 0, newl="\n" * 0)
-            sitefile.close()
 
     def _gen_conf_env(self):
         """Create the shell env config file"""
@@ -627,31 +627,24 @@ class HadoopOpts(HadoopCfg):
 
     def set_niceness(self, nicelevel=5, ioniceclass=2, ionicelevel=9, hwlocbindopts=None, varname='HADOOP_NICENESS'):
         """Set the HADOOP_NICENESS. (Due to bug in HADOOP_NICENESS in start scripts, this actually works"""
+        ionice_opt = []
         ionice = which_exe('ionice')
         if ionice:
             ionice_opt = [ionice, '-c', "%d" % ioniceclass]
             if ioniceclass in (2, 3,):
                 ionice_opt += ['-n', '%d' % ionicelevel]
-            else:
-                self.log.debug("ioniceclass %s not 2 or 3; ignoring ionicelevel %s" % (ioniceclass, ionicelevel))
-            self.log.debug('ionice found, running with %s' % ionice_opt)
         else:
-            ionice_opt = []
             self.log.warn('ionice not found, ignoring ionice options')
 
-        hwlocbind = which_exe('hwloc-bind')
-        if hwlocbind:
-            if hwlocbindopts:
-                if type(hwlocbindopts) == str:
-                    hwlocbindopts = [hwlocbindopts]
+        hwloc_opt = []
+        if hwlocbindopts:
+            hwlocbind = which_exe('hwloc-bind')
+            if hwlocbind:
+                hwlocbindopts = [hwlocbindopts]
                 hwloc_opt = [hwlocbind] + hwlocbindopts
                 self.log.debug('hwlocbind found, running with %s' % hwloc_opt)
             else:
-                hwloc_opt = []
-                self.log.debug("hwloc-bind found, but not opts set")
-        else:
-            hwloc_opt = []
-            self.log.warn('hwloc-bind not found, ignoring hwlocbind options')
+                self.log.warn('hwloc-bind not found, ignoring hwloc options')
 
         varvalue = " ".join(["%d" % nicelevel] + ionice_opt + hwloc_opt)
         self.log.debug("set %s in environment to %s" % (varname, varvalue))
@@ -674,5 +667,5 @@ class HadoopOpts(HadoopCfg):
         self.params_env_sanity_check()
 
         self.log.debug("start writing files")
-        self._gen_conf_xml_new()  # write xml files
+        _gen_conf_xml_new(self.hadoophome, self.confdir, self.params, self.description)
         self._gen_conf_env()  # create the env.sh file

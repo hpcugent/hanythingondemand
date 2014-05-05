@@ -86,7 +86,7 @@ class HodJob(Job):
         self.log.debug("Using default class ResourceManagerScheduler.")
         self.type_class = ResourceManagerScheduler
 
-    def get_hod(self, exe_name='hod_main'):
+    def get_hod(self, exe_name='hod_main.py'):
         """Get the full path of the exe_name
              -look in bin or bin / .. / hod /
         """

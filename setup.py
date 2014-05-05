@@ -28,6 +28,7 @@
 Setup for Hanything on Demand
 """
 import os
+from os.path import join as mkpath
 import sys
 import subprocess
 from setuptools import setup, Command
@@ -62,9 +63,16 @@ class CoverageCommand(BaseCommand):
         sys.exit(ret)
 
 
+def find_files(*dirs):
+    results = []
+    for src_dir in dirs:
+        for root, dirs, files in os.walk(src_dir):
+            results.append((root, map(lambda f: mkpath(root, f), files)))
+    return results
+
 PACKAGE = {
     'name': 'hanythingondemand',
-    'version': '2.1.3',
+    'version': '2.1.4',
     'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'license': "GPL v2",
@@ -83,9 +91,7 @@ PACKAGE = {
         'hod.config',
         'hod.rmscheduler',
     ],
-    'data_files': [
-        #('config', 'etc/Hadoop-2.0.0-cdh4.4.0/hadoop.conf')
-        ],
+    'data_files': find_files('etc'),
     'scripts': ['bin/hod_main.py', 'bin/hod_pbs.py'],
     'cmdclass' : {'test': TestCommand, 'cov': CoverageCommand},
     'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),

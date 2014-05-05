@@ -33,7 +33,7 @@ import time
 import os
 import tempfile
 
-from hod.mpiservice import MpiService, barrier
+from hod.mpiservice import MpiService, barrier, MASTERRANK
 
 
 class Work(object):
@@ -119,9 +119,9 @@ class Work(object):
         """Start the work"""
         self.pre_run_any_service()
         barrier(self.svc.comm, "Going to start work on master only and on slaves only")
-        if self.svc.rank == self.svc.masterrank:
+        if self.svc.rank == MASTERRANK:
             self.start_work_service_master()
-        if self.svc.rank != self.svc.masterrank or self.svc.size == 1:
+        if self.svc.rank != MASTERRANK or self.svc.size == 1:
             # # slaves and in case there is only one node (master=slave)
             self.start_work_service_slaves()
         barrier(self.svc.comm, "Going to start work on all")
@@ -161,9 +161,9 @@ class Work(object):
         self.stop_work_service_all()
 
         barrier(self.svc.comm, "Going to stop work on master only and on lsaves only")
-        if self.svc.rank == self.svc.masterrank:
+        if self.svc.rank == MASTERRANK:
             self.stop_work_service_master()
-        if self.svc.rank != self.svc.masterrank or self.svc.size == 1:
+        if self.svc.rank != MASTERRANK or self.svc.size == 1:
             # # slaves and in case there is only one node (master=slave)
             self.stop_work_service_slaves()
         self.post_run_any_service()

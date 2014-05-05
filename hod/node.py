@@ -103,6 +103,7 @@ def interface_to_nn(thisnode, namenode):
     else:
         _log.error("namenode %s cannot be reached by any of the local interfaces %s" % (namenode, thisnode.network))
 
+
 def _sorted_network(network):
     """Try to find a preferred network (can be advanced like IPoIB of high-speed ethernet)"""
     nw = []
@@ -217,5 +218,3 @@ class Node(object):
             'memory': self.memory,
         }
         return descr
-
-
