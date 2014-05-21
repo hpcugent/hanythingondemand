@@ -7,7 +7,7 @@ hdfs://namenode.example.org:8020/hbase)
 -->
 <property>
     <name>hbase.rootdir</name>
-    <value></value> <!--# HdfsFs(),-->
+    <value>hdfs://$hostname:8020/hbase</value>
 </property>
 
 <!-- 
@@ -39,7 +39,7 @@ of servers which we will start/stop ZooKeeper on.',
 -->
 <property>
     <name>hbase.zookeeper.quorum</name>
-    <value> # Servers()</value>
+    <value></value>
 </property>
 
 <!--

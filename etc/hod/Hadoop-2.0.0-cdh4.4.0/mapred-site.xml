@@ -189,42 +189,6 @@ port is 0 then the server will start on a free port.'
 -->
 <property>
     <name>mapred.job.tracker.http.address</name>
-    <value>:50030</value>
+    <value>localhost:50030</value>
 </property>
-
-<!--
-# mapred taskset.cfg opts for LinuxTaskController
-# not for xml
-Path to mapred local kindoflist. Should be same as the value which was
-provided to key in mapred-site.xml. This is required to validate paths passed
-to the setuid executable in order to prevent arbitrary paths being passed
-to it.
-<property>
-    <name>mapred.local.dir</name>
-    <value> </value>
-</property>
--->
-
-<!--
-Path to hadoop log directory. Should be same as the value which the
-TaskTracker is started with. This is required to set proper permissions on the
-log files so that they can be written to by the users tasks and read by the
-TaskTracker for serving on the web UI.
-<property>
-    <name>hadoop.log.dir</name>
-    <value></value>
-</property>
--->
-
-<!--
-Group to which the TaskTracker belongs. The group owner of the taskcontroller
-binary should be this group. Should be same as the value with which the
-TaskTracker is configured. This configuration is required for validating the
-secure access of the task-controller binary.
-<property>
-    <name>mapreduce.tasktracker.group</name>
-    <value></value>
-</property>
--->
-
 </configuration>

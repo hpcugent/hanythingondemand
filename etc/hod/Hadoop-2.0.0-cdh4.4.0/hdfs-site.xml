@@ -5,7 +5,7 @@
 Determines where on the local filesystem the DFS name node should store the name
 table(fsimage). If this is a comma-delimited list of kindoflist then the name
 table is replicated in all of the kindoflist, for redundancy. def
-${hadoop.tmp.dir}/dfs/name
+$${hadoop.tmp.dir}/dfs/name
 
 <property>
     <name>dfs.name.dir</name>
@@ -17,7 +17,7 @@ ${hadoop.tmp.dir}/dfs/name
 Determines where on the local filesystem an DFS data node should store its
 blocks. If this is a comma-delimited list of kindoflist, then data will be
 stored in all named kindoflist, typically on different devices. Directories
-that do not exist are ignored. def ${hadoop.tmp.dir}/dfs/data
+that do not exist are ignored. def $${hadoop.tmp.dir}/dfs/data
 
 <property>
     <name>dfs.data.dir </name>
@@ -32,7 +32,7 @@ port is 0 then the server will start on a free port.
 -->
 <property>
     <name>dfs.datanode.address</name>
-    <value>50090</value>
+    <value>$hostname:50090</value>
 </property>
 
 
@@ -93,7 +93,7 @@ the port is 0 then the server will start on a free port.
 -->
 <property>
     <name>dfs.namenode.http-address</name>
-    <value>:50070</value>
+    <value>localhost:50070</value>
 </property>
 
 <!--
@@ -102,7 +102,7 @@ will start on a free port.
 -->
 <property>
     <name>dfs.datanode.http.address</name>
-    <value>50075</value>
+    <value>localhost:50075</value>
 </property>
 
 <!-- Enable durable sync -->

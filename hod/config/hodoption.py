@@ -62,6 +62,18 @@ class HodOption(GeneralOption):
                        (prefix, descr, opts))
         self.add_group_parser(opts, descr, prefix=prefix)
 
+    def config_options(self):
+        """Make the action related options"""
+        opts = {'dir': ("Configuration directory", "string", "store", ''),
+                }
+        descr = ["Config", "Configuration files options"]
+
+        prefix = 'config'
+        self.log.debug("Add config option parser prefix %s descr %s opts %s" %
+                       (prefix, descr, opts))
+        self.add_group_parser(opts, descr, prefix=prefix)
+
+
     def hdfs_options(self):
         """Some hdfs presets"""
         opts = {'off': ("Don't start HDFS", None, "store_true", False),
@@ -76,7 +88,6 @@ class HodOption(GeneralOption):
     def mapred_options(self):
         """Some mapred presets"""
         opts = {'off': ("Don't start MapRed (MR1)", None, "store_true", False),
-                'config': ("HOD Configuration file for the MR1 service", "string", "store", ''),
                }
         descr = ['MapReduce', 'Provide MapReduce (MR1) related options']
         prefix = 'mr1'
@@ -89,7 +100,6 @@ class HodOption(GeneralOption):
         """Some hadoop presets"""
         opts = {'module': ("Use Hadoop module version", "string",
                            "store", os.environ.get("EBVERSIONHADOOP", '')),
-                'config': ("HOD Configuration file for the Hadoop service", "string", "store", ''),
                }
         descr = ['Hadoop', 'Provide Hadoop related options']
         prefix = 'hadoop'
@@ -116,7 +126,6 @@ class HodOption(GeneralOption):
         """Some hbase presets"""
         opts = {'on': ("Start HBase", None, "store_true", False),
                 'module': ("Use HBase module version", "string", "store", "0.90.4-cdh3u3"),
-                'config': ("HOD Configuration file for the Hbase service", "string", "store", ''),
                 }
         descr = ['HBase', 'Provide HBase related options']
         prefix = 'hbase'
@@ -129,7 +138,6 @@ class HodOption(GeneralOption):
         """Some hbase presets"""
         # Yarn install seems default on newer hadoop versions, so switch to the old mapreduce path
         opts = {'on': ("Start Yarn instead of MapRed (SWITCHING NOT IMPLEMENTED)", None, "store_true", False),  # TODO remove when implemented
-                'config': ("HOD Configuration file for the Yarn service", "string", "store", ''),
                 }
         descr = ['Yarn', 'Provide Yarn related options']
         prefix = 'yarn'
@@ -152,6 +160,7 @@ class HodOption(GeneralOption):
     def make_init(self):
         """Trigger all inits"""
         self.rm_options()
+        self.config_options()
         self.action_options()
 
         self.java_options()

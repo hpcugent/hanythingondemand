@@ -47,26 +47,26 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
         self.mpiopt = MympirunHodOption(go_args=['progname'])
 
     def test_hodjob_init(self):
-        '''testt HodJob init function'''
+        '''test HodJob init function'''
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
             hj = hrh.HodJob(self.opt)
 
     def test_hodjob_set_type_class(self):
-        '''testt HodJob set_type_class'''
+        '''test HodJob set_type_class'''
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
             hj = hrh.HodJob(self.opt)
             hj.set_type_class()
         self.assertEqual(hj.type_class, ResourceManagerScheduler)
 
     def test_hodjob_get_hod(self):
-        '''testt HodJob get_hod'''
+        '''test HodJob get_hod'''
         # TODO: Determine some tests for this path hacking 
         with patch('os.path.isfile', side_effect=lambda x: True):
             hj = hrh.HodJob(self.opt)
             hj.get_hod('hod_main')
 
     def test_hodjob_run(self):
-        '''testt HodJob run'''
+        '''test HodJob run'''
         with patch('os.path.isfile', side_effect=lambda x: True):
             hj = hrh.HodJob(self.opt)
             hj.run()

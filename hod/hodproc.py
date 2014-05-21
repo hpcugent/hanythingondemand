@@ -26,17 +26,23 @@
 
 @author: Stijn De Weirdt
 """
-from hod.mpiservice import MpiService, Task
+from glob import glob
+import os
+import logging as log
+
+from hod.mpiservice import MpiService, Task, MASTERRANK
 
 from hod.config.mapred import MapredOpts
 from hod.config.hbase import HbaseOpts
 from hod.config.hdfs import HdfsOpts
 from hod.config.client import LocalClientOpts, RemoteClientOpts
+from hod.config.config import ConfigOpts
 
 from hod.work.mapred import Mapred
 from hod.work.hdfs import Hdfs
 from hod.work.hbase import Hbase
 from hod.work.client import LocalClient, RemoteClient
+from hod.work.config_service import ConfiguredService, ScreenService, SSHService
 
 from hod.rmscheduler.hodjob import Job
 
@@ -72,6 +78,7 @@ class Slave(MpiService):
     def __init__(self, options):
         MpiService.__init__(self)
         self.options
+
 
 class HadoopMaster(MpiService):
     """Basic Master Hdfs and MR1"""
@@ -163,14 +170,6 @@ class HadoopMaster(MpiService):
 
     def distribution_Mapred(self):
         """Mapred distribution. Reuse HDFS namenode"""
-        print '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
-        print 'ConfigOpts being made? : ', self.options.options.mr1_config
-        print '>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>'
-        if self.options.options.mr1_config:
-            from hod.config.config import ConfigOpts
-            conf = ConfigOpts(self.options.options.mr1_config)
-            self.dists.append(Mapred, self.options.options.nodes, conf, sharedhdfs)
-
         network_index = self.select_network()
         sharedhdfs = None
         for d in self.dists:
@@ -226,3 +225,28 @@ class HadoopMaster(MpiService):
 
         self.log.debug("using network index %s" % index)
         return index
+
+class ConfiguredMaster(HadoopMaster):
+    """
+    Use config to setup services.
+    """
+    def _config_files(self, config_dir, suffix):
+        return glob(os.path.join(config_dir, '*-%s.conf' % suffix))
+
+
+    def distribution(self):
+        """Master makes the distribution"""
+        self.dists = []
+        
+        for config_filename in self._config_files(self.options.options.config_dir, 'master'):
+            log.info('Loading "%s" config'  % config_filename)
+            config = ConfigOpts(open(config_filename, 'r'))
+            self.dists.append(Task(ConfiguredService, [MASTERRANK], config, None))
+
+        for config_filename in self._config_files(self.options.options.config_dir, 'slave'):
+            log.info('Loading "%s" config'  % config_filename)
+            config = ConfigOpts(open(config_filename, 'r'))
+            self.dists.append(Task(ConfiguredService, range(self.size)[1:], config, None))
+
+        self.dists.append(Task(ScreenService, [MASTERRANK], config, None))
+        self.dists.append(Task(SSHService, [MASTERRANK], config, None))

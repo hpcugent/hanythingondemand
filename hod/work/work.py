@@ -53,11 +53,12 @@ class Work(object):
     def post_run_any_service(self):
         """To be run before any service"""
 
-    def run(self, comm):
-        """Setup MPI comm and do_work"""
-        self.work_begin(comm)
-        self.do_work()
-        self.work_end()
+    #def run(self, comm):
+    #    """Setup MPI comm and do_work"""
+    #    self.log.debug("Calling Run")
+    #    self.work_begin(comm)
+    #    self.do_work()
+    #    self.work_end()
 
     def prepare_work_cfg(self):
         """prepare any config"""
@@ -107,13 +108,13 @@ class Work(object):
             self.log.debug("Work started at %s, now is %s, which is more then max_age %s" % (time.localtime(self.work_start_time), time.localtime(now), self.work_max_age))
             return True  # wait is over
 
-    def do_work(self):
-        """Look for required code and prepare all"""
-        self.log.debug("Do work start")
-        self.do_work_start()
-        self.do_work_wait()
-        self.do_work_stop()
-        self.log.debug("Do work end")
+    #def do_work(self):
+    #    """Look for required code and prepare all"""
+    #    self.log.debug("Do work start")
+    #    self.do_work_start()
+    #    self.do_work_wait()
+    #    self.do_work_stop()
+    #    self.log.debug("Do work end")
 
     def do_work_start(self):
         """Start the work"""

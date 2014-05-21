@@ -37,7 +37,7 @@ from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
 __all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_distribution',
-        'run_dist']
+        'run_svc', 'run_dist']
 
 MASTERRANK = 0
 
@@ -272,6 +272,54 @@ def run_dist(svc):
             time.sleep(wait_iter_sleep)
         else:
             _log.debug('No more active work, not going to sleep.')
+    _log.debug("No more active work left.")
+
+def run_svc(svc):
+    """Make communicators for dists and execute the work there"""
+    # Based on initial dist, create the groups and communicators and map with work
+    active_work = []
+    wait_iter_sleep = 60  # run through all active work, then wait wait_iter_sleep seconds
+
+    for wrk in svc.dists:
+        # # pass any existing previous work
+        _log.debug(
+            "newcomm for ranks %s for work %s" % (wrk.ranks, wrk.type))
+        newcomm = _make_comm_group(svc.comm, wrk.ranks)
+
+        if newcomm == MPI.COMM_NULL:
+            _log.debug('Skipping work setup for rank %d of this type %s' % (svc.rank, wrk.type))
+            continue
+        
+        _log.debug('Setting up rank %d of this type %s' % (svc.rank, wrk.type))
+        svc.tempcomm.append(newcomm)
+        tmpopts = wrk.options
+        work = wrk.type(tmpopts)
+        svc.log.debug("work %s begin" % (wrk.type.__name__))
+        work.work_begin(newcomm)
+        # # adding started work
+        active_work.append(work)
+
+    for act_work in active_work:
+        svc.log.debug("work %s start" % (act_work.__class__.__name__))
+        act_work.do_work_start()
+
+    # # all work is started now
+    while len(active_work):
+        _log.debug("amount of active work %s" % (len(active_work)))
+        for act_work in active_work:
+
+            should_cleanup = act_work.do_work_wait()
+            if should_cleanup:
+                _log.debug("work %s stop" % (act_work.__class__.__name__))
+                act_work.do_work_stop()
+                _log.debug("work %s end" % (act_work.__class__.__name__))
+                act_work.work_end()
+
+                _log.debug("Removing %s from active_work" % act_work)
+                active_work.remove(act_work)
+        if len(active_work):
+            _log.debug('Still %s active work left. sleeping %s seconds' % (len(active_work), wait_iter_sleep))
+            time.sleep(wait_iter_sleep)
     _log.debug("No more active work left.")
 
 
