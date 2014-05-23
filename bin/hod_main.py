@@ -31,8 +31,8 @@ Main hanythingondemand script, should be invoked in a job
 import sys
 
 from hod.config.hodoption import HodOption
-from hod.hodproc import Slave, HadoopMaster, ConfiguredMaster
-from hod.mpiservice import MASTERRANK, run_dist, run_svc, setup_distribution
+from hod.hodproc import Slave, ConfiguredMaster
+from hod.mpiservice import MASTERRANK, run_svc, setup_distribution
 
 from mpi4py import MPI
 
@@ -40,14 +40,12 @@ def main(args):
     options = HodOption(go_args=args)
 
     if MPI.COMM_WORLD.rank == MASTERRANK:
-        #serv = HadoopMaster(options)
         serv = ConfiguredMaster(options)
     else:
         serv = Slave(options)
 
     try:
         setup_distribution(serv)
-        #run_dist(serv)
         run_svc(serv)
 
         serv.stop_service()
