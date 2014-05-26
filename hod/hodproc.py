@@ -42,7 +42,7 @@ from hod.work.mapred import Mapred
 from hod.work.hdfs import Hdfs
 from hod.work.hbase import Hbase
 from hod.work.client import LocalClient, RemoteClient
-from hod.work.config_service import ConfiguredService, ScreenService, SSHService
+from hod.work.config_service import ConfiguredService
 
 from hod.rmscheduler.hodjob import Job
 
@@ -247,6 +247,3 @@ class ConfiguredMaster(HadoopMaster):
             log.info('Loading "%s" config'  % config_filename)
             config = ConfigOpts(open(config_filename, 'r'))
             self.dists.append(Task(ConfiguredService, range(self.size)[1:], config, None))
-
-        self.dists.append(Task(ScreenService, [MASTERRANK], config, None))
-        self.dists.append(Task(SSHService, [MASTERRANK], config, None))

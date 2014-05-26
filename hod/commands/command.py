@@ -37,6 +37,7 @@ import datetime
 import os
 import signal
 import time
+import pty
 
 from vsc import fancylogger
 
@@ -90,13 +91,12 @@ class Command(object):
         self.log.debug("Run going to run %s" % self.command)
         start = datetime.datetime.now()
 
-        nameds = {
+        popen_kwargs = {
             'shell': True,
             'close_fds': True,
         }
         if self.fake_pty:
             self.log.debug("Setting up PTY")
-            import pty
             (master, slave) = pty.openpty()
             stdouterr = {
                 'stdin': slave,
@@ -110,10 +110,10 @@ class Command(object):
                 'stderr': PIPE,
             }
 
-        nameds.update(stdouterr)
+        popen_kwargs.update(stdouterr)
         # TODO: (high) buffer overflow here sometimes, check what happens and fix
         # see easybuild/buildsoft/async
-        p = Popen(self.__str__(), **nameds)
+        p = Popen(self.__str__(), **popen_kwargs)
         time.sleep(.1)  # for immediate answers
         timedout = False
         while p.poll() is None:
