@@ -49,19 +49,32 @@ class HodConfigConfig(unittest.TestCase):
                         self.assertEqual(hcc.resolve_config_str('$workdir'), '/TMPDIR/hod/whoami.hostname.1/work')
     def test_ConfigOpts(self):
         config = StringIO("""
-[Exec]
+[Unit]
 name=testconfig
+runs-on=master
+
+[Exec]
 start-script=starter
 stop-script=stopper
 stop-script=stopper
+
 [Environment]
-SOME_ENV=123
-[Config]
-config-file=abc.xml""")
+SOME_ENV=123""")
         cfg = hcc.ConfigOpts(config)
         self.assertEqual(cfg.name, 'testconfig')
+        self.assertEqual(cfg.runs_on_master, True)
         self.assertEqual(cfg.start_script, 'starter')
         self.assertEqual(cfg.stop_script, 'stopper')
         self.assertTrue('SOME_ENV' in cfg.env)
         self.assertEqual(cfg.env['SOME_ENV'], '123')
         self.assertTrue(isinstance(cfg.env['SOME_ENV'], basestring))
+
+    def test_parse_runs_on(self):
+        self.assertTrue(hcc._parse_runs_on('masTeR'))
+        self.assertFalse(hcc._parse_runs_on('slavE'))
+        self.assertRaises(RuntimeError, hcc._parse_runs_on, 'masterAndsLave')
+
+    def test_parse_comma_delim_list(self):
+        lst = hcc._parse_comma_delim_list('hello,world, have, a , nice,day')
+        expect = ['hello', 'world', 'have', 'a', 'nice', 'day']
+        self.assertEqual(lst, expect)

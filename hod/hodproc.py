@@ -29,6 +29,7 @@
 from glob import glob
 import os
 import logging as log
+from os.path import join as mkpath, basename
 
 from hod.mpiservice import MpiService, Task, MASTERRANK
 
@@ -36,7 +37,7 @@ from hod.config.mapred import MapredOpts
 from hod.config.hbase import HbaseOpts
 from hod.config.hdfs import HdfsOpts
 from hod.config.client import LocalClientOpts, RemoteClientOpts
-from hod.config.config import ConfigOpts
+from hod.config.config import ConfigOpts, manifest_config, service_configs, resolve_config_str
 
 from hod.work.mapred import Mapred
 from hod.work.hdfs import Hdfs
@@ -226,24 +227,52 @@ class HadoopMaster(MpiService):
         self.log.debug("using network index %s" % index)
         return index
 
+
+def _ignore_oserror(fn):
+    '''
+    Given a function, ignore OSError. 
+    >>> def fn(x,y):
+    ...    raise OSError
+    >>> _ignore_oserror(lambda: fn(1,2))
+    >>>
+    '''
+    try:
+        fn()
+    except OSError, e:
+        pass
+
+def _copy_config(config_dir, config_file):
+    svc_cfg = open(config_file, 'r').read()
+    svc_cfg = resolve_config_str(svc_config)
+    dest = mkpath(configdir, basename(config_file))
+    log.info("Writing config file to '%s'" % dest)
+ 
 class ConfiguredMaster(HadoopMaster):
     """
     Use config to setup services.
     """
-    def _config_files(self, config_dir, suffix):
-        return glob(os.path.join(config_dir, '*-%s.conf' % suffix))
+
 
 
     def distribution(self):
         """Master makes the distribution"""
         self.dists = []
-        
-        for config_filename in self._config_files(self.options.options.config_dir, 'master'):
-            log.info('Loading "%s" config'  % config_filename)
-            config = ConfigOpts(open(config_filename, 'r'))
-            self.dists.append(Task(ConfiguredService, [MASTERRANK], config, None))
+       
+        config_dir = self.options.config_dir
 
-        for config_filename in self._config_files(self.options.options.config_dir, 'slave'):
+        m_config_filename = manifest_config(config_dir)
+        log.info('Loading "%s" config'  % m_config_filename)
+        m_config = PreServiceConfigOpts(m_config_filename)
+
+        _ignore_oserror(lambda: os.makedirs(m_config.config_dir, basedir))
+        _ignore_oserror(lambda: os.makedirs(m_config.configdir))
+
+        for cfg in m_config.config_files:
+            _copy_config(config_dir, cfg)
+
+        for config_filename in service_configs(config_dir):
             log.info('Loading "%s" config'  % config_filename)
             config = ConfigOpts(open(config_filename, 'r'))
-            self.dists.append(Task(ConfiguredService, range(self.size)[1:], config, None))
+            slaves = filter(lambda x: x != MASTERRANK, range(self.size))
+            rank_to_run = [MASTERRANK] if config.runs_on_master else slaves
+            self.dists.append(Task(ConfiguredService, rank_to_run, config, None))

@@ -32,21 +32,7 @@ from tempfile import mkdtemp
 from os.path import join as mkpath, basename
 
 from hod.work.work import Work
-from hod.config.config import resolve_config_str
 from hod.commands.command import Command
-
-def _ignore_oserror(fn):
-    '''
-    Given a function, ignore OSError. 
-    >>> def fn(x,y):
-    ...    raise OSError
-    >>> _ignore_oserror(lambda: fn(1,2))
-    >>>
-    '''
-    try:
-        fn()
-    except OSError, e:
-        pass
 
 class ConfiguredService(Work):
     """
@@ -98,13 +84,5 @@ class ConfiguredService(Work):
 
     def prepare_work_cfg(self):
         """prepare the config: collect the parameters and make the necessary xml cfg files"""
-        _ignore_oserror(lambda: os.makedirs(self._config.basedir))
-        _ignore_oserror(lambda: os.makedirs(self._config.configdir))
-        if self._config.config_file:
-            work_config = open(self._config.config_file, 'r').read()
-            work_config = resolve_config_str(work_config)
-            dest = mkpath(self._config.configdir, basename(self._config.config_file))
-            self.log.info("Writing config file to '%s'" % dest)
-            open(dest, 'w').write(work_config)
         # set the controldir to the confdir
         self.controldir = mkdtemp(prefix='controldir', dir=self._config.basedir)
