@@ -81,6 +81,18 @@ commands to refresh the security policy in-effect.
     <value></value>
 </property>
 
+
+
+<!--  Use this SOCKS server -->
+<property>
+    <name>hadoop.socks.server</name>
+    <value>localhost:10000</value>
+</property>
+
+<!--  Use SOCKS sockets -->
+<property>
+    <name>hadoop.rpc.socket.factory.class.default</name>
+    <value>org.apache.hadoop.net.SocksSocketFactory</value>
+</property>
+
 </configuration>
-
-
