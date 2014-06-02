@@ -73,79 +73,6 @@ class HodOption(GeneralOption):
                        (prefix, descr, opts))
         self.add_group_parser(opts, descr, prefix=prefix)
 
-
-    def hdfs_options(self):
-        """Some hdfs presets"""
-        opts = {'off': ("Don't start HDFS", None, "store_true", False),
-                }
-        descr = ['HDFS', 'Provide HDFS related options']
-        prefix = 'hdfs'
-
-        self.log.debug("Add HDFS option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-    def mapred_options(self):
-        """Some mapred presets"""
-        opts = {'off': ("Don't start MapRed (MR1)", None, "store_true", False),
-               }
-        descr = ['MapReduce', 'Provide MapReduce (MR1) related options']
-        prefix = 'mr1'
-
-        self.log.debug("Add MapRed option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-    def hadoop_options(self):
-        """Some hadoop presets"""
-        opts = {'module': ("Use Hadoop module version", "string",
-                           "store", os.environ.get("EBVERSIONHADOOP", '')),
-               }
-        descr = ['Hadoop', 'Provide Hadoop related options']
-        prefix = 'hadoop'
-
-        self.log.debug("Add Hadoop option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-    def hod_options(self):
-        """Some HOD presets"""
-        opts = {
-            'envclass': ("Use HodJob class to create working enviromnet", "string", "store", ""),
-            'envscript': ("Use script to create working enviromnet", "string", "store", ""),
-            'script': ("Run this script as start of local client screen session", "string", "store", ''),
-        }
-        descr = ['HOD', 'Provide HOD related options']
-        prefix = 'hod'
-
-        self.log.debug("Add Hod option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-    def hbase_options(self):
-        """Some hbase presets"""
-        opts = {'on': ("Start HBase", None, "store_true", False),
-                'module': ("Use HBase module version", "string", "store", "0.90.4-cdh3u3"),
-                }
-        descr = ['HBase', 'Provide HBase related options']
-        prefix = 'hbase'
-
-        self.log.debug("Add HBase option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-    def yarn_options(self):
-        """Some hbase presets"""
-        # Yarn install seems default on newer hadoop versions, so switch to the old mapreduce path
-        opts = {'on': ("Start Yarn instead of MapRed (SWITCHING NOT IMPLEMENTED)", None, "store_true", False),  # TODO remove when implemented
-                }
-        descr = ['Yarn', 'Provide Yarn related options']
-        prefix = 'yarn'
-
-        self.log.debug("Add Yarn option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
-        self.add_group_parser(opts, descr, prefix=prefix)
-
     def java_options(self):
         """Some java presets"""
         opts = {'module': ("Use Java module version", "string",
@@ -162,14 +89,7 @@ class HodOption(GeneralOption):
         self.rm_options()
         self.config_options()
         self.action_options()
-
         self.java_options()
-        self.hadoop_options()
-        self.hod_options()
-        self.hdfs_options()
-        self.mapred_options()
-        self.yarn_options()
-        self.hbase_options()
 
 
 if __name__ == '__main__':

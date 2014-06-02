@@ -33,6 +33,9 @@ def _templated_strings():
 
     _strings = {
         'hostname': socket.getfqdn,
+        # 'ip': lambda: 1, # select best ip based on network interface. e.g. ib3
+        # for infiniband; maybe add a infiniband_ip; dataplane_ip;
+        # controlplane_ip.
         'basedir': lambda: basedir,
         'configdir': lambda: mkpath(basedir, 'conf'),
         'workdir': lambda:  mkpath(basedir, 'work'),

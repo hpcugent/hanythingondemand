@@ -55,15 +55,7 @@ class HodJob(Job):
         self.hodexe, self.hodpythonpath = self.get_hod()
         self.hodargs = self.options.generate_cmd_line(ignore='^(%s)_' % '|'.join(self.OPTION_IGNORE_PREFIX))
 
-        self.hodenvvarprefix = ['HADOOP', 'JAVA', 'HOD', 'MAPRED', 'HDFS']
-        if not self.options.options.hdfs_off:
-            self.hodenvvarprefix.append('HDFS')
-        if not self.options.options.mr1_off:
-            self.hodenvvarprefix.append('MAPRED')
-        if self.options.options.yarn_on:
-            self.hodenvvarprefix.append('YARN')
-        if self.options.options.hbase_on:
-            self.hodenvvarprefix.append('HBASE')
+        self.hodenvvarprefix = ['HOD', 'JAVA']
 
         self.set_type_class()
 
