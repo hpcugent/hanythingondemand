@@ -1,0 +1,93 @@
+##
+# Copyright 2009-2013 Ghent University
+#
+# This file is part of hanythingondemand
+# originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
+# with support of Ghent University (http://ugent.be/hpc),
+# the Flemish Supercomputer Centre (VSC) (https://vscentrum.be/nl/en),
+# the Hercules foundation (http://www.herculesstichting.be/in_English)
+# and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
+#
+# http://github.com/hpcugent/hanythingondemand
+#
+# hanythingondemand is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation v2.
+#
+# hanythingondemand is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+##
+"""
+@author: Ewan Higgs
+"""
+import hod.work.config_service as hwc
+import hod.config.config as hcc
+import unittest
+from mock import patch, sentinel
+from cStringIO import StringIO
+
+def _mk_master_config():
+    return StringIO("""
+[Unit]
+name=test
+runs-on=master
+[Exec]
+start-script=echo hello
+stop-script=echo hello
+[Environment]
+    """)
+
+def _mk_slave_config():
+    return StringIO("""
+[Unit]
+name=test
+runs-on=slave
+[Exec]
+start-script=echo hello
+stop-script=echo hello
+[Environment]
+    """)
+
+class TestHodWorkConfiguredService(unittest.TestCase):
+    '''Test the ConfiguredService'''
+    def test_ConfiguredService_init(self):
+        '''Test creation of the ConfiguredService'''
+        cfg = hcc.ConfigOpts(_mk_master_config())
+        cs = hwc.ConfiguredService(cfg)
+
+    def test_ConfiguredService_start_work_service_master(self):
+        '''Test ConfiguredService start_master method'''
+        cfg = hcc.ConfigOpts(_mk_master_config())
+        cs = hwc.ConfiguredService(cfg)
+        cs.start_work_service_master()
+
+    def test_ConfiguredService_stop_work_service_master(self):
+        '''Test ConfiguredService stop_master method'''
+        cfg = hcc.ConfigOpts(_mk_master_config())
+        cs = hwc.ConfiguredService(cfg)
+        cs.stop_work_service_master()
+
+    def test_ConfiguredService_start_work_service_slaves(self):
+        '''Test ConfiguredService start_slave method'''
+        cfg = hcc.ConfigOpts(_mk_slave_config())
+        cs = hwc.ConfiguredService(cfg)
+        cs.start_work_service_slaves()
+
+    def test_ConfiguredService_stop_work_service_slaves(self):
+        '''Test ConfiguredService stop_slave method'''
+        cfg = hcc.ConfigOpts(_mk_slave_config())
+        cs = hwc.ConfiguredService(cfg)
+        cs.stop_work_service_slaves()
+
+    def test_ConfiguredService_prepare_work_cfg(self):
+        cfg = hcc.ConfigOpts(_mk_slave_config())
+        cs = hwc.ConfiguredService(cfg)
+        with patch('hod.work.config_service.mkdtemp', side_effect=lambda **kwargs: sentinel.somepath):
+            cs.prepare_work_cfg()
+        self.assertEqual(cs.controldir, sentinel.somepath)
+            
