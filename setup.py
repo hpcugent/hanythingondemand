@@ -58,8 +58,9 @@ class CoverageCommand(BaseCommand):
 
     def run(self):
         setup_openmp_libpath()
-        ret = subprocess.call(["coverage", "run", "--source=hod", "-m", "unittest", "discover", "-b", "-s", "test/unit/ -v"])
-        ret = subprocess.call(["coverage", "report"])
+        ret = subprocess.call(["coverage", "run", "-m", "unittest", "discover", "-v", "-b", "-s", "test/unit/"])
+        if not ret:
+            ret = subprocess.call(["coverage", "report"])
         sys.exit(ret)
 
 

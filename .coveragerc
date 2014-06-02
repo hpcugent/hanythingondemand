@@ -1,9 +1,17 @@
 [run]
 omit =
-     */test_*
+    */test_*
     *__init__.py
+    */.tox/*
+
+[paths]
+source = 
+    hod/
+
 [report]
 exclude_lines =
     def __repr__
     raise NotImplementedError
     raise AssertionError
+    if 0:
+    if __name__ == .__main__.:
