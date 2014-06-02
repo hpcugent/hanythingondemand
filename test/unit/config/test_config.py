@@ -68,6 +68,7 @@ SOME_ENV=123""")
         self.assertTrue('SOME_ENV' in cfg.env)
         self.assertEqual(cfg.env['SOME_ENV'], '123')
         self.assertTrue(isinstance(cfg.env['SOME_ENV'], basestring))
+        self.assertEqual(cfg.envstr(), 'SOME_ENV=123 ')
 
     def test_parse_runs_on(self):
         self.assertTrue(hcc._parse_runs_on('masTeR'))

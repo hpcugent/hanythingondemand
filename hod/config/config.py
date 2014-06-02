@@ -1,11 +1,12 @@
 from ConfigParser import SafeConfigParser
+from glob import glob
 import socket
 import string
 from collections import namedtuple, OrderedDict
 import subprocess
 import os
 import pwd
-from os.path import join as mkpath, realpath, dirname
+from os.path import join as mkpath, realpath, dirname, basename
 from functools import partial
 import logging as log
 
@@ -20,11 +21,11 @@ _UNIT_SECTION = 'Unit'
 _EXEC_SECTION = 'Exec'
 _ENVIRONMENT_SECTION = 'Environment'
 
-def manifest_config(basedir):
+def manifest_config_path(basedir):
     return mkpath(basedir, _HOD_MANIFEST_CONFIG)
 
-def service_configs(basedir):
-    return [f for f in glob.glob(basedir, '*.conf') if not _HOD_MANIFEST_CONFIG]
+def service_config_paths(basedir):
+    return [f for f in glob(mkpath(basedir, '*.conf')) if basename(f) != _HOD_MANIFEST_CONFIG]
 
 def _templated_strings():
     '''Return the template dict with the name fed through.'''
@@ -70,7 +71,7 @@ def resolve_config_str(s):
 
 
 def _configs(conf_dir):
-    '''Find all the configs in the config_directory'''
+    '''Find all the configs in the config directory'''
     results = []
     for root, dirs, files in os.walk(conf_dir):
         results.append((root, map(lambda f: mkpath(root, f), files)))
@@ -102,7 +103,9 @@ def mkpathabs(filepath, working_dir):
     Take a filepath and working_dir and return the absolute path for the
     filepath. If the filepath is already absolute then just return it.
     '''
-    if filepath[0] == '/': # filepath is already absolute
+    if not len(filepath):
+        return realpath(working_dir)
+    elif filepath[0] == '/': # filepath is already absolute
         return filepath
 
     return realpath(mkpath(working_dir, filepath))
@@ -144,9 +147,9 @@ class PreServiceConfigOpts(object):
 
         fileobj_dir = _fileobj_dir(fileobj)
         def _fixup_path(cfg):
-            config_file = mkpathabs(cfg, fileobjdir)
+            return mkpathabs(cfg, fileobj_dir)
 
-        self.config_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'config-files'))
+        self.config_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'configs'))
         self.config_files = [_fixup_path(cfg) for cfg in self.config_files]
 
 
@@ -173,6 +176,8 @@ class ConfigOpts(object):
         self.basedir = _mkhodbasedir()
         self.configdir = mkpath(self.basedir, 'conf')
 
-    def setenv(self):
+    def envstr(self):
+        env = ''
         for k,v in self.env.items():
-            os.environ[k] = v
+            env += '%s=%s ' % (k, v)
+        return env

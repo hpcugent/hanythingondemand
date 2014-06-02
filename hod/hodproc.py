@@ -26,7 +26,6 @@
 
 @author: Stijn De Weirdt
 """
-from glob import glob
 import os
 import logging as log
 from os.path import join as mkpath, basename
@@ -37,7 +36,8 @@ from hod.config.mapred import MapredOpts
 from hod.config.hbase import HbaseOpts
 from hod.config.hdfs import HdfsOpts
 from hod.config.client import LocalClientOpts, RemoteClientOpts
-from hod.config.config import ConfigOpts, manifest_config, service_configs, resolve_config_str
+from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
+        manifest_config_path, service_config_paths, resolve_config_str)
 
 from hod.work.mapred import Mapred
 from hod.work.hdfs import Hdfs
@@ -241,37 +241,40 @@ def _ignore_oserror(fn):
     except OSError, e:
         pass
 
-def _copy_config(config_dir, config_file):
-    svc_cfg = open(config_file, 'r').read()
-    svc_cfg = resolve_config_str(svc_config)
-    dest = mkpath(configdir, basename(config_file))
-    log.info("Writing config file to '%s'" % dest)
+
+def _copy_config(src_file, dest_dir):
+    cfg = open(src_file, 'r').read()
+    cfg = resolve_config_str(cfg)
+    dest_file = mkpath(dest_dir, basename(src_file))
+    open(dest_file, 'w').write(cfg)
  
+
 class ConfiguredMaster(HadoopMaster):
     """
     Use config to setup services.
     """
 
-
-
     def distribution(self):
         """Master makes the distribution"""
         self.dists = []
        
-        config_dir = self.options.config_dir
+        config_dir = self.options.options.config_dir
 
-        m_config_filename = manifest_config(config_dir)
-        log.info('Loading "%s" config'  % m_config_filename)
-        m_config = PreServiceConfigOpts(m_config_filename)
+        m_config_filename = manifest_config_path(config_dir)
+        self.log.info('Loading "%s" manifest config'  % m_config_filename)
+        m_config = PreServiceConfigOpts(open(m_config_filename, 'r'))
 
-        _ignore_oserror(lambda: os.makedirs(m_config.config_dir, basedir))
+        _ignore_oserror(lambda: os.makedirs(m_config.basedir))
         _ignore_oserror(lambda: os.makedirs(m_config.configdir))
 
         for cfg in m_config.config_files:
-            _copy_config(config_dir, cfg)
+            self.log.info("Copying config %s file to '%s'" % (cfg, config_dir))
+            _copy_config(cfg, config_dir)
 
-        for config_filename in service_configs(config_dir):
-            log.info('Loading "%s" config'  % config_filename)
+        svc_cfgs = service_config_paths(config_dir)
+        self.log.info('Loading %d service configs.'  % len(svc_cfgs))
+        for config_filename in svc_cfgs:
+            self.log.info('Loading "%s" service config'  % config_filename)
             config = ConfigOpts(open(config_filename, 'r'))
             slaves = filter(lambda x: x != MASTERRANK, range(self.size))
             rank_to_run = [MASTERRANK] if config.runs_on_master else slaves

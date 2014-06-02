@@ -44,41 +44,39 @@ class ConfiguredService(Work):
 
     def start_work_service_master(self):
         """Start service on master"""
-        self._config.setenv()
+        env = self._config.envstr()
         self.log.info('Running to start %s service on master: "%s"' %
                 (self._config.name, self._config.start_script))
-        self.log.info("Env for %s service on master: %s" % (self._config.name,
-            self._config.env))
-        command = Command(self._config.start_script)
+        self.log.info("Env for %s service on master: %s" % (self._config.name, env))
+        command = Command('%s %s' % (env, self._config.start_script))
         output = command.run()
         self.log.info('Ran %s service master startscript. Output: "%s"' % output)
 
     def start_work_service_slaves(self):
         """Run start_service on slaves"""
-        self._config.setenv()
+        env = self._config.envstr()
         self.log.info('Running to start %s service on slaves: "%s"' %
             (self._config.name, self._config.start_script))
-        self.log.info("Env for %s service on slaves : %s" % (self._config.name,
-            self._config.env))
-        command = Command(self._config.start_script)
+        self.log.info("Env for %s service on slaves: %s" % (self._config.name, env))
+        command = Command('%s %s' % (env, self._config.start_script))
         output = command.run()
         self.log.info('Ran %s service slave start script. Output: "%s"' % output)
 
     def stop_work_service_master(self):
         """Stop service on master"""
-        self._config.setenv()
+        env = self._config.envstr()
         self.log.info('Running to stop %s service on master: "%s"' %
             (self._config.name, self._config.stop_script))
-        command = Command(self._config.stop_script)
+        command = Command('%s %s' % (env, self._config.stop_script))
         output = command.run()
         self.log.info('Ran %s service master stop script. Output: "%s"' % output)
 
     def stop_work_service_slaves(self):
         """Run start_service on slaves"""
-        self._config.setenv()
+        env = self._config.envstr()
         self.log.info('Running to stop %s service on slaves: "%s"' %
             (self._config.name, self._config.stop_script))
-        command = Command(self._config.stop_script)
+        command = Command('%s %s' % (env, self._config.stop_script))
         output = command.run()
         self.log.info('Ran %s service slave stop script. Output: "%s"' % output)
 

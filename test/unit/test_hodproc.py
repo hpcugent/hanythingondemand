@@ -26,7 +26,8 @@
 '''
 
 import unittest
-from mock import sentinel
+from mock import sentinel, patch
+from cStringIO import StringIO
 from optparse import OptionParser
 from hod.config.hodoption import HodOption
 import hod.hodproc as hh
@@ -103,3 +104,36 @@ class HodProcTestCase(unittest.TestCase):
         hm = hh.HadoopMaster(opts)
         idx = hm.select_network()
         self.assertEqual(idx, 0)  #TODO: 5 line Function which just returns 0... remove.
+
+class TestHodProcConfiguredMaster(unittest.TestCase):
+    def test_configured_master_init(self):
+        opts = HodOption(go_args=['progname'])
+        print dir(opts)
+        self.assertTrue(hasattr(opts.options, 'config_dir'))
+        cm = hh.ConfiguredMaster(opts)
+
+    def test_configured_master_distribution(self):
+        manifest_config = StringIO("""
+[Meta]
+version = 1
+[Config]
+configs=
+        """)
+        service_config = StringIO("""
+[Unit]
+name=wibble
+runs-on = master
+[Exec]
+start-script=
+stop-script=
+[Environment]
+        """)
+        opts = HodOption(go_args=['progname'])
+        cm = hh.ConfiguredMaster(opts)
+        with patch('hod.config.config.manifest_config_path', side_effect=lambda x:'hod.conf'):
+            with patch('hod.config.config.service_config_paths', side_effect=lambda x:['svc.conf']):
+                with patch('os.makedirs', side_effect=lambda *args:None):
+                    with patch('hod.hodproc._copy_config', side_effect=lambda *args:None):
+                        with patch('__builtin__.open', side_effect=lambda name, *args: manifest_config if name == 'hod.conf' else service_config):
+                            cm.distribution()
+        self.assertEqual(len(cm.dists), 0)
