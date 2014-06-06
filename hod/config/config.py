@@ -1,4 +1,4 @@
-from ConfigParser import SafeConfigParser
+from ConfigParser import SafeConfigParser, NoOptionError
 from glob import glob
 import socket
 import string
@@ -18,7 +18,7 @@ _CONFIG_SECTION = 'Config'
 
 # serviceaconfig sections 
 _UNIT_SECTION = 'Unit'
-_EXEC_SECTION = 'Exec'
+_SERVICE_SECTION = 'Service'
 _ENVIRONMENT_SECTION = 'Environment'
 
 def manifest_config_path(basedir):
@@ -156,6 +156,15 @@ class PreServiceConfigOpts(object):
         self.config_files = [_fixup_path(cfg) for cfg in self.config_files]
 
 
+def _get(config, section, item, dflt=None):
+    if dflt is None:
+        return config.get(section, item)
+    try:
+        return config.get(section, item)
+    except NoOptionError:
+        return dflt
+
+
 class ConfigOpts(object):
     r"""
     Wrapper for the service configuration.
@@ -163,17 +172,18 @@ class ConfigOpts(object):
     by the value in the template strings except 'name'. Name cannot be
     templated.
     """
-    __slots__ = ['name', 'runs_on_master', 'start_script', 'stop_script', 'env',
+    __slots__ = ['name', 'runs_on_master', 'pre_start_script', 'start_script', 'stop_script', 'env',
             'config_file', 'basedir', 'configdir']
 
     def __init__(self, fileobj):
         _config = load_service_config(fileobj)
-        self.name = _config.get(_UNIT_SECTION, 'name')
-        self.runs_on_master = _parse_runs_on(_config.get(_UNIT_SECTION, 'runs-on'))
+        self.name = _get(_config, _UNIT_SECTION, 'Name')
+        self.runs_on_master = _parse_runs_on(_get(_config, _UNIT_SECTION, 'RunsOn'))
 
         _r = partial(resolve_config_str)
-        self.start_script = _r(_config.get(_EXEC_SECTION, 'start-script'))
-        self.stop_script = _r(_config.get(_EXEC_SECTION, 'stop-script'))
+        self.pre_start_script = _r(_get(_config, _SERVICE_SECTION, 'ExecStartPre', ''))
+        self.start_script = _r(_get(_config, _SERVICE_SECTION, 'ExecStart'))
+        self.stop_script = _r(_get(_config, _SERVICE_SECTION, 'ExecStop'))
 
         self.env = OrderedDict([(k, _r(v)) for k, v in _config.items(_ENVIRONMENT_SECTION)])
         self.basedir = _mkhodbasedir()

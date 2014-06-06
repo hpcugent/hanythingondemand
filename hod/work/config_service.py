@@ -42,43 +42,47 @@ class ConfiguredService(Work):
         Work.__init__(self)
         self._config = config
 
-    def start_work_service_master(self):
+    def pre_start_work_service(self):
+        env = self._config.envstr()
+        rank = self.svc.rank
+
+        if len(self._config.pre_start_script) == 0:
+            self.log.info('Prestarting %s service on rank %s: No work.' %
+                (self._config.name, rank))
+            return
+
+        self.log.info('Prestarting %s service on rank %s: "%s"' %
+                (self._config.name, rank, self._config.pre_start_script))
+        command = Command('%s %s' % (env, self._config.pre_start_script))
+        output = command.run()
+        self.log.info('Ran %s service on rank %s prestart script. Output: "%s"' %
+                (self._config.name, rank, output))
+
+
+    def start_work_service(self):
         """Start service on master"""
         env = self._config.envstr()
-        self.log.info('Running to start %s service on master: "%s"' %
-                (self._config.name, self._config.start_script))
-        self.log.info("Env for %s service on master: %s" % (self._config.name, env))
+        rank = self.svc.rank
+
+        self.log.info('Starting %s service on rank %s: "%s"' %
+                (self._config.name, rank, self._config.start_script))
+        self.log.info("Env for %s service on rank %s: %s" % 
+                (self._config.name, rank, env))
         command = Command('%s %s' % (env, self._config.start_script))
         output = command.run()
-        self.log.info('Ran %s service master startscript. Output: "%s"' % output)
+        self.log.info('Ran %s service on rank %s start script. Output: "%s"' % 
+                (self._config.name, rank, output))
 
-    def start_work_service_slaves(self):
-        """Run start_service on slaves"""
-        env = self._config.envstr()
-        self.log.info('Running to start %s service on slaves: "%s"' %
-            (self._config.name, self._config.start_script))
-        self.log.info("Env for %s service on slaves: %s" % (self._config.name, env))
-        command = Command('%s %s' % (env, self._config.start_script))
-        output = command.run()
-        self.log.info('Ran %s service slave start script. Output: "%s"' % output)
-
-    def stop_work_service_master(self):
+    def stop_work_service(self):
         """Stop service on master"""
         env = self._config.envstr()
-        self.log.info('Running to stop %s service on master: "%s"' %
-            (self._config.name, self._config.stop_script))
+        rank = self.svc.rank
+        self.log.info('Stopping %s service on rank %s: "%s"' %
+            (self._config.name, rank, self._config.stop_script))
         command = Command('%s %s' % (env, self._config.stop_script))
         output = command.run()
-        self.log.info('Ran %s service master stop script. Output: "%s"' % output)
-
-    def stop_work_service_slaves(self):
-        """Run start_service on slaves"""
-        env = self._config.envstr()
-        self.log.info('Running to stop %s service on slaves: "%s"' %
-            (self._config.name, self._config.stop_script))
-        command = Command('%s %s' % (env, self._config.stop_script))
-        output = command.run()
-        self.log.info('Ran %s service slave stop script. Output: "%s"' % output)
+        self.log.info('Ran %s service on rank %s stop script. Output: "%s"' % 
+                (self._config.name, rank, output))
 
     def prepare_work_cfg(self):
         """prepare the config: collect the parameters and make the necessary xml cfg files"""

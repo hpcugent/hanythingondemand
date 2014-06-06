@@ -140,7 +140,7 @@ class Command(object):
         ec = p.returncode
         if not ec == 0:
             self.log.warning("Problem occured with cmd %s: out %s, err %s" % (self.command, out, err))
-            err += "Exitcode %s\n"
+            err += "Exitcode %s\n" % ec
         else:
             self.log.debug("cmd ok %s: out %s err %s" % (self.command, out, err))
         return out, err

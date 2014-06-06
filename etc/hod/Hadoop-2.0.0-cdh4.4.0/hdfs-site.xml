@@ -24,6 +24,15 @@ that do not exist are ignored. def $${hadoop.tmp.dir}/dfs/data
     <value></value>
 </property>
 -->
+
+<!-- 
+     Determines thhe number of copies kept across nodes for HDFS
+     Default is 3 but on a single node, use 1.
+ -->
+<property>
+    <name>dfs.replication</name>
+    <value>1</value>
+</property>
 <!--
 The address where the datanode server will listen to. If the port is 0 then
 the server will start on a free port.'], 'dfs.datanode.ipc.address':
@@ -32,6 +41,7 @@ port is 0 then the server will start on a free port.
 -->
 <property>
     <name>dfs.datanode.address</name>
+    <!-- <value>$hostname:50090</value> -->
     <value>$hostname:50090</value>
 </property>
 

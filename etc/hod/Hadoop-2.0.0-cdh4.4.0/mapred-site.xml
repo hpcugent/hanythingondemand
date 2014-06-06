@@ -8,7 +8,8 @@ jobs are run in-process as a single map and reduce task.
 -->
 <property>
     <name>mapred.job.tracker</name>
-    <value>$hostname:9000</value>
+    <!-- <value>$hostname:9000</value> -->
+    <value>localhost:8021</value>
 </property>
 <!--
 The local directory where MapReduce stores intermediate data files. May be a
@@ -184,7 +185,7 @@ is not monitored by a TT.
 </property>
 
 <!--
-The job tracker http server address and port the server will listen on. If the
+The jobtracker http server address and port the server will listen on. If the
 port is 0 then the server will start on a free port.'
 -->
 <property>

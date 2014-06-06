@@ -92,14 +92,18 @@ class ConfiguredMaster(MpiService):
         _ignore_oserror(lambda: os.makedirs(m_config.configdir))
 
         for cfg in m_config.config_files:
-            self.log.info("Copying config %s file to '%s'" % (cfg, config_dir))
-            _copy_config(cfg, config_dir)
+            self.log.info("Copying config %s file to '%s'" % (cfg,
+                m_config.configdir))
+            _copy_config(cfg, m_config.configdir)
 
         svc_cfgs = service_config_paths(config_dir)
         self.log.info('Loading %d service configs.'  % len(svc_cfgs))
         for config_filename in svc_cfgs:
             self.log.info('Loading "%s" service config'  % config_filename)
             config = ConfigOpts(open(config_filename, 'r'))
-            slaves = filter(lambda x: x != MASTERRANK, range(self.size))
-            rank_to_run = [MASTERRANK] if config.runs_on_master else slaves
-            self.dists.append(Task(ConfiguredService, rank_to_run, config, None))
+            if self.size == 1:
+                slaves = [MASTERRANK]
+            else:
+                slaves = filter(lambda x: x != MASTERRANK, range(self.size))
+            ranks_to_run = [MASTERRANK] if self.rank == MASTERRANK else slaves
+            self.dists.append(Task(ConfiguredService, ranks_to_run, config, None))

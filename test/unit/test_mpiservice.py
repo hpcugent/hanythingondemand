@@ -96,7 +96,8 @@ class MPIServiceTestCase(unittest.TestCase):
     def test_slave_spread(self):
         '''test master spread'''
         ms = hm.MpiService()
-        hm._slave_spread(ms.comm, None)
+        dists = hm._slave_spread(ms.comm)
+        self.assertEqual(dists, None)
 
     @unittest.expectedFailure
     def test_mpiservice_run_dist(self):

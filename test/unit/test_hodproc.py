@@ -48,11 +48,11 @@ configs=
         """)
         service_config = StringIO("""
 [Unit]
-name=wibble
-runs-on = master
-[Exec]
-start-script=
-stop-script=
+Name=wibble
+RunsOn = master
+[Service]
+ExecStart=
+ExecStop=
 [Environment]
         """)
         opts = HodOption(go_args=['progname'])

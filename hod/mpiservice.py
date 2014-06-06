@@ -37,7 +37,7 @@ from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
 __all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_distribution',
-        'run_svc', 'run_dist']
+        'run_svc']
 
 MASTERRANK = 0
 
@@ -183,7 +183,7 @@ def _master_spread(comm, dists):
     _log.debug("Distributed dists %s from masterrank %s" % (dists, MASTERRANK))
     return retval 
 
-def _slave_spread(comm, dists):
+def _slave_spread(comm):
     dists = comm.bcast(root=MASTERRANK)
     _log.debug("Received dists %s from masterrank %s" % (dists, MASTERRANK))
     return dists
@@ -192,11 +192,11 @@ def _slave_spread(comm, dists):
 def setup_distribution(svc):
     """Setup the per node services and spread the tasks out."""
     _log.debug("No dists found. Running distribution and spread.")
-    svc.distribution()
     if svc.rank == MASTERRANK:
+        svc.distribution()
         _master_spread(svc.comm, svc.dists)
     else:
-        svc.dists = _slave_spread(svc.comm, svc.dists)
+        svc.dists = _slave_spread(svc.comm)
 
 def run_svc(svc):
     """Make communicators for dists and execute the work there"""
@@ -206,20 +206,19 @@ def run_svc(svc):
 
     for wrk in svc.dists:
         # # pass any existing previous work
-        _log.debug(
-            "newcomm for ranks %s for work %s" % (wrk.ranks, wrk.type))
+        _log.debug("newcomm for ranks %s for work %s" % (wrk.ranks, wrk.type))
         newcomm = _make_comm_group(svc.comm, wrk.ranks)
 
         if newcomm == MPI.COMM_NULL:
             _log.debug('Skipping work setup for rank %d of this type %s' % (svc.rank, wrk.type))
             continue
-        
+
         _log.debug('Setting up rank %d of this type %s' % (svc.rank, wrk.type))
         svc.tempcomm.append(newcomm)
         tmpopts = wrk.options
         work = wrk.type(tmpopts)
         svc.log.debug("work %s begin" % (wrk.type.__name__))
-        work.work_begin(newcomm)
+        work.prepare_work_cfg()
         # # adding started work
         active_work.append(work)
 

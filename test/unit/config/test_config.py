@@ -50,13 +50,12 @@ class HodConfigConfig(unittest.TestCase):
     def test_ConfigOpts(self):
         config = StringIO("""
 [Unit]
-name=testconfig
-runs-on=master
+Name=testconfig
+RunsOn=master
 
-[Exec]
-start-script=starter
-stop-script=stopper
-stop-script=stopper
+[Service]
+ExecStart=starter
+ExecStop=stopper
 
 [Environment]
 SOME_ENV=123""")

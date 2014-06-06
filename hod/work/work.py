@@ -40,66 +40,27 @@ class Work(object):
     """Basic work class"""
     def __init__(self):
         self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
-        self.svc = None
+        self.svc = MpiService(log=self.log)
 
         self.work_max_age = 3600 * 71
         self.work_start_time = time.time()
 
         self.controldir = tempfile.mkdtemp()
 
-    def pre_run_any_service(self):
-        """To be run before any service"""
-
-    def post_run_any_service(self):
-        """To be run before any service"""
-
-    #def run(self, comm):
-    #    """Setup MPI comm and do_work"""
-    #    self.log.debug("Calling Run")
-    #    self.work_begin(comm)
-    #    self.do_work()
-    #    self.work_end()
-
     def prepare_work_cfg(self):
         """prepare any config"""
         self.log.error("Not implemented prepare_work_cfg.")
 
-    def work_begin(self, comm):
-        """Prepartion of work, previous to start"""
-        self.svc = MpiService(log=self.log)
-        barrier(self.svc.comm, "Start")
+    def pre_start_work_service(self):
+        """Run pre-start jobs for service."""
 
-        self.log.debug("run do_work")
-
-        self.prepare_work_cfg()
-
-    def work_end(self):
-        """Cleanup work"""
-        self.svc.stop_service()
-
-    def start_work_service_master(self):
-        """Start service on master only"""
+    def start_work_service(self):
+        """Start service"""
         self.log.error("Not implemented start_work_service_master.")
 
-    def start_work_service_slaves(self):
-        """Start service on slaves only"""
-        self.log.debug("Not implemented start_work_service_slaves.")
-
-    def start_work_service_all(self):
-        """Run start_service on all"""
-        self.log.debug("Not implemented start_work_service_all.")
-
-    def stop_work_service_master(self):
-        """Stop the Hadoop service on master only"""
+    def stop_work_service(self):
+        """Stop the service"""
         self.log.debug("Not implemented stop_work_service_master.")
-
-    def stop_work_service_slaves(self):
-        """Stop the Hadoop service on slaves only"""
-        self.log.debug("Not implemented stop_work_service_slaves.")
-
-    def stop_work_service_all(self):
-        """Run after start_service"""
-        self.log.debug("Not implemented stop_work_service_all.")
 
     def work_wait(self):
         """What to do between start and stop (and how stop is triggered). Returns True is the wait is over"""
@@ -108,29 +69,14 @@ class Work(object):
             self.log.debug("Work started at %s, now is %s, which is more then max_age %s" % (time.localtime(self.work_start_time), time.localtime(now), self.work_max_age))
             return True  # wait is over
 
-    #def do_work(self):
-    #    """Look for required code and prepare all"""
-    #    self.log.debug("Do work start")
-    #    self.do_work_start()
-    #    self.do_work_wait()
-    #    self.do_work_stop()
-    #    self.log.debug("Do work end")
-
     def do_work_start(self):
         """Start the work"""
-        self.pre_run_any_service()
-        barrier(self.svc.comm, "Going to start work on master only and on slaves only")
-        if self.svc.rank == MASTERRANK:
-            self.start_work_service_master()
-        if self.svc.rank != MASTERRANK or self.svc.size == 1:
-            # # slaves and in case there is only one node (master=slave)
-            self.start_work_service_slaves()
-        barrier(self.svc.comm, "Going to start work on all")
-        self.start_work_service_all()
-        self.post_run_any_service()
+        barrier(self.svc.comm, "Going to run pre-start work on rank %s" % self.svc.rank)
+        self.pre_start_work_service()
+        barrier(self.svc.comm, "Going to start work on rank %s" % self.svc.rank)
+        self.start_work_service()
 
     def do_work_wait(self):
-        self.pre_run_any_service()
         barrier(self.svc.comm, "Going to wait work on all. Return True when all is over")
 
         ans = self.work_wait()  # True when wait is over
@@ -151,20 +97,11 @@ class Work(object):
         else:
             self.log.debug("No force continue file %s found" % force_fn)
 
-        self.post_run_any_service()
         return ans
 
     def do_work_stop(self):
         """Start the work"""
         self.pre_run_any_service()
 
-        barrier(self.svc.comm, "Going to stop work on all")
-        self.stop_work_service_all()
-
-        barrier(self.svc.comm, "Going to stop work on master only and on lsaves only")
-        if self.svc.rank == MASTERRANK:
-            self.stop_work_service_master()
-        if self.svc.rank != MASTERRANK or self.svc.size == 1:
-            # # slaves and in case there is only one node (master=slave)
-            self.stop_work_service_slaves()
-        self.post_run_any_service()
+        barrier(self.svc.comm, "Going to stop work on ")
+        self.stop_work_service()

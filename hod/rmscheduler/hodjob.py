@@ -170,9 +170,6 @@ class MympirunHod(HodJob):
 
         exe.extend(self.hodargs)
 
-        # pass the classname so the environment can be re-setup
-        exe.append("--hod-envclass=%s" % self.__class__.__name__)
-
         self.log.debug("Generated exe %s" % exe)
         return [" ".join(exe)]
 

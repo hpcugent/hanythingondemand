@@ -34,55 +34,50 @@ from cStringIO import StringIO
 def _mk_master_config():
     return StringIO("""
 [Unit]
-name=test
-runs-on=master
-[Exec]
-start-script=echo hello
-stop-script=echo hello
+Name=test
+RunsOn=master
+[Service]
+ExecStart=echo hello
+ExecStop=echo hello
 [Environment]
     """)
 
 def _mk_slave_config():
     return StringIO("""
 [Unit]
-name=test
-runs-on=slave
-[Exec]
-start-script=echo hello
-stop-script=echo hello
+Name=test
+RunsOn=slave
+[Service]
+ExecStart=echo hello
+ExecStop=echo hello
 [Environment]
     """)
 
 class TestHodWorkConfiguredService(unittest.TestCase):
     '''Test the ConfiguredService'''
+
     def test_ConfiguredService_init(self):
         '''Test creation of the ConfiguredService'''
         cfg = hcc.ConfigOpts(_mk_master_config())
         cs = hwc.ConfiguredService(cfg)
 
-    def test_ConfiguredService_start_work_service_master(self):
-        '''Test ConfiguredService start_master method'''
+    def test_ConfiguredService_pre_start_work_service(self):
+        '''Test ConfiguredService pre_start method'''
         cfg = hcc.ConfigOpts(_mk_master_config())
         cs = hwc.ConfiguredService(cfg)
-        cs.start_work_service_master()
+        cs.pre_start_work_service()
 
-    def test_ConfiguredService_stop_work_service_master(self):
-        '''Test ConfiguredService stop_master method'''
+    def test_ConfiguredService_start_work_service(self):
+        '''Test ConfiguredService start method'''
         cfg = hcc.ConfigOpts(_mk_master_config())
         cs = hwc.ConfiguredService(cfg)
-        cs.stop_work_service_master()
+        cs.start_work_service()
 
-    def test_ConfiguredService_start_work_service_slaves(self):
-        '''Test ConfiguredService start_slave method'''
-        cfg = hcc.ConfigOpts(_mk_slave_config())
+    def test_ConfiguredService_stop_work_service(self):
+        '''Test ConfiguredService stop method'''
+        cfg = hcc.ConfigOpts(_mk_master_config())
         cs = hwc.ConfiguredService(cfg)
-        cs.start_work_service_slaves()
-
-    def test_ConfiguredService_stop_work_service_slaves(self):
-        '''Test ConfiguredService stop_slave method'''
-        cfg = hcc.ConfigOpts(_mk_slave_config())
-        cs = hwc.ConfiguredService(cfg)
-        cs.stop_work_service_slaves()
+        cs.stop_work_service()
 
     def test_ConfiguredService_prepare_work_cfg(self):
         cfg = hcc.ConfigOpts(_mk_slave_config())
@@ -90,4 +85,3 @@ class TestHodWorkConfiguredService(unittest.TestCase):
         with patch('hod.work.config_service.mkdtemp', side_effect=lambda **kwargs: sentinel.somepath):
             cs.prepare_work_cfg()
         self.assertEqual(cs.controldir, sentinel.somepath)
-            
