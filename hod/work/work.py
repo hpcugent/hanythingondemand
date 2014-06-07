@@ -45,7 +45,7 @@ class Work(object):
         self.work_max_age = 3600 * 71
         self.work_start_time = time.time()
 
-        self.controldir = tempfile.mkdtemp()
+        self.controldir = None
 
     def prepare_work_cfg(self):
         """prepare any config"""
