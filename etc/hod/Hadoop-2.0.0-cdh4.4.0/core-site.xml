@@ -9,8 +9,7 @@ authority is used to determine the host, port, etc. for a filesystem
 -->
 <property>
     <name>fs.default.name</name>
-    <!-- <value>hdfs://$hostname:8020/</value> -->
-    <value>hdfs://localhost/</value>
+    <value>hdfs://0.0.0.0:8020/</value>
 </property>
 
 <!-- 
