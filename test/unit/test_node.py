@@ -29,7 +29,6 @@ import unittest
 from mock import patch
 import socket
 import hod.node as hn
-from hod.config.customtypes import HdfsFs
 
 class HodNodeTestCase(unittest.TestCase):
     '''Test Node functions'''
@@ -146,12 +145,6 @@ class HodNodeTestCase(unittest.TestCase):
         self.assertEqual(hn.ip_interface_to(networks, '10.1.2.6'), networks[1])
         self.assertEqual(hn.ip_interface_to(networks, '157.193.16.10'), networks[2])
         self.assertTrue(hn.ip_interface_to(networks, '157.193.16.128') is None)
-
-    def test_interface_to_nn(self):
-        '''test interfasce_to_nn'''
-        thisnode = hn.Node()
-        namenode = HdfsFs('localhost:80')
-        hn.interface_to_nn(thisnode, namenode)
 
     def test_node_init(self):
         '''test node init'''
