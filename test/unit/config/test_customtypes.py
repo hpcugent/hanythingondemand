@@ -60,10 +60,6 @@ class HodConfigCustomTypesTestCase(unittest.TestCase):
         '''Test KindOfList doesn't core when created...'''
         o = hcc.KindOfList() # TODO: Remove this worthless class.
         
-    def test_servers(self):
-        '''Test Servers doesn't core when created...'''
-        o = hcc.Servers() # TODO: Remove this worthless class.
-
     def test_usergroup(self):
         '''Test UserGroup doesn't core when created...'''
         o = hcc.UserGroup() # TODO: Remove this worthless class. Replace with tuple(list,list)
@@ -83,13 +79,3 @@ class HodConfigCustomTypesTestCase(unittest.TestCase):
     def test_paramsdescr(self):
         '''Test ParamsDescr doesn't core when created...'''
         o = hcc.ParamsDescr() # TODO: Remove this worthless class.
-
-    def test_boolean(self):
-        '''Test Boolean class.'''
-        n,t,f = hcc.Boolean(), hcc.Boolean(True), hcc.Boolean(False) # TODO: Remove this worthless class.
-        self.assertTrue(None in n)
-        self.assertTrue(True in t)
-        self.assertTrue(False in f)
-
-        self.assertTrue(n is not None) # mind=blown.
-        self.assertTrue(f != False) # mind=blown.

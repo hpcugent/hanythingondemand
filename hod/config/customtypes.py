@@ -108,10 +108,6 @@ class KindOfList:
         return self.str_sepa.join(["%s" % x for x in d if not x is None])
 
 
-class Servers(KindOfList):
-    """Comma separated list of servers"""
-
-
 class UserGroup:
     def __init__(self, users=None, groups=None):
         self.users = KindOfList(users)
@@ -185,21 +181,3 @@ class ParamsDescr(dict):
             else:
                 tmp[k] = "%s" % str(v)
         return "%s" % tmp
-
-
-class Boolean:
-    """bool class with slightly different __str__"""
-    def __init__(self, val=None):
-        if val:
-            self.value = True
-        elif val is None:
-            self.value = None
-        else:
-            self.value = False
-
-    def __contains__(self, d):
-        return d == self.value
-
-    def __str__(self):
-        txt = "%s" % self.value
-        return txt.lower()
