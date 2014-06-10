@@ -22,9 +22,11 @@ _SERVICE_SECTION = 'Service'
 _ENVIRONMENT_SECTION = 'Environment'
 
 def manifest_config_path(basedir):
+    '''Return the path to the hod.conf manifest file.'''
     return mkpath(basedir, _HOD_MANIFEST_CONFIG)
 
 def service_config_paths(basedir):
+    '''Return the paths to the various configuration files for the services.'''
     return [f for f in glob(mkpath(basedir, '*.conf')) if basename(f) != _HOD_MANIFEST_CONFIG]
 
 def _templated_strings():
@@ -67,6 +69,10 @@ def _resolve_templates(templates):
     return dict(zip(templates.keys(), v))
 
 def resolve_config_str(s):
+    '''
+    Given a string, resolve the templates based on the _templated_strings
+    function.
+    '''
     template = string.Template(s)
     template_strings = _templated_strings()
     resolved_templates = _resolve_templates(template_strings)
@@ -101,7 +107,7 @@ def _mkhodbasedir():
     dir_name = ".".join([user, hostname, str(pid)])
     return mkpath(_basedir(), 'hod', dir_name)
 
-def mkpathabs(filepath, working_dir):
+def _mkpathabs(filepath, working_dir):
     '''
     Take a filepath and working_dir and return the absolute path for the
     filepath. If the filepath is already absolute then just return it.
@@ -142,6 +148,7 @@ class PreServiceConfigOpts(object):
     level configs which need to be run through the template before any services
     can begin.
     """
+    __slots__ = ['version', 'basedir', 'configdir', 'config_files']
     def __init__(self, fileobj):
         _config = load_service_config(fileobj)
         self.version = _config.get(_META_SECTION, 'version')
@@ -150,13 +157,14 @@ class PreServiceConfigOpts(object):
 
         fileobj_dir = _fileobj_dir(fileobj)
         def _fixup_path(cfg):
-            return mkpathabs(cfg, fileobj_dir)
+            return _mkpathabs(cfg, fileobj_dir)
 
         self.config_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'configs'))
         self.config_files = [_fixup_path(cfg) for cfg in self.config_files]
 
 
-def _get(config, section, item, dflt=None):
+def _cfgget(config, section, item, dflt=None):
+    '''Get a value from a ConfigParser object or a default if it's not there.'''
     if dflt is None:
         return config.get(section, item)
     try:
@@ -177,13 +185,13 @@ class ConfigOpts(object):
 
     def __init__(self, fileobj):
         _config = load_service_config(fileobj)
-        self.name = _get(_config, _UNIT_SECTION, 'Name')
-        self.runs_on_master = _parse_runs_on(_get(_config, _UNIT_SECTION, 'RunsOn'))
+        self.name = _cfgget(_config, _UNIT_SECTION, 'Name')
+        self.runs_on_master = _parse_runs_on(_cfgget(_config, _UNIT_SECTION, 'RunsOn'))
 
         _r = partial(resolve_config_str)
-        self.pre_start_script = _r(_get(_config, _SERVICE_SECTION, 'ExecStartPre', ''))
-        self.start_script = _r(_get(_config, _SERVICE_SECTION, 'ExecStart'))
-        self.stop_script = _r(_get(_config, _SERVICE_SECTION, 'ExecStop'))
+        self.pre_start_script = _r(_cfgget(_config, _SERVICE_SECTION, 'ExecStartPre', ''))
+        self.start_script = _r(_cfgget(_config, _SERVICE_SECTION, 'ExecStart'))
+        self.stop_script = _r(_cfgget(_config, _SERVICE_SECTION, 'ExecStop'))
 
         self.env = OrderedDict([(k, _r(v)) for k, v in _config.items(_ENVIRONMENT_SECTION)])
         self.basedir = _mkhodbasedir()
