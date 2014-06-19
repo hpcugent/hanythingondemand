@@ -30,11 +30,13 @@ def service_config_paths(basedir):
     return [f for f in glob(mkpath(basedir, '*.conf')) if basename(f) != _HOD_MANIFEST_CONFIG]
 
 def _templated_strings():
-    '''Return the template dict with the name fed through.'''
+    '''Return the template dict with the name fed through.
+    This will include environment variables.'''
     basedir = _mkhodbasedir()
 
     _strings = {
         'hostname': socket.getfqdn,
+        'hostaddress': lambda: socket.gethostbyname(socket.getfqdn()),
         # 'ip': lambda: 1, # select best ip based on network interface. e.g. ib3
         # for infiniband; maybe add a infiniband_ip; dataplane_ip;
         # controlplane_ip.
@@ -43,10 +45,8 @@ def _templated_strings():
         'workdir': lambda:  mkpath(basedir, 'work'),
         'user': _current_user,
         'pid': os.getpid,
-        'pbsjobid': lambda: os.getenv('PBS_JOBID'),
-        'pbsjobname': lambda: os.getenv('PBS_JOBNAME'),
-        'pbsnodefile': lambda: os.getenv('PBS_NODEFILE'),
         }
+    _strings.update(os.environ)
 
     return _strings
 
@@ -134,6 +134,11 @@ def _parse_runs_on(s):
     else:
         raise RuntimeError('runs-on field must be either "master" or "slave".')
 
+
+def expanded_path(path):
+    template = string.Template(path)
+    return template.substitute(**os.environ)
+
 def _parse_comma_delim_list(s):
     '''
     Convert a string containing a comma delimited list into a list of strings
@@ -148,7 +153,7 @@ class PreServiceConfigOpts(object):
     level configs which need to be run through the template before any services
     can begin.
     """
-    __slots__ = ['version', 'basedir', 'configdir', 'config_files']
+    __slots__ = ['version', 'basedir', 'configdir', 'config_files', 'directories']
     def __init__(self, fileobj):
         _config = load_service_config(fileobj)
         self.version = _config.get(_META_SECTION, 'version')
@@ -161,6 +166,7 @@ class PreServiceConfigOpts(object):
 
         self.config_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'configs'))
         self.config_files = [_fixup_path(cfg) for cfg in self.config_files]
+        self.directories = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'directories'))
 
 
 def _cfgget(config, section, item, dflt=None):

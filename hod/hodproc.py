@@ -32,7 +32,7 @@ from os.path import join as mkpath, basename
 
 from hod.mpiservice import MpiService, Task, MASTERRANK
 
-from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
+from hod.config.config import (PreServiceConfigOpts, ConfigOpts, expanded_path,
         manifest_config_path, service_config_paths, resolve_config_str)
 from hod.work.config_service import ConfiguredService
 
@@ -90,6 +90,8 @@ class ConfiguredMaster(MpiService):
 
         _ignore_oserror(lambda: os.makedirs(m_config.basedir))
         _ignore_oserror(lambda: os.makedirs(m_config.configdir))
+        for d in m_config.directories:
+            _ignore_oserror(lambda: os.makedirs(expanded_path(d)))
 
         for cfg in m_config.config_files:
             self.log.info("Copying config %s file to '%s'" % (cfg,

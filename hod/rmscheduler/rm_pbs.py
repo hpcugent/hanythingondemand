@@ -265,9 +265,9 @@ class Pbs(ResourceManagerScheduler):
             nodes = 1
 
         if ppn == -1:
-            ppn = self.get_ppn(
-            )  # hardcode for now TODO scan for min or max ppn per node
-        elif ppn is None:
+            # hardcode for now TODO scan for min or max ppn per node
+            ppn = self.get_ppn()
+        if ppn is None:
             ppn = 1
 
         walltime = int(float(walltime) * 60 * 60)  # in hours
@@ -332,7 +332,9 @@ class Pbs(ResourceManagerScheduler):
             res[np] += 1
 
         # # return most frequent
-        freq_count, freq_np = max([(j, i) for i, j in res.items()])
+        if not len(res):
+            return None
+        freq_np, freq_count = max(res.iteritems(), key=lambda x:x[1])
         self.log.debug("Found most frequent np %s (%s times) in interesni nodes %s" % (freq_np, freq_count, interesni_nodes))
 
         return freq_np

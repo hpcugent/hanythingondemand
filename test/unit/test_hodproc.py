@@ -45,6 +45,7 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
 version = 1
 [Config]
 configs=
+directories=
         """)
         service_config = StringIO("""
 [Unit]

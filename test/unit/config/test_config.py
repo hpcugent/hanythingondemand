@@ -44,9 +44,10 @@ class HodConfigConfig(unittest.TestCase):
         with patch('hod.config.config._current_user', side_effect=lambda:'whoami'):
             with patch('os.getpid', side_effect=lambda: 1):
                 with patch('os.getenv', side_effect=lambda *args:'/TMPDIR'):
-                    with patch('socket.getfqdn', side_effect=lambda: 'hostname'):
-                        self.assertEqual(hcc.resolve_config_str('$configdir'), '/TMPDIR/hod/whoami.hostname.1/conf') 
-                        self.assertEqual(hcc.resolve_config_str('$workdir'), '/TMPDIR/hod/whoami.hostname.1/work')
+                    with patch('socket.gethostbyname', side_effect=lambda x: '192.167.1.1'):
+                        with patch('socket.getfqdn', side_effect=lambda: 'hostname'):
+                            self.assertEqual(hcc.resolve_config_str('$configdir'), '/TMPDIR/hod/whoami.hostname.1/conf') 
+                            self.assertEqual(hcc.resolve_config_str('$workdir'), '/TMPDIR/hod/whoami.hostname.1/work')
     def test_ConfigOpts(self):
         config = StringIO("""
 [Unit]
