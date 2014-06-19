@@ -9,7 +9,7 @@ authority is used to determine the host, port, etc. for a filesystem
 -->
 <property>
     <name>fs.default.name</name>
-    <value>hdfs://0.0.0.0:8020/</value>
+    <value>hdfs://$hostname:8020</value>
 </property>
 
 <!-- 
@@ -70,29 +70,6 @@ Higher memory - limit while sorting data. (default 100)'
 <property>
     <name>org.apache.hadoop.net.StandardSocketFactory</name>
     <value></value>
-</property>
-
-<!--
-ACL for RefreshAuthorizationPolicyProtocol, used by the dfsadmin and mradmin
-commands to refresh the security policy in-effect.
--->
-<property>
-    <name>security.refresh.policy.protocol.acl</name>
-    <value></value>
-</property>
-
-
-
-<!--  Use this SOCKS server -->
-<property>
-    <name>hadoop.socks.server</name>
-    <value>localhost:10000</value>
-</property>
-
-<!--  Use SOCKS sockets -->
-<property>
-    <name>hadoop.rpc.socket.factory.class.default</name>
-    <value>org.apache.hadoop.net.SocksSocketFactory</value>
 </property>
 
 </configuration>
