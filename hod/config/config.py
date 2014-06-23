@@ -1,3 +1,31 @@
+# #
+# Copyright 2009-2013 Ghent University
+#
+# This file is part of hanythingondemand
+# originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
+# with support of Ghent University (http://ugent.be/hpc),
+# the Flemish Supercomputer Centre (VSC) (https://vscentrum.be/nl/en),
+# the Hercules foundation (http://www.herculesstichting.be/in_English)
+# and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
+#
+# http://github.com/hpcugent/hanythingondemand
+#
+# hanythingondemand is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation v2.
+#
+# hanythingondemand is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+# #
+"""
+@author: Ewan Higgs
+"""
+
 from ConfigParser import SafeConfigParser, NoOptionError
 from glob import glob
 import socket
@@ -30,16 +58,16 @@ def service_config_paths(basedir):
     return [f for f in glob(mkpath(basedir, '*.conf')) if basename(f) != _HOD_MANIFEST_CONFIG]
 
 def _templated_strings():
-    '''Return the template dict with the name fed through.
-    This will include environment variables.'''
+    '''
+    Return the template dict with the name fed through.
+    This will include environment variables.
+    '''
     basedir = _mkhodbasedir()
 
     _strings = {
         'hostname': socket.getfqdn,
         'hostaddress': lambda: socket.gethostbyname(socket.getfqdn()),
-        # 'ip': lambda: 1, # select best ip based on network interface. e.g. ib3
-        # for infiniband; maybe add a infiniband_ip; dataplane_ip;
-        # controlplane_ip.
+        # TODO:  For Multi node distributions we probably need a masteraddress
         'basedir': lambda: basedir,
         'configdir': lambda: mkpath(basedir, 'conf'),
         'workdir': lambda:  mkpath(basedir, 'work'),
