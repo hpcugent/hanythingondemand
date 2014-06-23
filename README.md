@@ -76,9 +76,7 @@ export PATH=$HOME/hadoop/cdh3u3/hadoop-0.20.2-cdh3u3/bin:$HODPATH/bin/:$PATH
 EOF
 ```
  
- * Use hod with option `--hod_envscript=$HOME/hod/localenv`
- * Use `hod_main.py`
-  * don't forget the `--hod_envscript` option
+ * Use hod_pbs with option `-c $EBROOTHADOOP/etc/hod/Hadoop-2.0.0-cdh4.4.0`
 
 ## Wiki
 For more documentation, check the wiki
