@@ -53,10 +53,6 @@ def manifest_config_path(basedir):
     '''Return the path to the hod.conf manifest file.'''
     return mkpath(basedir, _HOD_MANIFEST_CONFIG)
 
-def service_config_paths(basedir):
-    '''Return the paths to the various configuration files for the services.'''
-    return [f for f in glob(mkpath(basedir, '*.conf')) if basename(f) != _HOD_MANIFEST_CONFIG]
-
 def _templated_strings():
     '''
     Return the template dict with the name fed through.
@@ -181,7 +177,7 @@ class PreServiceConfigOpts(object):
     level configs which need to be run through the template before any services
     can begin.
     """
-    __slots__ = ['version', 'basedir', 'configdir', 'config_files', 'directories']
+    __slots__ = ['version', 'basedir', 'configdir', 'config_files', 'directories', 'service_files']
     def __init__(self, fileobj):
         _config = load_service_config(fileobj)
         self.version = _config.get(_META_SECTION, 'version')
@@ -192,6 +188,8 @@ class PreServiceConfigOpts(object):
         def _fixup_path(cfg):
             return _mkpathabs(cfg, fileobj_dir)
 
+        self.service_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'services'))
+        self.service_files = [_fixup_path(cfg) for cfg in self.service_files]
         self.config_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'configs'))
         self.config_files = [_fixup_path(cfg) for cfg in self.config_files]
         self.directories = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'directories'))

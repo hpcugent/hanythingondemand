@@ -44,6 +44,7 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
 [Meta]
 version = 1
 [Config]
+services=svc.conf
 configs=
 directories=
         """)
@@ -59,9 +60,8 @@ ExecStop=
         opts = HodOption(go_args=['progname'])
         cm = hh.ConfiguredMaster(opts)
         with patch('hod.config.config.manifest_config_path', side_effect=lambda x:'hod.conf'):
-            with patch('hod.config.config.service_config_paths', side_effect=lambda x:['svc.conf']):
-                with patch('os.makedirs', side_effect=lambda *args:None):
-                    with patch('hod.hodproc._copy_config', side_effect=lambda *args:None):
-                        with patch('__builtin__.open', side_effect=lambda name, *args: manifest_config if name == 'hod.conf' else service_config):
-                            cm.distribution()
-        self.assertEqual(len(cm.dists), 0)
+            with patch('os.makedirs', side_effect=lambda *args:None):
+                with patch('hod.hodproc._copy_config', side_effect=lambda *args:None):
+                    with patch('__builtin__.open', side_effect=lambda name, *args: manifest_config if name == 'hod.conf' else service_config):
+                        cm.distribution()
+        self.assertEqual(len(cm.dists), 1)

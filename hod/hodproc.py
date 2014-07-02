@@ -33,7 +33,7 @@ from os.path import join as mkpath, basename
 from hod.mpiservice import MpiService, Task, MASTERRANK
 
 from hod.config.config import (PreServiceConfigOpts, ConfigOpts, expanded_path,
-        manifest_config_path, service_config_paths, resolve_config_str)
+        manifest_config_path, resolve_config_str)
 from hod.work.config_service import ConfiguredService
 
 from hod.rmscheduler.hodjob import Job
@@ -98,7 +98,7 @@ class ConfiguredMaster(MpiService):
                 m_config.configdir))
             _copy_config(cfg, m_config.configdir)
 
-        svc_cfgs = service_config_paths(config_dir)
+        svc_cfgs = m_config.service_files
         self.log.info('Loading %d service configs.'  % len(svc_cfgs))
         for config_filename in svc_cfgs:
             self.log.info('Loading "%s" service config'  % config_filename)
