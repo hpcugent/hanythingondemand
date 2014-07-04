@@ -38,8 +38,6 @@ from os.path import join as mkpath, realpath, dirname, basename
 from functools import partial
 import logging as log
 
-_HOD_MANIFEST_CONFIG = 'hod.conf'
-
 # hod manifest config sections
 _META_SECTION = 'Meta'
 _CONFIG_SECTION = 'Config'
@@ -48,10 +46,6 @@ _CONFIG_SECTION = 'Config'
 _UNIT_SECTION = 'Unit'
 _SERVICE_SECTION = 'Service'
 _ENVIRONMENT_SECTION = 'Environment'
-
-def manifest_config_path(basedir):
-    '''Return the path to the hod.conf manifest file.'''
-    return mkpath(basedir, _HOD_MANIFEST_CONFIG)
 
 def _templated_strings():
     '''
@@ -63,7 +57,6 @@ def _templated_strings():
     _strings = {
         'hostname': socket.getfqdn,
         'hostaddress': lambda: socket.gethostbyname(socket.getfqdn()),
-        # TODO:  For Multi node distributions we probably need a masteraddress
         'basedir': lambda: basedir,
         'configdir': lambda: mkpath(basedir, 'conf'),
         'workdir': lambda:  mkpath(basedir, 'work'),
@@ -177,7 +170,7 @@ class PreServiceConfigOpts(object):
     level configs which need to be run through the template before any services
     can begin.
     """
-    __slots__ = ['version', 'basedir', 'configdir', 'config_files', 'directories', 'service_files']
+    __slots__ = ['version', 'basedir', 'configdir', 'config_files', 'directories', 'modules', 'service_files']
     def __init__(self, fileobj):
         _config = load_service_config(fileobj)
         self.version = _config.get(_META_SECTION, 'version')
@@ -188,6 +181,7 @@ class PreServiceConfigOpts(object):
         def _fixup_path(cfg):
             return _mkpathabs(cfg, fileobj_dir)
 
+        self.modules = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'modules'))
         self.service_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'services'))
         self.service_files = [_fixup_path(cfg) for cfg in self.service_files]
         self.config_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'configs'))

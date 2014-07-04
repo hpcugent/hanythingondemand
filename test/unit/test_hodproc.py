@@ -35,8 +35,7 @@ import hod.hodproc as hh
 class TestHodProcConfiguredMaster(unittest.TestCase):
     def test_configured_master_init(self):
         opts = HodOption(go_args=['progname'])
-        print dir(opts)
-        self.assertTrue(hasattr(opts.options, 'config_dir'))
+        self.assertTrue(hasattr(opts.options, 'config_config'))
         cm = hh.ConfiguredMaster(opts)
 
     def test_configured_master_distribution(self):
@@ -44,6 +43,7 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
 [Meta]
 version = 1
 [Config]
+modules=
 services=svc.conf
 configs=
 directories=
@@ -57,11 +57,10 @@ ExecStart=
 ExecStop=
 [Environment]
         """)
-        opts = HodOption(go_args=['progname'])
+        opts = HodOption(go_args=['progname', '--config-config', 'hod.conf'])
         cm = hh.ConfiguredMaster(opts)
-        with patch('hod.config.config.manifest_config_path', side_effect=lambda x:'hod.conf'):
-            with patch('os.makedirs', side_effect=lambda *args:None):
-                with patch('hod.hodproc._copy_config', side_effect=lambda *args:None):
-                    with patch('__builtin__.open', side_effect=lambda name, *args: manifest_config if name == 'hod.conf' else service_config):
-                        cm.distribution()
+        with patch('os.makedirs', side_effect=lambda *args:None):
+            with patch('hod.hodproc._copy_config', side_effect=lambda *args:None):
+                with patch('__builtin__.open', side_effect=lambda name, *args: manifest_config if name == 'hod.conf' else service_config):
+                    cm.distribution()
         self.assertEqual(len(cm.dists), 1)

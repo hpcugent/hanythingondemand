@@ -27,8 +27,10 @@
 
 import unittest
 from mock import patch
-import hod.config.config as hcc
+from os.path import basename
 from cStringIO import StringIO
+
+import hod.config.config as hcc
 
 class HodConfigConfig(unittest.TestCase):
     '''Test Config functions'''
@@ -48,6 +50,26 @@ class HodConfigConfig(unittest.TestCase):
                         with patch('socket.getfqdn', side_effect=lambda: 'hostname'):
                             self.assertEqual(hcc.resolve_config_str('$configdir'), '/TMPDIR/hod/whoami.hostname.1/conf') 
                             self.assertEqual(hcc.resolve_config_str('$workdir'), '/TMPDIR/hod/whoami.hostname.1/work')
+
+    def test_PreServiceConfigOpts(self):
+        config = StringIO("""
+[Meta]
+version=1
+
+[Config]
+modules=powerlevel/9001,scouter/1.0
+services=scouter.conf
+configs=scouter.yaml
+directories=/dfs/name,/dfs/data
+        """)
+        precfg = hcc.PreServiceConfigOpts(config)
+        self.assertEqual(precfg.modules, ['powerlevel/9001', 'scouter/1.0'])
+        for x in precfg.service_files:
+            self.assertTrue(basename(x) in ['scouter.conf'])
+        for x in precfg.config_files:
+            self.assertTrue(basename(x) in ['scouter.yaml'])
+        self.assertEqual(precfg.directories, ['/dfs/name', '/dfs/data'])
+
     def test_ConfigOpts(self):
         config = StringIO("""
 [Unit]

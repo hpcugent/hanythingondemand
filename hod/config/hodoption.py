@@ -64,7 +64,7 @@ class HodOption(GeneralOption):
 
     def config_options(self):
         """Make the action related options"""
-        opts = {'dir': ("Configuration directory", "string", "store", ''),
+        opts = {'config': ("Top level configuration file (hod.conf)", "string", "store", ''),
                 }
         descr = ["Config", "Configuration files options"]
 
@@ -73,23 +73,11 @@ class HodOption(GeneralOption):
                        (prefix, descr, opts))
         self.add_group_parser(opts, descr, prefix=prefix)
 
-    def java_options(self):
-        """Some java presets"""
-        opts = {'module': ("Use Java module version", "string",
-                           "store", os.environ.get("EBVERSIONJAVA", ''))}
-        descr = ['Java', 'Provide Java related options']
-        prefix = 'java'
-
-        self.log.debug("Add Java option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
-        self.add_group_parser(opts, descr, prefix=prefix)
-
     def make_init(self):
         """Trigger all inits"""
         self.rm_options()
         self.config_options()
         self.action_options()
-        self.java_options()
 
 
 if __name__ == '__main__':
