@@ -26,9 +26,10 @@
 '''
 
 import unittest
-from mock import patch
+from mock import patch 
 from os.path import basename
 from cStringIO import StringIO
+from cPickle import dumps, loads
 
 import hod.config.config as hcc
 
@@ -40,16 +41,13 @@ class HodConfigConfig(unittest.TestCase):
         self.assertEqual(hcc._resolve_templates(dict(a=lambda: 1)), dict(a=1))
 
     def test_resolve_config_str(self):
-        with patch('hod.config.config._resolve_templates', side_effect=lambda *args:dict(hostname=1)):
-            self.assertEqual(hcc.resolve_config_str('abc'), 'abc')
-            self.assertEqual(hcc.resolve_config_str('$hostname'), '1')
-        with patch('hod.config.config._current_user', side_effect=lambda:'whoami'):
-            with patch('os.getpid', side_effect=lambda: 1):
-                with patch('os.getenv', side_effect=lambda *args:'/TMPDIR'):
-                    with patch('socket.gethostbyname', side_effect=lambda x: '192.167.1.1'):
-                        with patch('socket.getfqdn', side_effect=lambda: 'hostname'):
-                            self.assertEqual(hcc.resolve_config_str('$configdir'), '/TMPDIR/hod/whoami.hostname.1/conf') 
-                            self.assertEqual(hcc.resolve_config_str('$workdir'), '/TMPDIR/hod/whoami.hostname.1/work')
+        self.assertEqual(hcc.resolve_config_str('$configdir', dict(configdir='someval')), 'someval')
+
+    def test_TemplateResolver(self):
+        with patch('hod.config.config.os.environ', dict(BINDIR='/usr/bin')):
+            tr = hcc.TemplateResolver(workdir='someval', greeting='hello')
+            self.assertEqual(tr('$workdir $greeting joey joe joe',), 'someval hello joey joe joe')
+            self.assertEqual(tr('$BINDIR/wibble'), '/usr/bin/wibble')
 
     def test_PreServiceConfigOpts(self):
         config = StringIO("""
@@ -57,12 +55,13 @@ class HodConfigConfig(unittest.TestCase):
 version=1
 
 [Config]
+master_env=TMPDIR
 modules=powerlevel/9001,scouter/1.0
 services=scouter.conf
 configs=scouter.yaml
 directories=/dfs/name,/dfs/data
         """)
-        precfg = hcc.PreServiceConfigOpts(config)
+        precfg = hcc.PreServiceConfigOpts(config, '/tmp')
         self.assertEqual(precfg.modules, ['powerlevel/9001', 'scouter/1.0'])
         for x in precfg.service_files:
             self.assertTrue(basename(x) in ['scouter.conf'])
@@ -82,7 +81,7 @@ ExecStop=stopper
 
 [Environment]
 SOME_ENV=123""")
-        cfg = hcc.ConfigOpts(config)
+        cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
         self.assertEqual(cfg.name, 'testconfig')
         self.assertEqual(cfg.runs_on_master, True)
         self.assertEqual(cfg.start_script, 'starter')
@@ -90,7 +89,7 @@ SOME_ENV=123""")
         self.assertTrue('SOME_ENV' in cfg.env)
         self.assertEqual(cfg.env['SOME_ENV'], '123')
         self.assertTrue(isinstance(cfg.env['SOME_ENV'], basestring))
-        self.assertEqual(cfg.envstr(), 'SOME_ENV=123 ')
+        self.assertEqual(hcc.env2str(cfg.env), 'SOME_ENV=123 ')
 
     def test_parse_runs_on(self):
         self.assertTrue(hcc._parse_runs_on('masTeR'))
@@ -101,3 +100,39 @@ SOME_ENV=123""")
         lst = hcc._parse_comma_delim_list('hello,world, have, a , nice,day')
         expect = ['hello', 'world', 'have', 'a', 'nice', 'day']
         self.assertEqual(lst, expect)
+
+    def test_ConfigOpts_env(self):
+        config = StringIO("""
+[Unit]
+Name=testconfig
+RunsOn=master
+
+[Service]
+ExecStart=$BINDIR/starter
+ExecStop=$BINDIR/stopper
+
+[Environment]
+SOME_ENV=123""")
+        with patch('hod.config.config.os.environ', dict(BINDIR='/usr/bin')):
+            cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
+            self.assertEqual(cfg.start_script, '/usr/bin/starter')
+            self.assertEqual(cfg.stop_script, '/usr/bin/stopper')
+
+
+    def test_ConfigOpts_pickles(self):
+        config = StringIO("""
+[Unit]
+Name=testconfig
+RunsOn=master
+
+[Service]
+ExecStart=starter
+ExecStop=stopper
+
+[Environment]
+SOME_ENV=123""")
+        cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
+        remade_cfg = loads(dumps(cfg))
+        self.assertEqual(cfg.name, remade_cfg.name)
+        self.assertEqual(cfg.start_script, remade_cfg.start_script)
+        self.assertEqual(cfg.stop_script, remade_cfg.stop_script)

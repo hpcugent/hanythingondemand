@@ -26,12 +26,13 @@
 @author: Stijn De Weirdt
 """
 
-import os
-
 from vsc.utils.generaloption import GeneralOption
 
 
 class HodOption(GeneralOption):
+    '''
+    Command line options for hod_pbs.
+    '''
     def rm_options(self):
         """Make the rm related options"""
         opts = {"walltime": ("Job walltime in hours", 'float', 'store', 48, 'l'),
@@ -78,12 +79,3 @@ class HodOption(GeneralOption):
         self.rm_options()
         self.config_options()
         self.action_options()
-
-
-if __name__ == '__main__':
-    # Simple test case
-    h = HodOption()
-    print h.options, type(h.options)
-    print h.dict_by_prefix()
-    print h.generate_cmd_line()
-    print h.options.debug, h.options.hbase_on

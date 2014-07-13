@@ -7,10 +7,12 @@ table(fsimage). If this is a comma-delimited list then the name
 table is replicated in all of the directories, for redundancy. def
 $${hadoop.tmp.dir}/dfs/name
 -->
+<!--
 <property>
     <name>dfs.name.dir</name>
-    <value>$VSC_SCRATCH/dfs/name</value>
+    <value>$basedir/dfs/name</value>
 </property>
+-->
 
 <!--
 Determines where on the local filesystem an DFS data node should store its
@@ -18,10 +20,12 @@ blocks. If this is a comma-delimited list of kindoflist, then data will be
 stored in all named kindoflist, typically on different devices. Directories
 that do not exist are ignored. def $${hadoop.tmp.dir}/dfs/data
 -->
+<!--
 <property>
     <name>dfs.data.dir</name>
-    <value>$VSC_SCRATCH/dfs/data</value>
+    <value>$basedir/dfs/data</value>
 </property>
+-->
 
 <!-- 
      Determines thhe number of copies kept across nodes for HDFS

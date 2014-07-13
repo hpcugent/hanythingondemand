@@ -58,30 +58,31 @@ class TestHodWorkConfiguredService(unittest.TestCase):
 
     def test_ConfiguredService_init(self):
         '''Test creation of the ConfiguredService'''
-        cfg = hcc.ConfigOpts(_mk_master_config())
+        cfg = hcc.ConfigOpts(_mk_master_config(), hcc.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
 
     def test_ConfiguredService_pre_start_work_service(self):
         '''Test ConfiguredService pre_start method'''
-        cfg = hcc.ConfigOpts(_mk_master_config())
+        cfg = hcc.ConfigOpts(_mk_master_config(), hcc.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
         cs.pre_start_work_service()
 
     def test_ConfiguredService_start_work_service(self):
         '''Test ConfiguredService start method'''
-        cfg = hcc.ConfigOpts(_mk_master_config())
+        cfg = hcc.ConfigOpts(_mk_master_config(), hcc.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
         cs.start_work_service()
 
     def test_ConfiguredService_stop_work_service(self):
         '''Test ConfiguredService stop method'''
-        cfg = hcc.ConfigOpts(_mk_master_config())
+        cfg = hcc.ConfigOpts(_mk_master_config(), hcc.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
         cs.stop_work_service()
 
     def test_ConfiguredService_prepare_work_cfg(self):
-        cfg = hcc.ConfigOpts(_mk_slave_config())
+        cfg = hcc.ConfigOpts(_mk_slave_config(), hcc.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
-        with patch('hod.work.config_service.mkdtemp', side_effect=lambda **kwargs: sentinel.somepath):
-            cs.prepare_work_cfg()
-        self.assertEqual(cs.controldir, sentinel.somepath)
+        with patch('hod.work.config_service.os.makedirs', side_effect=lambda *args: None):
+            with patch('hod.config.config.ConfigOpts.basedir', '/tmp'):
+                cs.prepare_work_cfg()
+        self.assertEqual(cs.controldir, '/tmp/controldir')

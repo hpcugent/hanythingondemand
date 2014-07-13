@@ -31,8 +31,8 @@ Main hanythingondemand script, should be invoked in a job
 import sys
 
 from hod.config.hodoption import HodOption
-from hod.hodproc import Slave, ConfiguredMaster
-from hod.mpiservice import MASTERRANK, run_svc, setup_distribution
+from hod.hodproc import ConfiguredSlave, ConfiguredMaster
+from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
 
 from mpi4py import MPI
 
@@ -40,17 +40,18 @@ def main(args):
     options = HodOption(go_args=args)
 
     if MPI.COMM_WORLD.rank == MASTERRANK:
-        serv = ConfiguredMaster(options)
+        svc = ConfiguredMaster(options)
     else:
-        serv = Slave(options)
+        svc = ConfiguredSlave(options)
 
     try:
-        setup_distribution(serv)
-        run_svc(serv)
+        setup_tasks(svc)
+        run_tasks(svc)
 
-        serv.stop_service()
-    except:
-        serv.log.exception("Main HanythingOnDemand failed")
+        svc.stop_service()
+    except Exception, e:
+        print e
+        svc.log.exception("Main HanythingOnDemand failed")
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

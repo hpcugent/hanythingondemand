@@ -27,39 +27,37 @@
 """
 
 from ConfigParser import SafeConfigParser, NoOptionError
-from glob import glob
 import socket
 import string
-from collections import namedtuple, OrderedDict
-import subprocess
+from collections import OrderedDict
 import os
 import pwd
-from os.path import join as mkpath, realpath, dirname, basename
+from os.path import join as mkpath, realpath, dirname
 from functools import partial
-import logging as log
 
 # hod manifest config sections
 _META_SECTION = 'Meta'
 _CONFIG_SECTION = 'Config'
 
-# serviceaconfig sections 
+# serviceaconfig sections
 _UNIT_SECTION = 'Unit'
 _SERVICE_SECTION = 'Service'
 _ENVIRONMENT_SECTION = 'Environment'
 
-def _templated_strings():
+def _templated_strings(workdir):
     '''
     Return the template dict with the name fed through.
     This will include environment variables.
     '''
-    basedir = _mkhodbasedir()
+    basedir = _mkhodbasedir(workdir)
 
     _strings = {
+         #'masterhostname': This value is passed in.
         'hostname': socket.getfqdn,
         'hostaddress': lambda: socket.gethostbyname(socket.getfqdn()),
         'basedir': lambda: basedir,
         'configdir': lambda: mkpath(basedir, 'conf'),
-        'workdir': lambda:  mkpath(basedir, 'work'),
+        'workdir': lambda: mkpath(basedir, 'work'),
         'user': _current_user,
         'pid': os.getpid,
         }
@@ -72,8 +70,8 @@ def load_service_config(fileobj):
     Load a .ini style config for a service.
     '''
     config = SafeConfigParser()
-    # stop ConfigParser from making everything lower case.
-    config.optionxform = str 
+    # optionxform = Option Transform; using str stops making it lower case.
+    config.optionxform = str
     config.readfp(fileobj)
     return config
 
@@ -85,26 +83,16 @@ def _resolve_templates(templates):
     v = [v if not callable(v) else v() for k,v in templates.items()]
     return dict(zip(templates.keys(), v))
 
-def resolve_config_str(s):
+def resolve_config_str(s, template_dict, **template_kwargs):
     '''
-    Given a string, resolve the templates based on the _templated_strings
-    function.
+    Given a string, resolve the templates based on template_dict and
+    template_kwargs.
     '''
     template = string.Template(s)
-    template_strings = _templated_strings()
+    template_strings = template_dict.copy()
+    template_strings.update(template_kwargs)
     resolved_templates = _resolve_templates(template_strings)
     return template.substitute(**resolved_templates)
-
-
-def _configs(conf_dir):
-    '''Find all the configs in the config directory'''
-    results = []
-    for root, dirs, files in os.walk(conf_dir):
-        results.append((root, map(lambda f: mkpath(root, f), files)))
-    return results
-
-def _basedir():
-    return os.getenv('TMPDIR', '/tmp')
 
 def _current_user():
     '''
@@ -113,7 +101,7 @@ def _current_user():
     '''
     return pwd.getpwuid(os.getuid()).pw_name
 
-def _mkhodbasedir():
+def _mkhodbasedir(workdir):
     '''
     Construct the pathname for the hod base dir. This is the username, pid,
     hostname.
@@ -122,9 +110,9 @@ def _mkhodbasedir():
     pid = os.getpid()
     hostname = socket.getfqdn()
     dir_name = ".".join([user, hostname, str(pid)])
-    return mkpath(_basedir(), 'hod', dir_name)
+    return mkpath(workdir, 'hod', dir_name)
 
-def _mkpathabs(filepath, working_dir):
+def _abspath(filepath, working_dir):
     '''
     Take a filepath and working_dir and return the absolute path for the
     filepath. If the filepath is already absolute then just return it.
@@ -135,12 +123,12 @@ def _mkpathabs(filepath, working_dir):
         return filepath
 
     return realpath(mkpath(working_dir, filepath))
-    
+
 def _fileobj_dir(fileobj):
     if hasattr(fileobj, 'name'):
         return dirname(fileobj.name)
     return ''
-    
+
 def _parse_runs_on(s):
     '''True if master; False if slave. Error otherwise.'''
 
@@ -164,24 +152,42 @@ def _parse_comma_delim_list(s):
     return [x.strip() for x in s.split(',')]
 
 
+class TemplateResolver(object):
+    '''
+    Resolver for templates. Partially applied wrapper around
+    resolve_config_str but picklable.
+    '''
+    def __init__(self, **template_kwargs):
+        self.workdir = template_kwargs['workdir'] # raise if not found...
+        self._template_kwargs = template_kwargs
+
+    def __call__(self, s):
+        '''Given a string with template placeholders, return the resolved string'''
+        _template = _templated_strings(self.workdir)
+        return resolve_config_str(s, _template, **self._template_kwargs)
+
+
 class PreServiceConfigOpts(object):
     r"""
     Manifest file for the group of services responsible for defining service
     level configs which need to be run through the template before any services
     can begin.
     """
-    __slots__ = ['version', 'basedir', 'configdir', 'config_files', 'directories', 'modules', 'service_files']
-    def __init__(self, fileobj):
+    __slots__ = ['version', 'basedir', 'configdir', 'config_files',
+            'directories', 'modules', 'service_files', 'master_env']
+    def __init__(self, fileobj, workdir):
         _config = load_service_config(fileobj)
         self.version = _config.get(_META_SECTION, 'version')
-        self.basedir = _mkhodbasedir()
+        self.basedir = _mkhodbasedir(workdir)
         self.configdir = mkpath(self.basedir, 'conf')
 
         fileobj_dir = _fileobj_dir(fileobj)
+
         def _fixup_path(cfg):
-            return _mkpathabs(cfg, fileobj_dir)
+            return _abspath(cfg, fileobj_dir)
 
         self.modules = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'modules'))
+        self.master_env = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'master_env'))
         self.service_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'services'))
         self.service_files = [_fixup_path(cfg) for cfg in self.service_files]
         self.config_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'configs'))
@@ -198,6 +204,17 @@ def _cfgget(config, section, item, dflt=None):
     except NoOptionError:
         return dflt
 
+def env2str(env):
+    '''
+    Take a dict of environment variable names mapped to their values and
+    convert it to a string that can be used to prepend a command.
+    '''
+    envstr = ''
+    for k, v in env.items():
+        envstr += '%s=%s ' % (k, v)
+    return envstr
+
+
 
 class ConfigOpts(object):
     r"""
@@ -205,26 +222,48 @@ class ConfigOpts(object):
     Each of the config values can have a $variable which will be replaces
     by the value in the template strings except 'name'. Name cannot be
     templated.
+
+    Some of the slots are computed on call so that they can run on the Slave
+    nodes as opposed to the Master nodes.
     """
-    __slots__ = ['name', 'runs_on_master', 'pre_start_script', 'start_script', 'stop_script', 'env',
-            'config_file', 'basedir', 'configdir']
+    def __init__(self, fileobj, template_resolver):
+        self._config = load_service_config(fileobj)
+        self.name = _cfgget(self._config, _UNIT_SECTION, 'Name')
+        self.runs_on_master = _parse_runs_on(_cfgget(self._config, _UNIT_SECTION, 'RunsOn'))
+        self._tr = template_resolver
 
-    def __init__(self, fileobj):
-        _config = load_service_config(fileobj)
-        self.name = _cfgget(_config, _UNIT_SECTION, 'Name')
-        self.runs_on_master = _parse_runs_on(_cfgget(_config, _UNIT_SECTION, 'RunsOn'))
 
-        _r = partial(resolve_config_str)
-        self.pre_start_script = _r(_cfgget(_config, _SERVICE_SECTION, 'ExecStartPre', ''))
-        self.start_script = _r(_cfgget(_config, _SERVICE_SECTION, 'ExecStart'))
-        self.stop_script = _r(_cfgget(_config, _SERVICE_SECTION, 'ExecStop'))
+    @property
+    def pre_start_script(self): 
+        return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStartPre', ''))
 
-        self.env = OrderedDict([(k, _r(v)) for k, v in _config.items(_ENVIRONMENT_SECTION)])
-        self.basedir = _mkhodbasedir()
-        self.configdir = mkpath(self.basedir, 'conf')
+    @property
+    def start_script(self): 
+        return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStart'))
 
-    def envstr(self):
-        env = ''
-        for k,v in self.env.items():
-            env += '%s=%s ' % (k, v)
-        return env
+    @property
+    def stop_script(self):
+        return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStop'))
+
+    @property
+    def basedir(self): 
+        return _mkhodbasedir(self._tr.workdir)
+
+    @property
+    def configdir(self): 
+        return mkpath(self.basedir, 'conf')
+
+    @property
+    def env(self):
+        return OrderedDict([(k, self._tr(v)) for k, v in self._config.items(_ENVIRONMENT_SECTION)])
+
+    def __str__(self):
+        return 'ConfigOpts(name=%s, runs_on_master=%d, pre_start_script=%s, ' \
+                'start_script=%s, stop_script=%s, basedir=%s)' %  (self.name,
+                self.runs_on_master, self.pre_start_script, self.start_script,
+                self.stop_script, self.basedir)
+    def __repr__(self):
+        return 'ConfigOpts(name=%s, runs_on_master=%d)' % (self.name, self.runs_on_master)
+
+    def __getstate__(self): return self.__dict__
+    def __setstate__(self, d): self.__dict__.update(d)

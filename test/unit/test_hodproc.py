@@ -31,6 +31,7 @@ from cStringIO import StringIO
 from optparse import OptionParser
 from hod.config.hodoption import HodOption
 import hod.hodproc as hh
+from hod.config.config import TemplateResolver
 
 class TestHodProcConfiguredMaster(unittest.TestCase):
     def test_configured_master_init(self):
@@ -43,6 +44,7 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
 [Meta]
 version = 1
 [Config]
+master_env=
 modules=
 services=svc.conf
 configs=
@@ -59,8 +61,8 @@ ExecStop=
         """)
         opts = HodOption(go_args=['progname', '--config-config', 'hod.conf'])
         cm = hh.ConfiguredMaster(opts)
-        with patch('os.makedirs', side_effect=lambda *args:None):
-            with patch('hod.hodproc._copy_config', side_effect=lambda *args:None):
+        with patch('hod.hodproc._copy_config', side_effect=lambda *args: None):
+            with patch('hod.hodproc._setup_config_paths', side_effect=lambda *args: None):
                 with patch('__builtin__.open', side_effect=lambda name, *args: manifest_config if name == 'hod.conf' else service_config):
-                    cm.distribution()
-        self.assertEqual(len(cm.dists), 1)
+                    cm.distribution(workdir='/tmp')
+        self.assertEqual(len(cm.tasks), 1)

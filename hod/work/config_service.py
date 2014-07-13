@@ -27,64 +27,79 @@
 """
 
 import os
-import pwd
 from tempfile import mkdtemp
-from os.path import join as mkpath, basename
+from os.path import join as mkpath
 
 from hod.work.work import Work
+from hod.config.config import env2str
 from hod.commands.command import Command
 
 class ConfiguredService(Work):
     """
     Work that reads loads a configuration and runs it.
     """
-    def __init__(self, config):
+    def __init__(self, config, master_env=None):
+        if master_env is None:
+            master_env = dict()
         Work.__init__(self)
         self._config = config
+        self._master_env = master_env
+        self.name = self._config.name
 
     def pre_start_work_service(self):
-        env = self._config.envstr()
         rank = self.svc.rank
-
         if len(self._config.pre_start_script) == 0:
             self.log.info('Prestarting %s service on rank %s: No work.' %
                 (self._config.name, rank))
             return
+        env = os.environ
+        env.update(self._config.env)
+        env.update(self._master_env)
 
         self.log.info('Prestarting %s service on rank %s: "%s"' %
                 (self._config.name, rank, self._config.pre_start_script))
-        command = Command('%s %s' % (env, self._config.pre_start_script))
+        command = Command(self._config.pre_start_script, env=env)
         output = command.run()
         self.log.info('Ran %s service on rank %s prestart script. Output: "%s"' %
                 (self._config.name, rank, output))
 
-
     def start_work_service(self):
         """Start service on master"""
-        env = self._config.envstr()
+        env = os.environ
+        env.update(self._config.env)
+        env.update(self._master_env)
         rank = self.svc.rank
 
         self.log.info('Starting %s service on rank %s: "%s"' %
                 (self._config.name, rank, self._config.start_script))
         self.log.info("Env for %s service on rank %s: %s" % 
-                (self._config.name, rank, env))
-        command = Command('%s %s' % (env, self._config.start_script))
+                (self._config.name, rank, env2str(env)))
+        command = Command(self._config.start_script, env=env)
         output = command.run()
         self.log.info('Ran %s service on rank %s start script. Output: "%s"' % 
                 (self._config.name, rank, output))
 
     def stop_work_service(self):
         """Stop service on master"""
-        env = self._config.envstr()
+        env = os.environ
+        env.update(self._config.env)
+        env.update(self._master_env)
         rank = self.svc.rank
         self.log.info('Stopping %s service on rank %s: "%s"' %
             (self._config.name, rank, self._config.stop_script))
-        command = Command('%s %s' % (env, self._config.stop_script))
+        command = Command(self._config.stop_script, env=env)
         output = command.run()
         self.log.info('Ran %s service on rank %s stop script. Output: "%s"' % 
                 (self._config.name, rank, output))
 
     def prepare_work_cfg(self):
         """prepare the config: collect the parameters and make the necessary xml cfg files"""
-        # set the controldir to the confdir
-        self.controldir = mkdtemp(prefix='controldir', dir=self._config.basedir)
+        self.controldir = mkpath(self._config.basedir, 'controldir')
+        try:
+            os.makedirs(self.controldir)
+        except OSError:
+            # Directory might exist.
+            pass
+
+    def __repr__(self):
+        return 'ConfiguredService(name=%s)' % (self.name)

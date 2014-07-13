@@ -32,6 +32,7 @@ import sys
 
 from hod.rmscheduler.job import Job
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
+from hod.config.config import PreServiceConfigOpts
 
 from hod.config.hodoption import HodOption
 
@@ -55,7 +56,7 @@ class HodJob(Job):
         self.hodexe, self.hodpythonpath = self.get_hod()
         self.hodargs = self.options.generate_cmd_line(ignore='^(%s)_' % '|'.join(self.OPTION_IGNORE_PREFIX))
 
-        self.hodenvvarprefix = ['HOD', 'JAVA']
+        self.hodenvvarprefix = ['HOD']
 
         self.set_type_class()
 
@@ -147,9 +148,7 @@ class MympirunHodOption(HodOption):
 
 
 class MympirunHod(HodJob):
-    """Hod type job 
-        - mympirun cmd style
-    """
+    """Hod type job using mympirun cmd style."""
     OPTION_CLASS = MympirunHodOption
     OPTION_IGNORE_PREFIX = ['rm', 'action', 'mympirun']
 
@@ -201,10 +200,14 @@ class EasybuildMMHod(MympirunHod):
 
         self.modules.append(ebmodname)
 
-        if self.options.options.java_module:
-            # TODO fixed version of 170_3
-            self.modules.append(['swap', 'Java/%s' % self.options.options.java_module])
-
+        # Add modules from hod.conf
+        config_filename = options.options.config_config
+        if config_filename:
+            self.log.info('Loading "%s" manifest config'  % config_filename)
+            precfg = PreServiceConfigOpts(open(config_filename, 'r'), '')
+            for module in precfg.modules:
+                self.log.debug("Adding '%s' module to startup script." % module)
+                self.modules.append(module)
 
 class PbsEBMMHod(EasybuildMMHod):
     """MympirunHod type job for easybuild infrastructure
@@ -216,5 +219,3 @@ class PbsEBMMHod(EasybuildMMHod):
         self.log.debug("Using default class Pbs.")
         from hod.rmscheduler.rm_pbs import Pbs
         self.type_class = Pbs
-
-

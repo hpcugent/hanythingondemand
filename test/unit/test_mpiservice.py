@@ -42,17 +42,6 @@ class MPIServiceTestCase(unittest.TestCase):
         ms = hm.MpiService()
         hm.barrier(ms.comm, 'Wibble')
 
-    def test_mpiservice_collectnodes(self):
-        '''test mpiservice collectnodes'''
-        ms = hm.MpiService()
-        allnodes = hm._collect_nodes(ms.comm, ms.thisnode, ms.size)
-
-    def test_mpiservice_make_topoplogy_comm(self):
-        '''test mpiservice make topology comm'''
-        ms = hm.MpiService()
-        topocom =  hm._make_topology_comm(ms.comm, ms.allnodes, ms.size, ms.rank)
-        print topocom
-
     def test_mpiservice_who_is_out_there(self):
         '''test mpiservice who is out there'''
         ms = hm.MpiService()
@@ -96,8 +85,8 @@ class MPIServiceTestCase(unittest.TestCase):
     def test_slave_spread(self):
         '''test master spread'''
         ms = hm.MpiService()
-        dists = hm._slave_spread(ms.comm)
-        self.assertEqual(dists, None)
+        tasks = hm._slave_spread(ms.comm)
+        self.assertEqual(tasks, None)
 
     @unittest.expectedFailure
     def test_mpiservice_run_dist(self):

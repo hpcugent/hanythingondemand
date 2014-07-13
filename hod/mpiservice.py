@@ -27,21 +27,23 @@
 @author: Stijn De Weirdt
 """
 import time
+import os
 from mpi4py import MPI
 
 from hod.node import Node
 from vsc import fancylogger
 from collections import namedtuple
+import socket
 
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
-__all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_distribution',
-        'run_svc']
+__all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_tasks',
+        'run_tasks']
 
 MASTERRANK = 0
 
-Task = namedtuple('Task', ['type', 'ranks', 'options', 'shared'])
+Task = namedtuple('Task', ['type', 'ranks', 'options', 'master_env'])
 
 def _who_is_out_there(comm, rank):
     """Get all self.ranks of members of communicator"""
@@ -85,7 +87,8 @@ def _make_topology_comm(comm, allnodes, size, rank):
         if dimension == len(sometopo):
             for dim in range(dimension):
                 if topo[dim] == sometopo[dim]:
-                    mykeys[dim].append(n)  # add the rank of somenode to the mykeys list in proper dimension
+                    # add the rank of somenode to the mykeys list in proper dimension
+                    mykeys[dim].append(n)
         else:
             _log.error("Topology size of this Node %d does not match that of rank %d (size %d)" % (dimension, n, len(sometopo)))
             foundproblem = True
@@ -114,8 +117,9 @@ def _make_topology_comm(comm, allnodes, size, rank):
             topocom.append(MPI.COMM_NULL)
     return topocom
 
-def _collect_nodes(comm, node, size):
+def _collect_nodes(comm, size):
     """Collect local Node info and distribute it over all nodes"""
+    node = Node()
     descr = node.go()
     _log.debug("Got Node %s" % node)
 
@@ -178,35 +182,50 @@ def _stop_comm(comm):
         comm.Disconnect()
 
 
-def _master_spread(comm, dists):
-    retval = comm.bcast(dists, root=MASTERRANK)
-    _log.debug("Distributed dists %s from masterrank %s" % (dists, MASTERRANK))
-    return retval 
+def _master_spread(comm, tasks):
+    retval = comm.bcast(tasks, root=MASTERRANK)
+    _log.debug("Distributed '%s' from masterrank %s" % (tasks, MASTERRANK))
+    return retval
 
 def _slave_spread(comm):
-    dists = comm.bcast(root=MASTERRANK)
-    _log.debug("Received dists %s from masterrank %s" % (dists, MASTERRANK))
-    return dists
+    tasks = comm.bcast(root=MASTERRANK)
+    _log.debug("Received '%s' from masterrank %s" % (tasks, MASTERRANK))
+    return tasks
 
 
-def setup_distribution(svc):
+def setup_tasks(svc):
     """Setup the per node services and spread the tasks out."""
-    _log.debug("No dists found. Running distribution and spread.")
-    if svc.rank == MASTERRANK:
-        svc.distribution()
-        _master_spread(svc.comm, svc.dists)
-    else:
-        svc.dists = _slave_spread(svc.comm)
+    _log.debug("No tasks found. Running distribution and spread.")
 
-def run_svc(svc):
-    """Make communicators for dists and execute the work there"""
+    # Configure
+    if svc.rank == MASTERRANK:
+        master_template_kwargs = dict(workdir=os.getenv('TMPDIR', '/tmp'),
+                #masterenv=os.environ,
+                masterhostname=socket.getfqdn())
+        _master_spread(svc.comm, master_template_kwargs)
+    else:
+        master_template_kwargs = _slave_spread(svc.comm)
+
+    svc.distribution(**master_template_kwargs)
+    _log.debug("Setup tasks on rank '%d'" % svc.rank)
+    barrier(svc.comm, "Setup tasks on rank '%d'" % svc.rank)
+
+    # Collect tasks
+    if svc.rank == MASTERRANK:
+        _master_spread(svc.comm, svc.tasks)
+    else:
+        svc.tasks = _slave_spread(svc.comm)
+
+
+def run_tasks(svc):
+    """Make communicators for tasks and execute the work there"""
     # Based on initial dist, create the groups and communicators and map with work
     active_work = []
     wait_iter_sleep = 60  # run through all active work, then wait wait_iter_sleep seconds
 
-    for wrk in svc.dists:
+    for wrk in svc.tasks:
         # # pass any existing previous work
-        _log.debug("newcomm for ranks %s for work %s" % (wrk.ranks, wrk.type))
+        _log.debug("newcomm  for ranks %s for work %s: %s" % (wrk.ranks, wrk.options.name, wrk.type))
         newcomm = _make_comm_group(svc.comm, wrk.ranks)
 
         if newcomm == MPI.COMM_NULL:
@@ -215,8 +234,7 @@ def run_svc(svc):
 
         _log.debug('Setting up rank %d of this type %s' % (svc.rank, wrk.type))
         svc.tempcomm.append(newcomm)
-        tmpopts = wrk.options
-        work = wrk.type(tmpopts)
+        work = wrk.type(wrk.options, wrk.master_env)
         svc.log.debug("work %s begin" % (wrk.type.__name__))
         work.prepare_work_cfg()
         # # adding started work
@@ -259,17 +277,10 @@ class MpiService(object):
 
         self.tempcomm = []
 
-        self.dists = None
+        self.tasks = None
 
-        # Maybe have a barrier here based on a param.
-        #if startwithbarrier:
-        #    barrier(self.comm, 'Start')
-
-        self.thisnode = Node()
-        self.allnodes = _collect_nodes(self.comm, self.thisnode, self.size)
-        self.topocom = _make_topology_comm(self.comm, self.allnodes, self.size,
-                self.rank)
-
+        #self.allnodes = _collect_nodes(self.comm, self.size)
+        #self.topocom = _make_topology_comm(self.comm, self.allnodes, self.size, self.rank)
 
     def stop_service(self):
         """End all communicators"""
@@ -280,7 +291,7 @@ class MpiService(object):
         _stop_comm(self.comm)
 
 
-    def distribution(self):
+    def distribution(self, **kwargs):
         """Master makes the distribution"""
         if self.rank == MASTERRANK:
             self.log.error("Redefine this in proper master service")

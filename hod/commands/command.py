@@ -51,7 +51,7 @@ class Command(object):
     this will have to be extended
     '''
 
-    def __init__(self, command=None, timeout=COMMAND_TIMEOUT):
+    def __init__(self, command=None, timeout=COMMAND_TIMEOUT, env=None):
         '''
         Constructor
         command is a string representing the command to be run
@@ -59,6 +59,7 @@ class Command(object):
         self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
         self.command = command
         self.timeout = timeout
+        self.env = env
 
         self.fake_pty = False
 
@@ -109,6 +110,10 @@ class Command(object):
                 'stdout': PIPE,
                 'stderr': PIPE,
             }
+
+        if self.env is not None:
+            popen_kwargs['env'] = self.env
+
 
         popen_kwargs.update(stdouterr)
         # TODO: (high) buffer overflow here sometimes, check what happens and fix
