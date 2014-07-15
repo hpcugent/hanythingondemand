@@ -104,11 +104,7 @@ class ConfiguredMaster(MpiService):
         for config_filename in svc_cfgs:
             self.log.info('Loading "%s" service config'  % config_filename)
             config = ConfigOpts(open(config_filename, 'r'), resolver)
-            if self.size == 1:
-                slaves = [MASTERRANK]
-            else:
-                slaves = [x for x in range(self.size) if x != MASTERRANK]
-            ranks_to_run = [MASTERRANK] if config.runs_on_master else slaves
+            ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
             self.log.debug('Adding ConfiguredService Task to work with config: %s' % str(config))
             self.tasks.append(Task(ConfiguredService, ranks_to_run, config, master_env))
 

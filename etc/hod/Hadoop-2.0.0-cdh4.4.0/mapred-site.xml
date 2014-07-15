@@ -8,13 +8,13 @@ jobs are run in-process as a single map and reduce task.
 -->
 <property>
     <name>mapred.job.tracker</name>
-    <value>$hostname:8021</value>
+    <value>$masterhostname:8021</value>
 </property>
 
 <!--
 The local directory where MapReduce stores intermediate data files. May be a
 comma-separated list of kindoflist on different devices in order to spread
-disk i/o. Directories that do not      exist are ignored.'],
+disk i/o. Directories that do not exist are ignored.
 -->
 <property>
     <name>mapred.local.dir</name>
@@ -23,7 +23,7 @@ disk i/o. Directories that do not      exist are ignored.'],
 
 <!--
 As a rule of thumb, use 10x the number of slaves (i.e., number of
-TaskTrackers).'],
+TaskTrackers).
 -->
 <property>
     <name>mapred.map.tasks</name>
@@ -32,7 +32,7 @@ TaskTrackers).'],
 
 <!--
 As a rule of thumb, use 2x the number of slave processors (i.e., number of
-TaskTrackers).'],
+TaskTrackers).
 -->
 <property>
     <name>mapred.reduce.tasks</name>
@@ -40,7 +40,7 @@ TaskTrackers).'],
 </property>
 
 <!--
-The maximum number of map tasks (default is 2)'],
+The maximum number of map tasks (default is 2)
 -->
 
 <property>
@@ -49,7 +49,7 @@ The maximum number of map tasks (default is 2)'],
 </property>
 
 <!--
-The maximum number of map tasks (default is 2)'],
+The maximum number of map tasks (default is 2)
 -->
 <property>
     <name>mapred.tasktracker.reduce.tasks.maximum</name>

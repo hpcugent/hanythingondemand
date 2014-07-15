@@ -44,6 +44,10 @@ _UNIT_SECTION = 'Unit'
 _SERVICE_SECTION = 'Service'
 _ENVIRONMENT_SECTION = 'Environment'
 
+RUNS_ON_MASTER = 0x1
+RUNS_ON_SLAVE = 0x2
+RUNS_ON_ALL = RUNS_ON_MASTER | RUNS_ON_SLAVE
+
 def _templated_strings(workdir):
     '''
     Return the template dict with the name fed through.
@@ -133,11 +137,13 @@ def _parse_runs_on(s):
     '''True if master; False if slave. Error otherwise.'''
 
     if s.lower() == 'master':
-        return True
+        return RUNS_ON_MASTER
     elif s.lower() == 'slave':
-        return False
+        return RUNS_ON_SLAVE
+    elif s.lower() == 'all':
+        return RUNS_ON_ALL
     else:
-        raise RuntimeError('runs-on field must be either "master" or "slave".')
+        raise ValueError('runs-on field must be either "master" or "slave".')
 
 
 def expanded_path(path):
@@ -229,7 +235,7 @@ class ConfigOpts(object):
     def __init__(self, fileobj, template_resolver):
         self._config = load_service_config(fileobj)
         self.name = _cfgget(self._config, _UNIT_SECTION, 'Name')
-        self.runs_on_master = _parse_runs_on(_cfgget(self._config, _UNIT_SECTION, 'RunsOn'))
+        self._runs_on = _parse_runs_on(_cfgget(self._config, _UNIT_SECTION, 'RunsOn'))
         self._tr = template_resolver
 
 
@@ -257,13 +263,28 @@ class ConfigOpts(object):
     def env(self):
         return OrderedDict([(k, self._tr(v)) for k, v in self._config.items(_ENVIRONMENT_SECTION)])
 
+    def runs_on(self, masterrank, ranks):
+        '''
+        Given the master rank and all ranks, return a list of the ranks this
+        service will run on.
+        '''
+        if self._runs_on == RUNS_ON_MASTER:
+            return [masterrank]
+        elif self._runs_on == RUNS_ON_SLAVE:
+            return [x for x in ranks if x != masterrank]
+        elif self._runs_on == RUNS_ON_ALL:
+            return ranks
+        else:
+            raise ValueError('ConfigOpts.runs_on has invalid value: %s' %
+                    self._runs_on)
+
     def __str__(self):
-        return 'ConfigOpts(name=%s, runs_on_master=%d, pre_start_script=%s, ' \
+        return 'ConfigOpts(name=%s, runs_on=%d, pre_start_script=%s, ' \
                 'start_script=%s, stop_script=%s, basedir=%s)' %  (self.name,
-                self.runs_on_master, self.pre_start_script, self.start_script,
+                self._runs_on, self.pre_start_script, self.start_script,
                 self.stop_script, self.basedir)
     def __repr__(self):
-        return 'ConfigOpts(name=%s, runs_on_master=%d)' % (self.name, self.runs_on_master)
+        return 'ConfigOpts(name=%s, runs_on=%d)' % (self.name, self._runs_on)
 
     def __getstate__(self): return self.__dict__
     def __setstate__(self, d): self.__dict__.update(d)

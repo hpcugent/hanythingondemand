@@ -69,7 +69,7 @@ directories=/dfs/name,/dfs/data
             self.assertTrue(basename(x) in ['scouter.yaml'])
         self.assertEqual(precfg.directories, ['/dfs/name', '/dfs/data'])
 
-    def test_ConfigOpts(self):
+    def test_ConfigOpts_runs_on_MASTER(self):
         config = StringIO("""
 [Unit]
 Name=testconfig
@@ -83,7 +83,8 @@ ExecStop=stopper
 SOME_ENV=123""")
         cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
         self.assertEqual(cfg.name, 'testconfig')
-        self.assertEqual(cfg.runs_on_master, True)
+        self.assertEqual(cfg._runs_on, hcc.RUNS_ON_MASTER)
+        self.assertEqual(cfg.runs_on(0, [0, 1, 2, 3]), [0])
         self.assertEqual(cfg.start_script, 'starter')
         self.assertEqual(cfg.stop_script, 'stopper')
         self.assertTrue('SOME_ENV' in cfg.env)
@@ -91,10 +92,46 @@ SOME_ENV=123""")
         self.assertTrue(isinstance(cfg.env['SOME_ENV'], basestring))
         self.assertEqual(hcc.env2str(cfg.env), 'SOME_ENV=123 ')
 
+    def test_ConfigOpts_runs_on_SLAVE(self):
+        config = StringIO("""
+[Unit]
+Name=testconfig
+RunsOn=slave
+
+[Service]
+ExecStart=starter
+ExecStop=stopper
+
+[Environment]
+SOME_ENV=123""")
+        cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
+        self.assertEqual(cfg.name, 'testconfig')
+        self.assertEqual(cfg._runs_on, hcc.RUNS_ON_SLAVE)
+        self.assertEqual(cfg.runs_on(0, [0, 1, 2]), [1, 2])
+
+
+    def test_ConfigOpts_runs_on_ALL(self):
+        config = StringIO("""
+[Unit]
+Name=testconfig
+RunsOn=all
+
+[Service]
+ExecStart=starter
+ExecStop=stopper
+
+[Environment]
+SOME_ENV=123""")
+        cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
+        self.assertEqual(cfg.name, 'testconfig')
+        self.assertEqual(cfg._runs_on, hcc.RUNS_ON_ALL)
+        self.assertEqual(cfg.runs_on(0, [0, 1, 2]), [0, 1, 2])
+
     def test_parse_runs_on(self):
-        self.assertTrue(hcc._parse_runs_on('masTeR'))
-        self.assertFalse(hcc._parse_runs_on('slavE'))
-        self.assertRaises(RuntimeError, hcc._parse_runs_on, 'masterAndsLave')
+        self.assertEqual(hcc._parse_runs_on('masTeR'), hcc.RUNS_ON_MASTER)
+        self.assertEqual(hcc._parse_runs_on('slavE'), hcc.RUNS_ON_SLAVE)
+        self.assertEqual(hcc._parse_runs_on('AlL'), hcc.RUNS_ON_ALL)
+        self.assertRaises(ValueError, hcc._parse_runs_on, 'masterAndsLave')
 
     def test_parse_comma_delim_list(self):
         lst = hcc._parse_comma_delim_list('hello,world, have, a , nice,day')
