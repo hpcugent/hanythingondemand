@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+<!--
+Determines where on the local filesystem the DFS name node should store the name
+table(fsimage). If this is a comma-delimited list then the name
+table is replicated in all of the directories, for redundancy. def
+$${hadoop.tmp.dir}/dfs/name
+-->
+<!--
+<property>
+    <name>dfs.name.dir</name>
+    <value>$basedir/dfs/name</value>
+</property>
+-->
+
+<!--
+Determines where on the local filesystem an DFS data node should store its
+blocks. If this is a comma-delimited list of kindoflist, then data will be
+stored in all named kindoflist, typically on different devices. Directories
+that do not exist are ignored. def $${hadoop.tmp.dir}/dfs/data
+-->
+<!--
+<property>
+    <name>dfs.data.dir</name>
+    <value>$basedir/dfs/data</value>
+</property>
+-->
+
+<!-- 
+     Determines thhe number of copies kept across nodes for HDFS
+     Default is 3 but on a single node, use 1.
+ -->
+<property>
+    <name>dfs.replication</name>
+    <value>1</value>
+</property>
+
+<!--
+The name of the Network Interface from which a data node should report its IP
+address. 
+<property>
+    <name>dfs.datanode.dns.interface</name>
+    <value>ib0</value>
+</property>
+-->
+
+<!--
+The address where the datanode server will listen to. If the port is 0 then
+the server will start on a free port.'], 
+-->
+<property>
+    <name>dfs.datanode.address</name>
+    <value>$hostname:50090</value>
+</property>
+
+<!--
+The address and the base port where the dfs namenode web ui will listen on. If
+the port is 0 then the server will start on a free port.
+-->
+<property>
+    <name>dfs.namenode.http-address</name>
+    <value>0.0.0.0:50070</value>
+</property>
+
+<!--
+The datanode http server address and port. If the port is 0 then the server
+will start on a free port.
+-->
+<property>
+    <name>dfs.datanode.http.address</name>
+    <value>0.0.0.0:50075</value>
+</property>
+
+<!-- Enable durable sync -->
+<property>
+    <name>dfs.support.append</name>
+    <value>true</value>
+</property>
+
+<!-- Number of files to served at any one time. -->
+<property>
+    <name>dfs.datanode.max.xcievers</name>
+    <value>4096</value>
+</property>
+
+</configuration>
