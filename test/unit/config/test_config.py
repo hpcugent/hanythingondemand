@@ -58,10 +58,11 @@ version=1
 master_env=TMPDIR
 modules=powerlevel/9001,scouter/1.0
 services=scouter.conf
+workdir=/tmp
 configs=scouter.yaml
 directories=/dfs/name,/dfs/data
         """)
-        precfg = hcc.PreServiceConfigOpts(config, '/tmp')
+        precfg = hcc.PreServiceConfigOpts(config)
         self.assertEqual(precfg.modules, ['powerlevel/9001', 'scouter/1.0'])
         for x in precfg.service_files:
             self.assertTrue(basename(x) in ['scouter.conf'])

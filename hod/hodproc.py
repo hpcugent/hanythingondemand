@@ -31,7 +31,7 @@ from os.path import join as mkpath, basename
 
 from hod.commands.command import Command
 from hod.mpiservice import MpiService, Task, MASTERRANK
-from hod.config.config import (PreServiceConfigOpts, ConfigOpts, expanded_path,
+from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
         TemplateResolver, env2str)
 from hod.work.config_service import ConfiguredService
 
@@ -65,10 +65,10 @@ def _setup_config_paths(precfg, resolver):
 
     This needs to happen on master and slave nodes.
     """
-    _ignore_oserror(lambda: os.makedirs(precfg.basedir))
+    _ignore_oserror(lambda: os.makedirs(precfg.workdir))
     _ignore_oserror(lambda: os.makedirs(precfg.configdir))
     for d in precfg.directories:
-        _ignore_oserror(lambda: os.makedirs(expanded_path(d)))
+        _ignore_oserror(lambda: os.makedirs(resolver(d)))
 
     _log.info("Copying %d config files to %s" % (len(precfg.config_files), precfg.configdir))
     for cfg in precfg.config_files:
@@ -86,14 +86,13 @@ class ConfiguredMaster(MpiService):
 
     def distribution(self, **master_template_kwargs):
         """Master makes the distribution"""
-        resolver = TemplateResolver(**master_template_kwargs)
-
         self.tasks = []
         m_config_filename = self.options.options.config_config
         self.log.info('Loading "%s" manifest config'  % m_config_filename)
 
-        m_config = PreServiceConfigOpts(open(m_config_filename, 'r'), resolver.workdir)
+        m_config = PreServiceConfigOpts(open(m_config_filename, 'r'))
 
+        resolver = TemplateResolver(workdir=m_config.workdir, **master_template_kwargs)
         _setup_config_paths(m_config, resolver)
 
         master_env = dict([(v, os.getenv(v)) for v in m_config.master_env])
@@ -123,10 +122,9 @@ class ConfiguredSlave(MpiService):
 
         This only needs to run if there are more than 1 node (self.size>1)
         """
-        resolver = TemplateResolver(**master_template_kwargs)
-
         m_config_filename = self.options.options.config_config
         self.log.info('Loading "%s" manifest config'  % m_config_filename)
-        m_config = PreServiceConfigOpts(open(m_config_filename, 'r'), resolver.workdir)
+        m_config = PreServiceConfigOpts(open(m_config_filename, 'r'))
 
+        resolver = TemplateResolver(workdir=m_config.workdir, **master_template_kwargs)
         _setup_config_paths(m_config, resolver)

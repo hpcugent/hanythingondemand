@@ -14,7 +14,7 @@ authority is used to determine the host, port, etc. for a filesystem
 
 <property>
     <name>hadoop.tmp.dir</name>
-    <value>$basedir</value>
+    <value>$localworkdir</value>
 </property>
 
 <property>

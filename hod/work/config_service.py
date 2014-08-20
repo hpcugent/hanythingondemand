@@ -94,7 +94,7 @@ class ConfiguredService(Work):
 
     def prepare_work_cfg(self):
         """prepare the config: collect the parameters and make the necessary xml cfg files"""
-        self.controldir = mkpath(self._config.basedir, 'controldir')
+        self.controldir = mkpath(self._config.localworkdir, 'controldir')
         try:
             os.makedirs(self.controldir)
         except OSError:

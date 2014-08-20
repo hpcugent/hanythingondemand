@@ -10,7 +10,7 @@ $${hadoop.tmp.dir}/dfs/name
 <!--
 <property>
     <name>dfs.name.dir</name>
-    <value>$basedir/dfs/name</value>
+    <value>$localworkdir/dfs/name</value>
 </property>
 -->
 
@@ -23,7 +23,7 @@ that do not exist are ignored. def $${hadoop.tmp.dir}/dfs/data
 <!--
 <property>
     <name>dfs.data.dir</name>
-    <value>$basedir/dfs/data</value>
+    <value>$localworkdir/dfs/data</value>
 </property>
 -->
 

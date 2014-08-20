@@ -199,9 +199,7 @@ def setup_tasks(svc):
 
     # Configure
     if svc.rank == MASTERRANK:
-        master_template_kwargs = dict(workdir=os.getenv('TMPDIR', '/tmp'),
-                #masterenv=os.environ,
-                masterhostname=socket.getfqdn())
+        master_template_kwargs = dict(masterhostname=socket.getfqdn())
         _master_spread(svc.comm, master_template_kwargs)
     else:
         master_template_kwargs = _slave_spread(svc.comm)

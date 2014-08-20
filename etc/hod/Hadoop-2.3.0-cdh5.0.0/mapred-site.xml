@@ -8,28 +8,36 @@
 
 <property>
     <name>mapreduce.map.memory.mb</name>
-    <value>2048</value>
-</property>
-
-<property>
-    <name>mapreduce.reduce.memory.mb</name>
     <value>4096</value>
 </property>
 
 <property>
+    <name>mapreduce.reduce.memory.mb</name>
+    <value>8192</value>
+</property>
+
+<property>
     <name>mapreduce.map.java.opts</name>
-    <value>-Xmx1634m</value>
+    <value>-Xmx3072m</value>
 </property>
 
 <property>
     <name>mapreduce.reduce.java.opts</name>
-    <value>-Xmx3072m</value>
+    <value>-Xmx6144m</value>
+</property>
+
+<!-- 
+     TODO: This stuff should be overlaid as per stdweird's suggestion.
+<property>
+    <name>mapreduce.job.maps</name>
+    <value>192</value>
 </property>
 
 <property>
     <name>mapreduce.job.reduces</name>
     <value>96</value>
 </property>
+-->
 
 
 </configuration>

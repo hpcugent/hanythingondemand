@@ -53,4 +53,15 @@
       <value>false</value>
   </property>
 
+  <property>
+      <name>yarn.resourcemanager.scheduler.class</name>
+      <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
+  </property>
+
+  <property>
+      <name>yarn.scheduler.capacity.allocation.file</name>
+      <value>capacity-scheduler.xml</value>
+  </property>
+
+
 </configuration>

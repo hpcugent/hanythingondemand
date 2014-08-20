@@ -47,6 +47,7 @@ version = 1
 master_env=
 modules=
 services=svc.conf
+workdir=
 configs=
 directories=
         """)
@@ -64,5 +65,5 @@ ExecStop=
         with patch('hod.hodproc._copy_config', side_effect=lambda *args: None):
             with patch('hod.hodproc._setup_config_paths', side_effect=lambda *args: None):
                 with patch('__builtin__.open', side_effect=lambda name, *args: manifest_config if name == 'hod.conf' else service_config):
-                    cm.distribution(workdir='/tmp')
+                    cm.distribution()
         self.assertEqual(len(cm.tasks), 1)

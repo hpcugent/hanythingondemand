@@ -83,6 +83,6 @@ class TestHodWorkConfiguredService(unittest.TestCase):
         cfg = hcc.ConfigOpts(_mk_slave_config(), hcc.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
         with patch('hod.work.config_service.os.makedirs', side_effect=lambda *args: None):
-            with patch('hod.config.config.ConfigOpts.basedir', '/tmp'):
+            with patch('hod.config.config._mklocalworkdir', side_effect=lambda *args: '/tmp/node1234.awesomeuser.123'):
                 cs.prepare_work_cfg()
-        self.assertEqual(cs.controldir, '/tmp/controldir')
+        self.assertEqual(cs.controldir, '/tmp/node1234.awesomeuser.123/controldir')

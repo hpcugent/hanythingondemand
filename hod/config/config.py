@@ -53,15 +53,13 @@ def _templated_strings(workdir):
     Return the template dict with the name fed through.
     This will include environment variables.
     '''
-    basedir = _mkhodbasedir(workdir)
-
+    localworkdir = _mklocalworkdir(workdir)
     _strings = {
          #'masterhostname': This value is passed in.
         'hostname': socket.getfqdn,
         'hostaddress': lambda: socket.gethostbyname(socket.getfqdn()),
-        'basedir': lambda: basedir,
-        'configdir': lambda: mkpath(basedir, 'conf'),
-        'workdir': lambda: mkpath(basedir, 'work'),
+        'workdir': workdir,
+        'localworkdir': localworkdir,
         'user': _current_user,
         'pid': os.getpid,
         }
@@ -105,10 +103,10 @@ def _current_user():
     '''
     return pwd.getpwuid(os.getuid()).pw_name
 
-def _mkhodbasedir(workdir):
+def _mklocalworkdir(workdir):
     '''
-    Construct the pathname for the hod base dir. This is the username, pid,
-    hostname.
+    Construct the pathname for a workdir with a path local to this
+    host/job/user.
     '''
     user = _current_user()
     pid = os.getpid()
@@ -145,11 +143,6 @@ def _parse_runs_on(s):
     else:
         raise ValueError('runs-on field must be either "master" or "slave".')
 
-
-def expanded_path(path):
-    template = string.Template(path)
-    return template.substitute(**os.environ)
-
 def _parse_comma_delim_list(s):
     '''
     Convert a string containing a comma delimited list into a list of strings
@@ -160,7 +153,7 @@ def _parse_comma_delim_list(s):
 
 class TemplateResolver(object):
     '''
-    Resolver for templates. Partially applied wrapper around
+    Resolver for templates. This is partially applied wrapper around
     resolve_config_str but picklable.
     '''
     def __init__(self, **template_kwargs):
@@ -179,13 +172,14 @@ class PreServiceConfigOpts(object):
     level configs which need to be run through the template before any services
     can begin.
     """
-    __slots__ = ['version', 'basedir', 'configdir', 'config_files',
+    __slots__ = ['version', 'workdir', 'localworkdir', 'configdir', 'config_files',
             'directories', 'modules', 'service_files', 'master_env']
-    def __init__(self, fileobj, workdir):
+    def __init__(self, fileobj):
         _config = load_service_config(fileobj)
         self.version = _config.get(_META_SECTION, 'version')
-        self.basedir = _mkhodbasedir(workdir)
-        self.configdir = mkpath(self.basedir, 'conf')
+        self.workdir = _config.get(_CONFIG_SECTION, 'workdir')
+        self.localworkdir = _mklocalworkdir(self.workdir)
+        self.configdir = mkpath(self.localworkdir, 'conf')
 
         fileobj_dir = _fileobj_dir(fileobj)
 
@@ -252,12 +246,16 @@ class ConfigOpts(object):
         return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStop'))
 
     @property
-    def basedir(self): 
-        return _mkhodbasedir(self._tr.workdir)
+    def workdir(self): 
+        return self._tr.workdir
+
+    @property
+    def localworkdir(self): 
+        return _mklocalworkdir(self._tr.workdir)
 
     @property
     def configdir(self): 
-        return mkpath(self.basedir, 'conf')
+        return mkpath(self.localworkdir, 'conf')
 
     @property
     def env(self):
@@ -280,9 +278,9 @@ class ConfigOpts(object):
 
     def __str__(self):
         return 'ConfigOpts(name=%s, runs_on=%d, pre_start_script=%s, ' \
-                'start_script=%s, stop_script=%s, basedir=%s)' %  (self.name,
+                'start_script=%s, stop_script=%s, workdir=%s, localworkdir=%s)' %  (self.name,
                 self._runs_on, self.pre_start_script, self.start_script,
-                self.stop_script, self.basedir)
+                self.stop_script, self.workdir, self.localworkdir)
     def __repr__(self):
         return 'ConfigOpts(name=%s, runs_on=%d)' % (self.name, self._runs_on)
 

@@ -204,7 +204,7 @@ class EasybuildMMHod(MympirunHod):
         config_filename = options.options.config_config
         if config_filename:
             self.log.info('Loading "%s" manifest config'  % config_filename)
-            precfg = PreServiceConfigOpts(open(config_filename, 'r'), '')
+            precfg = PreServiceConfigOpts(open(config_filename, 'r'))
             for module in precfg.modules:
                 self.log.debug("Adding '%s' module to startup script." % module)
                 self.modules.append(module)
