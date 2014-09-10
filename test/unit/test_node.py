@@ -61,7 +61,7 @@ class HodNodeTestCase(unittest.TestCase):
             with patch('netifaces.ifaddresses', return_value={2:[{'addr':'127.0.0.1', 'netmask':'255.0.0.0'}]}):
                 with patch('socket.getfqdn', return_value='localhost'):
                     network = hn.get_networks()
-                    self.assertEqual(network, [['localhost', '127.0.0.1', 'lo', 8]])
+                    self.assertEqual(network, [hn.NetworkInterface('localhost', '127.0.0.1', 'lo', 8)])
 
     def test_get_networks_multiple(self):
         '''
@@ -119,11 +119,11 @@ class HodNodeTestCase(unittest.TestCase):
                 with patch('socket.getfqdn', side_effect=_hostname):
                     network = get_networks()
                     self.assertEqual(network, [
-                            ['localhost', '127.0.0.1', 'lo', 8],
-                            ['wibble01.wibble.os', '10.1.1.2', 'em1', 16],
-                            ['wibble01.sitename.tld', '157.193.16.9', 'em3', 25],
-                            ['wibble01.wibble.data', '10.143.13.2', 'ib0', 16],
-                            ['wibble.sitename.nat', '172.24.13.2', 'em1.295@em1', 16],
+                            hn.NetworkInterface('localhost', '127.0.0.1', 'lo', 8),
+                            hn.NetworkInterface('wibble01.wibble.os', '10.1.1.2', 'em1', 16),
+                            hn.NetworkInterface('wibble01.sitename.tld', '157.193.16.9', 'em3', 25),
+                            hn.NetworkInterface('wibble01.wibble.data', '10.143.13.2', 'ib0', 16),
+                            hn.NetworkInterface('wibble.sitename.nat', '172.24.13.2', 'em1.295@em1', 16),
                             ])
     def test_address_in_network(self):
         '''test address in network'''
@@ -134,11 +134,11 @@ class HodNodeTestCase(unittest.TestCase):
     def test_ip_interface_to(self):
         '''test ip interface to'''
         networks = [
-                ['localhost', '127.0.0.1', 'lo', 8],
-                ['wibble01.wibble.os', '10.1.1.2', 'em1', 16],
-                ['wibble01.sitename.tld', '157.193.16.9', 'em3', 25],
-                ['wibble01.wibble.data', '10.143.13.2', 'ib0', 16],
-                ['wibble.sitename.nat', '172.24.13.2', 'em1.295@em1', 16],
+                hn.NetworkInterface('localhost', '127.0.0.1', 'lo', 8),
+                hn.NetworkInterface('wibble01.wibble.os', '10.1.1.2', 'em1', 16),
+                hn.NetworkInterface('wibble01.sitename.tld', '157.193.16.9', 'em3', 25),
+                hn.NetworkInterface('wibble01.wibble.data', '10.143.13.2', 'ib0', 16),
+                hn.NetworkInterface('wibble.sitename.nat', '172.24.13.2', 'em1.295@em1', 16),
                 ]
         self.assertTrue(hn.ip_interface_to(networks, '192.168.0.1') is None)
         self.assertEqual(hn.ip_interface_to(networks, '127.9.10.11'), networks[0])
@@ -159,14 +159,14 @@ class HodNodeTestCase(unittest.TestCase):
 
     def test_node_sorted_network_simple(self):
         '''test node order network'''
-        nw = [['localhost', '127.0.0.1', 'lo', 8]]
-        self.assertEqual(nw, hn._sorted_network(nw))
+        nw = [hn.NetworkInterface('localhost', '127.0.0.1', 'lo', 8)]
+        self.assertEqual(nw, hn.sorted_network(nw))
 
 
     def test_node_sorted_network_complex(self):
-        nw = [['localhost', '127.0.0.1', 'lo', 8],
-              ['localhost', '127.0.0.1', 'ib3', 8]]
-        self.assertEqual([nw[1],nw[0]], hn._sorted_network(nw))
+        nw = [hn.NetworkInterface('localhost', '127.0.0.1', 'lo', 8),
+              hn.NetworkInterface('localhost', '127.0.0.1', 'ib3', 8)]
+        self.assertEqual([nw[1],nw[0]], hn.sorted_network(nw))
 
     def test_node_get_memory(self):
         '''test node get memory'''

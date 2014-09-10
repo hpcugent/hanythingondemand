@@ -35,12 +35,14 @@ import netifaces
 import netaddr
 import struct
 import multiprocessing
+from collections import namedtuple
 
 from vsc.utils.affinity import sched_getaffinity
 
 from vsc import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
+NetworkInterface = namedtuple('NetworkInterface', 'hostname,addr,device,mask_bits')
 def netmask2maskbits(netmask):
     """Find the number of bits in a netmask."""
     mask_as_int = netaddr.IPAddress(netmask).value
@@ -49,7 +51,7 @@ def netmask2maskbits(netmask):
 
 def get_networks():
         """
-        Returns list of network information by interface.
+        Returns list of NetworkInterface tuples by interface.
         Of the form: [hostname, ipaddr, iface, subnetmask]
         """
         devices = netifaces.interfaces()
@@ -62,7 +64,7 @@ def get_networks():
                 netmask = iface['netmask']
                 mask_bits = netmask2maskbits(iface['netmask'])
                 hostname = socket.getfqdn(addr) # socket.gethostbyaddr(addr)[0] # used this before.
-                networks.append([hostname, addr, device, mask_bits])
+                networks.append(NetworkInterface(hostname, addr, device, mask_bits))
         return networks
 
 
@@ -82,15 +84,22 @@ def address_in_network(ip, net):
     return netaddr.IPAddress(ip) in netaddr.IPNetwork(net)
 
 def ip_interface_to(networks, ip):
-    """Which of the detected network interfaces can reach ip"""
+    """Which of the detected network interfaces can reach ip
+    Params
+    ------
+    networks : `list of NetworkInterface`
+    
+    ip : `str`
+    Destination ipv4 address as string.
+    """
     for intf in networks:
-        net = "%s/%s" % (intf[1], intf[3])
+        net = "%s/%s" % (intf.addr, intf.mask_bits)
         if address_in_network(ip, net):
             return intf
     return None
 
 
-def _sorted_network(network):
+def sorted_network(network):
     """Try to find a preferred network (can be advanced like IPoIB of high-speed ethernet)"""
     nw = []
     _log.debug("Preferred network selection")
@@ -100,31 +109,31 @@ def _sorted_network(network):
     # # look for ib network
     ib_reg = re.compile("^(ib)\d+$")
     for intf in network:
-        if ib_reg.search(intf[2]):
+        if ib_reg.search(intf.device):
             if not intf in nw:
-                _log.debug("Added intf %s as ib interface" % intf)
+                _log.debug("Added intf %s as ib interface" % str(intf))
                 nw.append(intf)
 
     # # final selection prefer non-vlan
     vlan_reg = re.compile("^(.*)\.\d+$")
     loopback_reg = re.compile("^(lo)\d*$")
     for intf in network:
-        if not (vlan_reg.search(intf[2]) or loopback_reg.search(intf[2])):
+        if not (vlan_reg.search(intf.device) or loopback_reg.search(intf.device)):
             if not intf in nw:
-                _log.debug("Added intf %s as non-vlan or non-loopback interface" % intf)
+                _log.debug("Added intf %s as non-vlan or non-loopback interface" % str(intf))
                 nw.append(intf)
 
     # # add remainder non-loopback
     for intf in network:
-        if not loopback_reg.search(intf[2]):
+        if not loopback_reg.search(intf.device):
             if not intf in nw:
-                _log.debug("Added intf %s as remaining non-loopback interface" % intf)
+                _log.debug("Added intf %s as remaining non-loopback interface" % str(intf))
                 nw.append(intf)
 
     # # add remainder
     for intf in network:
         if not intf in nw:
-            _log.debug("Added intf %s as remaining interface" % intf)
+            _log.debug("Added intf %s as remaining interface" % str(intf))
             nw.append(intf)
 
     _log.debug("ordered network %s" % nw)
@@ -186,7 +195,7 @@ class Node(object):
     def go(self):
         """A wrapper around some common functions"""
         self.fqdn = socket.getfqdn()
-        self.network = _sorted_network(get_networks())
+        self.network = sorted_network(get_networks())
 
         self.pid = os.getpid()
         self.usablecores = [idx for idx, used in enumerate(sched_getaffinity().cpus) if used]

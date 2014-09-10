@@ -26,6 +26,11 @@
     <value>-Xmx6144m</value>
 </property>
 
+<property>
+    <name>yarn.app.mapreduce.am.staging-dir</name>
+    <value>$localworkdir/tmp/hadoop-yarn/staging</value>
+</property>
+
 <!-- 
      TODO: This stuff should be overlaid as per stdweird's suggestion.
 <property>

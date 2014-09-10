@@ -7,10 +7,6 @@ determine the FileSystem implementation.  The uris scheme determines the config
 property (fs.SCHEME.impl) naming the FileSystem implementation class.  The uris
 authority is used to determine the host, port, etc. for a filesystem
 -->
-<property>
-    <name>fs.default.name</name>
-    <value>hdfs://$masterhostname:8020</value>
-</property>
 
 <property>
     <name>hadoop.tmp.dir</name>
@@ -20,6 +16,11 @@ authority is used to determine the host, port, etc. for a filesystem
 <property>
     <name>dfs.replication</name>
     <value>1</value>
+</property>
+
+<property>
+    <name>fs.defaultFS</name>
+    <value>file:///</value>
 </property>
 
 <!-- 
@@ -33,10 +34,11 @@ map-outputs at the reduces.
 
 <!--
 Size of read/write buffer used in SequenceFiles. (default 4kB)')
+Parallel file systems often use 4M block sizes.
 -->
 <property>
     <name>io.file.buffer.size</name>
-    <value>131072</value> <!-- 128 * 1024 -->
+    <value>4194304</value> <!-- 4 * 1024 * 1024 -->
 </property>
 
 <!-- More streams merged at once while sorting files. (default 10)') -->

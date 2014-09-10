@@ -34,6 +34,7 @@ import os
 import pwd
 from os.path import join as mkpath, realpath, dirname
 from functools import partial
+import hod.node as node
 
 # hod manifest config sections
 _META_SECTION = 'Meta'
@@ -54,10 +55,14 @@ def _templated_strings(workdir):
     This will include environment variables.
     '''
     localworkdir = _mklocalworkdir(workdir)
+    local_data_network = node.sorted_network(node.get_networks())[0]
     _strings = {
          #'masterhostname': This value is passed in.
+         #'masterdatahostname': This value is passed in.
         'hostname': socket.getfqdn,
         'hostaddress': lambda: socket.gethostbyname(socket.getfqdn()),
+        'datahostname' : local_data_network.hostname,
+        'dataaddr' : local_data_network.addr,
         'workdir': workdir,
         'localworkdir': localworkdir,
         'user': _current_user,

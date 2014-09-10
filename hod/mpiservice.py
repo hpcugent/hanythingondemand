@@ -31,6 +31,7 @@ import os
 from mpi4py import MPI
 
 from hod.node import Node
+import hod.node as node
 from vsc import fancylogger
 from collections import namedtuple
 import socket
@@ -197,9 +198,12 @@ def setup_tasks(svc):
     """Setup the per node services and spread the tasks out."""
     _log.debug("No tasks found. Running distribution and spread.")
 
+
     # Configure
     if svc.rank == MASTERRANK:
-        master_template_kwargs = dict(masterhostname=socket.getfqdn())
+        master_data_hostname = node.sorted_network(node.get_networks())[0].hostname
+        master_template_kwargs = dict(masterhostname=socket.getfqdn(),
+            masterdatahostname=master_data_hostname)
         _master_spread(svc.comm, master_template_kwargs)
     else:
         master_template_kwargs = _slave_spread(svc.comm)
