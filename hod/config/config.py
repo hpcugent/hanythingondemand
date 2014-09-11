@@ -34,6 +34,7 @@ import os
 import pwd
 from os.path import join as mkpath, realpath, dirname
 from functools import partial
+from importlib import import_module
 import hod.node as node
 
 # hod manifest config sections
@@ -177,8 +178,9 @@ class PreServiceConfigOpts(object):
     level configs which need to be run through the template before any services
     can begin.
     """
-    __slots__ = ['version', 'workdir', 'localworkdir', 'configdir', 'config_files',
-            'directories', 'modules', 'service_files', 'master_env']
+    __slots__ = ['version', 'workdir', 'localworkdir', 'configdir',
+            'config_writer', 'directories', 'modules', 'service_configs',
+            'service_files', 'master_env']
     def __init__(self, fileobj):
         _config = load_service_config(fileobj)
         self.version = _config.get(_META_SECTION, 'version')
@@ -195,9 +197,27 @@ class PreServiceConfigOpts(object):
         self.master_env = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'master_env'))
         self.service_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'services'))
         self.service_files = [_fixup_path(cfg) for cfg in self.service_files]
-        self.config_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'configs'))
-        self.config_files = [_fixup_path(cfg) for cfg in self.config_files]
         self.directories = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'directories'))
+        if _config.has_option(_CONFIG_SECTION, 'config_writer'):
+            self.config_writer= _config.get(_CONFIG_SECTION, 'config_writer')
+            self.service_configs = self._collect_configs(_config)
+        else:
+            def _noop(*args): pass
+            self.config_writer = _noop
+            self.service_configs = dict()
+
+    def _collect_configs(self, config):
+        """Convert sections into dicts of options"""
+        service_configs = dict()
+        for section in [s for s in config.sections() if s not in [_META_SECTION, _CONFIG_SECTION]]:
+            option_dict = dict()
+            options = config.options(section)
+            for option in options:
+                option_dict[option] = config.get(section, option)
+
+            service_configs[section] = option_dict
+
+        return service_configs
 
 
 def _cfgget(config, section, item, dflt=None):
@@ -291,3 +311,30 @@ class ConfigOpts(object):
 
     def __getstate__(self): return self.__dict__
     def __setstate__(self, d): self.__dict__.update(d)
+
+
+def service_config_fn(policy_path):
+    """
+    Given a module string ending in a function name, return the relevant
+    function.
+    Params
+    ------
+    policy_path : `str`
+    Dotted string path of module. e.g. 'hod.config.write_policy.hadoop_xml'
+
+    Returns
+    -------
+    function taking dict and TemplateResolver
+    """
+    policy_path_list = policy_path.split('.')
+    module_path = '.'.join(policy_path_list[0:-1])
+    fn = policy_path_list[-1]
+    module = import_module(module_path)
+    return getattr(module, fn)
+
+def write_service_config(outfile, data_dict, config_writer, template_resolver):
+    """Write service config files to disk."""
+    with open(outfile, 'w') as f:
+        f.write(config_writer(data_dict, template_resolver))
+
+

@@ -90,6 +90,7 @@ PACKAGE = {
         'hod.work',
         'hod.commands',
         'hod.config',
+        'hod.config.writer',
         'hod.rmscheduler',
     ],
     'data_files': find_files('etc'),

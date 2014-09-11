@@ -26,43 +26,39 @@
 '''
 
 import unittest
-from mock import sentinel, patch
+from mock import patch 
+from os.path import basename
 from cStringIO import StringIO
-from optparse import OptionParser
-from hod.config.hodoption import HodOption
-import hod.hodproc as hh
-from hod.config.config import TemplateResolver
+from cPickle import dumps, loads
 
-class TestHodProcConfiguredMaster(unittest.TestCase):
-    def test_configured_master_init(self):
-        opts = HodOption(go_args=['progname'])
-        self.assertTrue(hasattr(opts.options, 'config_config'))
-        cm = hh.ConfiguredMaster(opts)
+import hod.config.config as hcc
+import hod.config.writer as hcw
 
-    def test_configured_master_distribution(self):
-        manifest_config = StringIO("""
-[Meta]
-version = 1
-[Config]
-master_env=
-modules=
-services=svc.conf
-workdir=
-configs=
-directories=
-        """)
-        service_config = StringIO("""
-[Unit]
-Name=wibble
-RunsOn = master
-[Service]
-ExecStart=
-ExecStop=
-[Environment]
-        """)
-        opts = HodOption(go_args=['progname', '--config-config', 'hod.conf'])
-        cm = hh.ConfiguredMaster(opts)
-        with patch('hod.hodproc._setup_config_paths', side_effect=lambda *args: None):
-            with patch('__builtin__.open', side_effect=lambda name, *args: manifest_config if name == 'hod.conf' else service_config):
-                cm.distribution()
-        self.assertEqual(len(cm.tasks), 1)
+class HodConfigHadoop(unittest.TestCase):
+    '''Test Config functions'''
+    def test_hadoop_xml(self):
+        tr = hcc.TemplateResolver(somename="potato", workdir='')
+        vals = {"fs.defaultFs": "file:///",
+                "yarn.option.nested": "123",
+                "templated.value": "$somename"
+                }
+        expected = """<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+<property>
+    <name>fs.defaultFs</name>
+    <value>file:///</value>
+</property>
+<property>
+    <name>templated.value</name>
+    <value>potato</value>
+</property>
+<property>
+    <name>yarn.option.nested</name>
+    <value>123</value>
+</property>
+</configuration>"""
+        output = hcw.hadoop_xml(vals, tr)
+        print "\"%s\"" % expected
+        print "\"%s\"" % output
+        self.assertEqual(output, expected)

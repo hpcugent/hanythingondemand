@@ -32,7 +32,7 @@ from os.path import join as mkpath, basename
 from hod.commands.command import Command
 from hod.mpiservice import MpiService, Task, MASTERRANK
 from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
-        TemplateResolver, env2str)
+        TemplateResolver, env2str, service_config_fn, write_service_config)
 from hod.work.config_service import ConfiguredService
 
 from vsc.utils import fancylogger
@@ -52,12 +52,6 @@ def _ignore_oserror(fn):
         pass
 
 
-def _copy_config(src_file, dest_dir, resolver):
-    cfg = open(src_file, 'r').read()
-    cfg = resolver(cfg)
-    dest_file = mkpath(dest_dir, basename(src_file))
-    open(dest_file, 'w').write(cfg)
-
 def _setup_config_paths(precfg, resolver):
     """
     Make the base and config directories; copy target service (i.e. hadoop xml)
@@ -70,11 +64,14 @@ def _setup_config_paths(precfg, resolver):
     for d in precfg.directories:
         _ignore_oserror(lambda: os.makedirs(resolver(d)))
 
-    _log.info("Copying %d config files to %s" % (len(precfg.config_files), precfg.configdir))
-    for cfg in precfg.config_files:
-        _log.info("Copying config %s file to '%s'" % (cfg, precfg.configdir))
-        _copy_config(cfg, precfg.configdir, resolver)
+    _log.info("Looking up config_writer %s" % (len(precfg.config_writer)))
+    config_writer = service_config_fn(precfg.config_writer)
 
+    _log.info("Copying %d config files to %s" % (len(precfg.service_configs), precfg.configdir))
+    for dest_file, cfg in precfg.service_configs.items():
+        _log.info("Copying config %s file to '%s'" % (cfg, precfg.configdir))
+        dest_path = mkpath(precfg.configdir, dest_file)
+        write_service_config(dest_path, cfg, config_writer, resolver)
 
 class ConfiguredMaster(MpiService):
     """

@@ -59,15 +59,19 @@ master_env=TMPDIR
 modules=powerlevel/9001,scouter/1.0
 services=scouter.conf
 workdir=/tmp
-configs=scouter.yaml
+config_writer=hod.config.writer.scouter_yaml
 directories=/dfs/name,/dfs/data
+
+[scouter.yaml]
+wibble=abc
+wibble.class=super
         """)
         precfg = hcc.PreServiceConfigOpts(config)
         self.assertEqual(precfg.modules, ['powerlevel/9001', 'scouter/1.0'])
         for x in precfg.service_files:
             self.assertTrue(basename(x) in ['scouter.conf'])
-        for x in precfg.config_files:
-            self.assertTrue(basename(x) in ['scouter.yaml'])
+        print precfg.service_configs
+        self.assertTrue('scouter.yaml' in precfg.service_configs.keys())
         self.assertEqual(precfg.directories, ['/dfs/name', '/dfs/data'])
 
     def test_ConfigOpts_runs_on_MASTER(self):
