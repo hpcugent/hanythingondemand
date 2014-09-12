@@ -23,23 +23,20 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-
-@author: Stijn De Weirdt
+@author: Stijn De Weirdt (University of Ghent)
 """
-from vsc import fancylogger
-
 
 import time
 import os
-import tempfile
 
-from hod.mpiservice import MpiService, barrier, MASTERRANK
+from vsc.utils.fancylogger import getLogger
+from hod.mpiservice import MpiService, barrier
 
 
 class Work(object):
     """Basic work class"""
     def __init__(self):
-        self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
+        self.log = getLogger(fname=False)
         self.svc = MpiService(log=self.log)
 
         self.work_max_age = 3600 * 71
@@ -49,18 +46,19 @@ class Work(object):
 
     def prepare_work_cfg(self):
         """prepare any config"""
-        self.log.error("Not implemented prepare_work_cfg.")
+        raise NotImplementedError
 
     def pre_start_work_service(self):
         """Run pre-start jobs for service."""
+        raise NotImplementedError
 
     def start_work_service(self):
         """Start service"""
-        self.log.error("Not implemented start_work_service_master.")
+        raise NotImplementedError
 
     def stop_work_service(self):
         """Stop the service"""
-        self.log.debug("Not implemented stop_work_service_master.")
+        raise NotImplementedError
 
     def work_wait(self):
         """What to do between start and stop (and how stop is triggered). Returns True is the wait is over"""
@@ -100,8 +98,6 @@ class Work(object):
         return ans
 
     def do_work_stop(self):
-        """Start the work"""
-        self.pre_run_any_service()
-
+        """Stop the work"""
         barrier(self.svc.comm, "Going to stop work on ")
         self.stop_work_service()

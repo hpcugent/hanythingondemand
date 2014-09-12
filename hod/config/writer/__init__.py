@@ -23,9 +23,8 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 ##
 """
-Nothing here for now.
-
-@author: Ewan Higgs (University of Ghent)
+Config writers for the 
+@author: Ewan Higgs (Ghent University)
 """
 
 from _hadoop import hadoop_xml

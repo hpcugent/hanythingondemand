@@ -23,7 +23,7 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-@author: Ewan Higgs
+@author: Ewan Higgs (University of Ghent)
 """
 
 

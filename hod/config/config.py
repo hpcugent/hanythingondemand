@@ -23,18 +23,18 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-@author: Ewan Higgs
+@author: Ewan Higgs (Ghent University)
 """
 
 from ConfigParser import SafeConfigParser, NoOptionError
-import socket
-import string
 from collections import OrderedDict
+from importlib import import_module
+from os.path import join as mkpath, realpath, dirname
 import os
 import pwd
-from os.path import join as mkpath, realpath, dirname
-from functools import partial
-from importlib import import_module
+import socket
+import string
+
 import hod.node as node
 
 # hod manifest config sections
@@ -59,11 +59,11 @@ def _templated_strings(workdir):
     local_data_network = node.sorted_network(node.get_networks())[0]
     _strings = {
          #'masterhostname': This value is passed in.
-         #'masterdatahostname': This value is passed in.
+         #'masterdataname': This value is passed in.
         'hostname': socket.getfqdn,
         'hostaddress': lambda: socket.gethostbyname(socket.getfqdn()),
-        'datahostname' : local_data_network.hostname,
-        'dataaddr' : local_data_network.addr,
+        'dataname' : local_data_network.hostname,
+        'dataaddress' : local_data_network.addr,
         'workdir': workdir,
         'localworkdir': localworkdir,
         'user': _current_user,
@@ -88,8 +88,9 @@ def _resolve_templates(templates):
     Take a dict of string to either string or to a nullary function and
     return the resolved data
     '''
-    v = [v if not callable(v) else v() for k,v in templates.items()]
-    return dict(zip(templates.keys(), v))
+    def _resolve(v):
+        return v if not callable(v) else v()
+    return dict([(k, _resolve(v)) for k, v in templates.items()])
 
 def resolve_config_str(s, template_dict, **template_kwargs):
     '''
@@ -100,7 +101,7 @@ def resolve_config_str(s, template_dict, **template_kwargs):
     template_strings = template_dict.copy()
     template_strings.update(template_kwargs)
     resolved_templates = _resolve_templates(template_strings)
-    return template.substitute(**resolved_templates)
+    return template.substitute(resolved_templates)
 
 def _current_user():
     '''
@@ -124,6 +125,12 @@ def _abspath(filepath, working_dir):
     '''
     Take a filepath and working_dir and return the absolute path for the
     filepath. If the filepath is already absolute then just return it.
+    >>> _abspath('somedir/file', '/tmp')
+    /tmp/somedir/file
+    >>> _abspath('', '/tmp')
+    /tmp
+    >>> _abspath('/not-tmp/somedir/file', '/tmp')
+    /not-tmp/somedir/file
     '''
     if not len(filepath):
         return realpath(working_dir)
@@ -133,12 +140,16 @@ def _abspath(filepath, working_dir):
     return realpath(mkpath(working_dir, filepath))
 
 def _fileobj_dir(fileobj):
+    '''
+    Return the directory of the fileobj if it exists. If it's a file-like
+    object (e.g. StringIO) just return a blank string.
+    '''
     if hasattr(fileobj, 'name'):
         return dirname(fileobj.name)
     return ''
 
 def _parse_runs_on(s):
-    '''True if master; False if slave. Error otherwise.'''
+    '''Returns the relevant constant depending on the string argument'''
 
     if s.lower() == 'master':
         return RUNS_ON_MASTER
@@ -147,7 +158,7 @@ def _parse_runs_on(s):
     elif s.lower() == 'all':
         return RUNS_ON_ALL
     else:
-        raise ValueError('runs-on field must be either "master" or "slave".')
+        raise ValueError('runs-on field must be either "master", "slave", or "all".')
 
 def _parse_comma_delim_list(s):
     '''
@@ -155,7 +166,6 @@ def _parse_comma_delim_list(s):
     with no spaces on the end or beginning.
     '''
     return [x.strip() for x in s.split(',')]
-
 
 class TemplateResolver(object):
     '''
@@ -171,7 +181,6 @@ class TemplateResolver(object):
         _template = _templated_strings(self.workdir)
         return resolve_config_str(s, _template, **self._template_kwargs)
 
-
 class PreServiceConfigOpts(object):
     r"""
     Manifest file for the group of services responsible for defining service
@@ -179,8 +188,8 @@ class PreServiceConfigOpts(object):
     can begin.
     """
     __slots__ = ['version', 'workdir', 'localworkdir', 'configdir',
-            'config_writer', 'directories', 'modules', 'service_configs',
-            'service_files', 'master_env']
+        'config_writer', 'directories', 'modules', 'service_configs',
+        'service_files', 'master_env']
     def __init__(self, fileobj):
         _config = load_service_config(fileobj)
         self.version = _config.get(_META_SECTION, 'version')
@@ -193,32 +202,29 @@ class PreServiceConfigOpts(object):
         def _fixup_path(cfg):
             return _abspath(cfg, fileobj_dir)
 
-        self.modules = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'modules'))
-        self.master_env = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'master_env'))
-        self.service_files = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'services'))
+        def _get_list(name):
+            return _parse_comma_delim_list(_config.get(_CONFIG_SECTION, name))
+
+        self.modules = _get_list('modules')
+        self.master_env = _get_list('master_env')
+        self.service_files = _get_list('services')
         self.service_files = [_fixup_path(cfg) for cfg in self.service_files]
-        self.directories = _parse_comma_delim_list(_config.get(_CONFIG_SECTION, 'directories'))
-        if _config.has_option(_CONFIG_SECTION, 'config_writer'):
-            self.config_writer= _config.get(_CONFIG_SECTION, 'config_writer')
-            self.service_configs = self._collect_configs(_config)
-        else:
-            def _noop(*args): pass
-            self.config_writer = _noop
-            self.service_configs = dict()
+        self.directories = _get_list('directories')
+        self.config_writer = _config.get(_CONFIG_SECTION, 'config_writer')
+        self.service_configs = _collect_configs(_config)
 
-    def _collect_configs(self, config):
-        """Convert sections into dicts of options"""
-        service_configs = dict()
-        for section in [s for s in config.sections() if s not in [_META_SECTION, _CONFIG_SECTION]]:
-            option_dict = dict()
-            options = config.options(section)
-            for option in options:
-                option_dict[option] = config.get(section, option)
+def _collect_configs(config):
+    """Convert sections into dicts of options"""
+    service_configs = dict()
+    for section in [s for s in config.sections() if s not in [_META_SECTION, _CONFIG_SECTION]]:
+        option_dict = dict()
+        options = config.options(section)
+        for option in options:
+            option_dict[option] = config.get(section, option)
 
-            service_configs[section] = option_dict
+        service_configs[section] = option_dict
 
-        return service_configs
-
+    return service_configs
 
 def _cfgget(config, section, item, dflt=None):
     '''Get a value from a ConfigParser object or a default if it's not there.'''
@@ -240,7 +246,6 @@ def env2str(env):
     return envstr
 
 
-
 class ConfigOpts(object):
     r"""
     Wrapper for the service configuration.
@@ -259,11 +264,11 @@ class ConfigOpts(object):
 
 
     @property
-    def pre_start_script(self): 
+    def pre_start_script(self):
         return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStartPre', ''))
 
     @property
-    def start_script(self): 
+    def start_script(self):
         return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStart'))
 
     @property
@@ -271,15 +276,15 @@ class ConfigOpts(object):
         return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStop'))
 
     @property
-    def workdir(self): 
+    def workdir(self):
         return self._tr.workdir
 
     @property
-    def localworkdir(self): 
+    def localworkdir(self):
         return _mklocalworkdir(self._tr.workdir)
 
     @property
-    def configdir(self): 
+    def configdir(self):
         return mkpath(self.localworkdir, 'conf')
 
     @property
@@ -306,6 +311,7 @@ class ConfigOpts(object):
                 'start_script=%s, stop_script=%s, workdir=%s, localworkdir=%s)' %  (self.name,
                 self._runs_on, self.pre_start_script, self.start_script,
                 self.stop_script, self.workdir, self.localworkdir)
+
     def __repr__(self):
         return 'ConfigOpts(name=%s, runs_on=%d)' % (self.name, self._runs_on)
 
@@ -336,5 +342,3 @@ def write_service_config(outfile, data_dict, config_writer, template_resolver):
     """Write service config files to disk."""
     with open(outfile, 'w') as f:
         f.write(config_writer(data_dict, template_resolver))
-
-

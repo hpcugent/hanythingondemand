@@ -23,11 +23,11 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 ##
 """
-@author: Ewan Higgs
+@author: Ewan Higgs (University of Ghent)
 """
 
 import os
-from tempfile import mkdtemp
+from errno import EEXIST
 from os.path import join as mkpath
 
 from hod.work.work import Work
@@ -36,7 +36,7 @@ from hod.commands.command import Command
 
 class ConfiguredService(Work):
     """
-    Work that reads loads a configuration and runs it.
+    Service that reads loads a configuration and runs it.
     """
     def __init__(self, config, master_env=None):
         if master_env is None:
@@ -47,6 +47,7 @@ class ConfiguredService(Work):
         self.name = self._config.name
 
     def pre_start_work_service(self):
+        """Run the ExecStartPre script"""
         rank = self.svc.rank
         if len(self._config.pre_start_script) == 0:
             self.log.info('Prestarting %s service on rank %s: No work.' %
@@ -64,7 +65,7 @@ class ConfiguredService(Work):
                 (self._config.name, rank, output))
 
     def start_work_service(self):
-        """Start service on master"""
+        """Start service by running the ExecStart script."""
         env = os.environ
         env.update(self._config.env)
         env.update(self._master_env)
@@ -80,7 +81,7 @@ class ConfiguredService(Work):
                 (self._config.name, rank, output))
 
     def stop_work_service(self):
-        """Stop service on master"""
+        """Stop service by running the ExecStop script."""
         env = os.environ
         env.update(self._config.env)
         env.update(self._master_env)
@@ -93,13 +94,15 @@ class ConfiguredService(Work):
                 (self._config.name, rank, output))
 
     def prepare_work_cfg(self):
-        """prepare the config: collect the parameters and make the necessary xml cfg files"""
+        """Prepare the config: collect the parameters and make the necessary xml cfg files"""
         self.controldir = mkpath(self._config.localworkdir, 'controldir')
         try:
             os.makedirs(self.controldir)
-        except OSError:
-            # Directory might exist.
-            pass
+        except OSError, e:
+            if e.errno == EEXIST:
+                pass
+            else:
+                raise
 
     def __repr__(self):
         return 'ConfiguredService(name=%s)' % (self.name)

@@ -24,7 +24,7 @@
 # #
 """
 
-@author: Stijn De Weirdt
+@author: Stijn De Weirdt (Ghent University)
 """
 import time
 import os
@@ -72,80 +72,6 @@ def barrier(comm, txt):
     comm.barrier()
     _log.debug("%s with barrier DONE" % txt)
 
-def _make_topology_comm(comm, allnodes, size, rank):
-    """Given the Node topology info, make communicator per dimension"""
-    topocom = [] # comm not part of topocom by default
-
-    topo = allnodes[rank]['topology']
-    dimension = len(topo)  # all nodes have same dimension (see sanity check)
-    mykeys = [[]] * dimension
-
-    # # sanity check
-    # # - all topologies have same length
-    foundproblem = False
-    for n in range(size):
-        sometopo = allnodes[n]['topology']
-        if dimension == len(sometopo):
-            for dim in range(dimension):
-                if topo[dim] == sometopo[dim]:
-                    # add the rank of somenode to the mykeys list in proper dimension
-                    mykeys[dim].append(n)
-        else:
-            _log.error("Topology size of this Node %d does not match that of rank %d (size %d)" % (dimension, n, len(sometopo)))
-            foundproblem = True
-
-    if foundproblem:
-        _log.error("Found an irregularity. Not creating the topology communicators")
-        return
-
-    _log.debug("List to determine keys %s" % mykeys)
-    _log.debug("Creating communicators per dimension (total dimension %d)" % dimension)
-    for dimind in range(dimension):
-        color = topo[dimind]  # identify newcomm
-        key = mykeys[dimind].index(rank)  # rank in newcomm
-        newcomm = comm.Split(
-            color, key)  # non-overlapping communicator
-        _check_comm(newcomm, "Topologycomm dimensionindex %d color %d key %d" % (dimind, color, key))
-        # # sanity check
-        others = _who_is_out_there(newcomm, rank)
-        _log.debug(
-            "Others found %s; based on %s" % (others, mykeys[dimind]))
-        if mykeys[dimind] == others:
-            _log.debug("Others %s in comm matches based input %s. Adding to topocom." % (others, mykeys[dimind]))
-            topocom.append(newcomm)
-        else:
-            _log.error("Others %s in comm don't match based input %s. Adding COMM_NULL to topocom." % (others, mykeys[dimind]))  # TODO is adding COMM_NULL a good idea?
-            topocom.append(MPI.COMM_NULL)
-    return topocom
-
-def _collect_nodes(comm, size):
-    """Collect local Node info and distribute it over all nodes"""
-    node = Node()
-    descr = node.go()
-    _log.debug("Got Node %s" % node)
-
-    allnodes = comm.alltoall([descr] * size)
-
-    # # TODO proper sanity check to see if all nodes have similar network
-    # (ie that the netmask of the selected index can reach the other indices)
-    _log.debug("Sanity check: do all nodes have same network adapters?")
-    is_ok = True
-    for intf in descr['network']:
-        dev = intf[2]
-        alldevs = [[y[2] for y in x['network']] for x in allnodes]
-        for rnk in range(size):
-            if not dev in alldevs[rnk]:
-                _log.error("no dev %s found in alldevs %s of rank %s" %
-                               (dev, alldevs[rnk], rnk))
-                is_ok = False
-
-    if is_ok:
-        _log.debug("Sanity check ok")
-    else:
-        _log.error("Sanity check failed")
-
-    return allnodes
-
 def _check_group(group, txt):
     """Report details about group"""
     myrank = group.Get_rank()
@@ -182,7 +108,6 @@ def _stop_comm(comm):
         _log.debug("Stop disconnect")
         comm.Disconnect()
 
-
 def _master_spread(comm, tasks):
     retval = comm.bcast(tasks, root=MASTERRANK)
     _log.debug("Distributed '%s' from masterrank %s" % (tasks, MASTERRANK))
@@ -193,7 +118,6 @@ def _slave_spread(comm):
     _log.debug("Received '%s' from masterrank %s" % (tasks, MASTERRANK))
     return tasks
 
-
 def setup_tasks(svc):
     """Setup the per node services and spread the tasks out."""
     _log.debug("No tasks found. Running distribution and spread.")
@@ -201,9 +125,9 @@ def setup_tasks(svc):
 
     # Configure
     if svc.rank == MASTERRANK:
-        master_data_hostname = node.sorted_network(node.get_networks())[0].hostname
+        master_dataname = node.sorted_network(node.get_networks())[0].hostname
         master_template_kwargs = dict(masterhostname=socket.getfqdn(),
-            masterdatahostname=master_data_hostname)
+            masterdataname=master_dataname)
         _master_spread(svc.comm, master_template_kwargs)
     else:
         master_template_kwargs = _slave_spread(svc.comm)
@@ -217,7 +141,6 @@ def setup_tasks(svc):
         _master_spread(svc.comm, svc.tasks)
     else:
         svc.tasks = _slave_spread(svc.comm)
-
 
 def run_tasks(svc):
     """Make communicators for tasks and execute the work there"""
@@ -246,7 +169,7 @@ def run_tasks(svc):
         svc.log.debug("work %s start" % (act_work.__class__.__name__))
         act_work.do_work_start()
 
-    # # all work is started now
+    # all work is started now
     while len(active_work):
         _log.debug("amount of active work %s" % (len(active_work)))
         for act_work in active_work:
@@ -265,7 +188,6 @@ def run_tasks(svc):
             time.sleep(wait_iter_sleep)
     _log.debug("No more active work left.")
 
-
 class MpiService(object):
     """Basic mpi based service class"""
     def __init__(self, log=None):
@@ -280,9 +202,6 @@ class MpiService(object):
         self.tempcomm = []
 
         self.tasks = None
-
-        #self.allnodes = _collect_nodes(self.comm, self.size)
-        #self.topocom = _make_topology_comm(self.comm, self.allnodes, self.size, self.rank)
 
     def stop_service(self):
         """End all communicators"""

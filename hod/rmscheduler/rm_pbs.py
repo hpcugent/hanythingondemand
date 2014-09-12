@@ -25,7 +25,7 @@
 """
 Implementation of the pbs resource manager
 
-@author: Stijn De Weirdt
+@author: Stijn De Weirdt (University of Ghent)
 """
 from vsc import fancylogger
 

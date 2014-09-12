@@ -24,7 +24,7 @@
 # #
 """
 
-@author: Stijn De Weirdt
+@author: Stijn De Weirdt (University of Ghent)
 """
 
 import os

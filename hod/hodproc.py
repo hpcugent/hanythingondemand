@@ -24,11 +24,11 @@
 # #
 """
 
-@author: Stijn De Weirdt
+@author: Stijn De Weirdt (Ghent University)
 """
 import os
+from errno import EEXIST
 from os.path import join as mkpath, basename
-
 from hod.commands.command import Command
 from hod.mpiservice import MpiService, Task, MASTERRANK
 from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
@@ -38,18 +38,17 @@ from hod.work.config_service import ConfiguredService
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
-def _ignore_oserror(fn):
+def _ignore_eexist(fn):
     '''
-    Given a function, ignore OSError.
-    >>> def fn(x,y):
-    ...    raise OSError
-    >>> _ignore_oserror(lambda: fn(1,2))
-    >>>
+    Given a function, ignore errors where files already exist.
     '''
     try:
         fn()
-    except OSError:
-        pass
+    except OSError, e:
+        if e.errno == EEXIST:
+            pass
+        else:
+            raise
 
 
 def _setup_config_paths(precfg, resolver):
@@ -59,10 +58,10 @@ def _setup_config_paths(precfg, resolver):
 
     This needs to happen on master and slave nodes.
     """
-    _ignore_oserror(lambda: os.makedirs(precfg.workdir))
-    _ignore_oserror(lambda: os.makedirs(precfg.configdir))
+    _ignore_eexist(lambda: os.makedirs(precfg.workdir))
+    _ignore_eexist(lambda: os.makedirs(precfg.configdir))
     for d in precfg.directories:
-        _ignore_oserror(lambda: os.makedirs(resolver(d)))
+        _ignore_eexist(lambda: os.makedirs(resolver(d)))
 
     _log.info("Looking up config_writer %s" % (len(precfg.config_writer)))
     config_writer = service_config_fn(precfg.config_writer)

@@ -28,12 +28,12 @@ Main hanythingondemand script, should be invoked in a job
 @author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
+import logging as log
 import sys
 
 from hod.config.hodoption import HodOption
 from hod.hodproc import ConfiguredSlave, ConfiguredMaster
 from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
-
 from mpi4py import MPI
 
 def main(args):
@@ -50,7 +50,7 @@ def main(args):
 
         svc.stop_service()
     except Exception, e:
-        print e
+        log.error(str(e))
         svc.log.exception("Main HanythingOnDemand failed")
 
 if __name__ == '__main__':

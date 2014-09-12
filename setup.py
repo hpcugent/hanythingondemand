@@ -33,7 +33,7 @@ import sys
 import subprocess
 from setuptools import setup, Command
 
-def setup_openmp_libpath():
+def setup_openmpi_libpath():
     libpath = os.getenv('LD_LIBRARY_PATH')
     os.environ['LD_LIBRARY_PATH'] = '/usr/lib64/openmpi/lib:%s' % libpath
 
@@ -49,7 +49,7 @@ class TestCommand(BaseCommand):
 
     def run(self):
         # Cheeky cheeky LD_LIBRARY_PATH hack for Fedora
-        setup_openmp_libpath()
+        setup_openmpi_libpath()
         ret = subprocess.call("python -m unittest discover -b -s test/unit -v".split(' '))
         sys.exit(ret)
 
@@ -57,7 +57,7 @@ class CoverageCommand(BaseCommand):
     description = "Run unit tests."
 
     def run(self):
-        setup_openmp_libpath()
+        setup_openmpi_libpath()
         ret = subprocess.call(["coverage", "run", "-m", "unittest", "discover", "-v", "-b", "-s", "test/unit/"])
         if not ret:
             ret = subprocess.call(["coverage", "report"])

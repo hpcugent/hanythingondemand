@@ -23,7 +23,7 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-@author: Stijn De Weirdt
+@author: Stijn De Weirdt (Ghent University)
 """
 
 from vsc.utils.generaloption import GeneralOption

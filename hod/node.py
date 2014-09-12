@@ -24,8 +24,8 @@
 # #
 """
 
-@author: Stijn De Weirdt
-@author: Ewan Higgs
+@author: Stijn De Weirdt (Ghent University)
+@author: Ewan Higgs (Ghent University)
 """
 import re
 import os
@@ -33,8 +33,6 @@ import socket
 import logging as log
 import netifaces
 import netaddr
-import struct
-import multiprocessing
 from collections import namedtuple
 
 from vsc.utils.affinity import sched_getaffinity
@@ -43,6 +41,7 @@ from vsc import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
 NetworkInterface = namedtuple('NetworkInterface', 'hostname,addr,device,mask_bits')
+
 def netmask2maskbits(netmask):
     """Find the number of bits in a netmask."""
     mask_as_int = netaddr.IPAddress(netmask).value
@@ -50,22 +49,21 @@ def netmask2maskbits(netmask):
 
 
 def get_networks():
-        """
-        Returns list of NetworkInterface tuples by interface.
-        Of the form: [hostname, ipaddr, iface, subnetmask]
-        """
-        devices = netifaces.interfaces()
-        networks = []
-        for device in devices:
-            iface = netifaces.ifaddresses(device)
-            if netifaces.AF_INET in iface:
-                iface = iface[netifaces.AF_INET][0]
-                addr = iface['addr']
-                netmask = iface['netmask']
-                mask_bits = netmask2maskbits(iface['netmask'])
-                hostname = socket.getfqdn(addr) # socket.gethostbyaddr(addr)[0] # used this before.
-                networks.append(NetworkInterface(hostname, addr, device, mask_bits))
-        return networks
+    """
+    Returns list of NetworkInterface tuples by interface.
+    Of the form: [hostname, ipaddr, iface, subnetmask]
+    """
+    devices = netifaces.interfaces()
+    networks = []
+    for device in devices:
+        iface = netifaces.ifaddresses(device)
+        if netifaces.AF_INET in iface:
+            iface = iface[netifaces.AF_INET][0]
+            addr = iface['addr']
+            mask_bits = netmask2maskbits(iface['netmask'])
+            hostname = socket.getfqdn(addr) # socket.gethostbyaddr(addr)[0] # used this before.
+            networks.append(NetworkInterface(hostname, addr, device, mask_bits))
+    return networks
 
 
 def address_in_network(ip, net):
@@ -88,7 +86,7 @@ def ip_interface_to(networks, ip):
     Params
     ------
     networks : `list of NetworkInterface`
-    
+
     ip : `str`
     Destination ipv4 address as string.
     """
@@ -107,7 +105,7 @@ def sorted_network(network):
     network.sort()
 
     # # look for ib network
-    ib_reg = re.compile("^(ib)\d+$")
+    ib_reg = re.compile(r"^(ib)\d+$")
     for intf in network:
         if ib_reg.search(intf.device):
             if not intf in nw:
@@ -115,8 +113,8 @@ def sorted_network(network):
                 nw.append(intf)
 
     # # final selection prefer non-vlan
-    vlan_reg = re.compile("^(.*)\.\d+$")
-    loopback_reg = re.compile("^(lo)\d*$")
+    vlan_reg = re.compile(r"^(.*)\.\d+$")
+    loopback_reg = re.compile(r"^(lo)\d*$")
     for intf in network:
         if not (vlan_reg.search(intf.device) or loopback_reg.search(intf.device)):
             if not intf in nw:

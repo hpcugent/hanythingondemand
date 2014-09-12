@@ -24,7 +24,7 @@
 # #
 """
 
-@author: Stijn De Weirdt
+@author: Stijn De Weirdt (University of Ghent)
 """
 from vsc.utils.fancylogger import getLogger
 from vsc.utils.missing import get_subclasses

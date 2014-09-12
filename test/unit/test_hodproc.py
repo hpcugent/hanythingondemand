@@ -48,7 +48,7 @@ master_env=
 modules=
 services=svc.conf
 workdir=
-configs=
+config_writer=some.module.function
 directories=
         """)
         service_config = StringIO("""

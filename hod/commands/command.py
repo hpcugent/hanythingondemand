@@ -35,9 +35,9 @@ TODO: acutally use vsc.utils.run here
 from subprocess import Popen, PIPE
 import datetime
 import os
+import pty
 import signal
 import time
-import pty
 
 from vsc import fancylogger
 
@@ -114,7 +114,6 @@ class Command(object):
         if self.env is not None:
             popen_kwargs['env'] = self.env
 
-
         popen_kwargs.update(stdouterr)
         # TODO: (high) buffer overflow here sometimes, check what happens and fix
         # see easybuild/buildsoft/async
@@ -144,8 +143,8 @@ class Command(object):
 
         ec = p.returncode
         if not ec == 0:
-            self.log.warning("Problem occured with cmd %s: out %s, err %s" % (self.command, out, err))
             err += "Exitcode %s\n" % ec
+            self.log.warning("Problem occured with cmd %s: out %s, err %s" % (self.command, out, err))
         else:
             self.log.debug("cmd ok %s: out %s err %s" % (self.command, out, err))
         return out, err
