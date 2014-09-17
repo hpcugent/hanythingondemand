@@ -28,11 +28,12 @@
 """
 import os
 from errno import EEXIST
-from os.path import join as mkpath, basename
-from hod.commands.command import Command
+from os.path import join as mkpath
 from hod.mpiservice import MpiService, Task, MASTERRANK
 from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
-        TemplateResolver, env2str, service_config_fn, write_service_config)
+        env2str, service_config_fn, write_service_config)
+from hod.config.template import (TemplateRegistry, TemplateResolver,
+        register_templates)
 from hod.work.config_service import ConfiguredService
 
 from vsc.utils import fancylogger
@@ -49,7 +50,6 @@ def _ignore_eexist(fn):
             pass
         else:
             raise
-
 
 def _setup_config_paths(precfg, resolver):
     """
@@ -80,7 +80,7 @@ class ConfiguredMaster(MpiService):
         MpiService.__init__(self)
         self.options = options
 
-    def distribution(self, **master_template_kwargs):
+    def distribution(self, *master_template_args, **kwargs):
         """Master makes the distribution"""
         self.tasks = []
         m_config_filename = self.options.options.config_config
@@ -88,7 +88,11 @@ class ConfiguredMaster(MpiService):
 
         m_config = PreServiceConfigOpts(open(m_config_filename, 'r'))
 
-        resolver = TemplateResolver(workdir=m_config.workdir, **master_template_kwargs)
+        reg = TemplateRegistry()
+        register_templates(reg, m_config.workdir)
+        for ct in master_template_args:
+            reg.register(ct)
+        resolver = TemplateResolver(**reg.to_kwargs())
         _setup_config_paths(m_config, resolver)
 
         master_env = dict([(v, os.getenv(v)) for v in m_config.master_env])
@@ -112,7 +116,7 @@ class ConfiguredSlave(MpiService):
         MpiService.__init__(self)
         self.options = options
 
-    def distribution(self, **master_template_kwargs):
+    def distribution(self, *master_template_args, **kwargs):
         """
         Master makes the distribution
 
@@ -122,5 +126,9 @@ class ConfiguredSlave(MpiService):
         self.log.info('Loading "%s" manifest config'  % m_config_filename)
         m_config = PreServiceConfigOpts(open(m_config_filename, 'r'))
 
-        resolver = TemplateResolver(workdir=m_config.workdir, **master_template_kwargs)
+        reg = TemplateRegistry()
+        register_templates(reg, m_config.workdir)
+        for ct in master_template_args:
+            reg.register(ct)
+        resolver = TemplateResolver(**reg.to_kwargs())
         _setup_config_paths(m_config, resolver)

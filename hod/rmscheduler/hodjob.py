@@ -36,6 +36,8 @@ from hod.config.config import PreServiceConfigOpts
 
 from hod.config.hodoption import HodOption
 
+import hod.config.template as hct
+
 
 class HodJob(Job):
     """Hanything on demand job"""
@@ -179,6 +181,15 @@ class EasybuildMMHod(MympirunHod):
     """
     def __init__(self, options=None):
         super(EasybuildMMHod, self).__init__(options)
+
+        if self.options.options.help_templates:
+            reg = hct.TemplateRegistry()
+            hct.register_templates(reg, 'workdir')
+            print 'Hanythingondemand template parameters:\n'
+            for v in sorted(reg.fields.values(), key=lambda x: x.name):
+                print '%-16s:\t%s' % (v.name, v.doc)
+            sys.exit(1)
+
         self.modules = []
 
         modname = 'hanythingondemand'

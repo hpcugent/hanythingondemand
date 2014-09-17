@@ -30,12 +30,8 @@ from ConfigParser import SafeConfigParser, NoOptionError
 from collections import OrderedDict
 from importlib import import_module
 from os.path import join as mkpath, realpath, dirname
-import os
-import pwd
-import socket
-import string
 
-import hod.node as node
+from hod.config.template import mklocalworkdir
 
 # hod manifest config sections
 _META_SECTION = 'Meta'
@@ -50,29 +46,6 @@ RUNS_ON_MASTER = 0x1
 RUNS_ON_SLAVE = 0x2
 RUNS_ON_ALL = RUNS_ON_MASTER | RUNS_ON_SLAVE
 
-def _templated_strings(workdir):
-    '''
-    Return the template dict with the name fed through.
-    This will include environment variables.
-    '''
-    localworkdir = _mklocalworkdir(workdir)
-    local_data_network = node.sorted_network(node.get_networks())[0]
-    _strings = {
-         #'masterhostname': This value is passed in.
-         #'masterdataname': This value is passed in.
-        'hostname': socket.getfqdn,
-        'hostaddress': lambda: socket.gethostbyname(socket.getfqdn()),
-        'dataname' : local_data_network.hostname,
-        'dataaddress' : local_data_network.addr,
-        'workdir': workdir,
-        'localworkdir': localworkdir,
-        'user': _current_user,
-        'pid': os.getpid,
-        }
-    _strings.update(os.environ)
-
-    return _strings
-
 def load_service_config(fileobj):
     '''
     Load a .ini style config for a service.
@@ -82,44 +55,6 @@ def load_service_config(fileobj):
     config.optionxform = str
     config.readfp(fileobj)
     return config
-
-def _resolve_templates(templates):
-    '''
-    Take a dict of string to either string or to a nullary function and
-    return the resolved data
-    '''
-    def _resolve(v):
-        return v if not callable(v) else v()
-    return dict([(k, _resolve(v)) for k, v in templates.items()])
-
-def resolve_config_str(s, template_dict, **template_kwargs):
-    '''
-    Given a string, resolve the templates based on template_dict and
-    template_kwargs.
-    '''
-    template = string.Template(s)
-    template_strings = template_dict.copy()
-    template_strings.update(template_kwargs)
-    resolved_templates = _resolve_templates(template_strings)
-    return template.substitute(resolved_templates)
-
-def _current_user():
-    '''
-    Return the current user name as recommended by documentation of
-    os.getusername.
-    '''
-    return pwd.getpwuid(os.getuid()).pw_name
-
-def _mklocalworkdir(workdir):
-    '''
-    Construct the pathname for a workdir with a path local to this
-    host/job/user.
-    '''
-    user = _current_user()
-    pid = os.getpid()
-    hostname = socket.getfqdn()
-    dir_name = ".".join([user, hostname, str(pid)])
-    return mkpath(workdir, 'hod', dir_name)
 
 def _abspath(filepath, working_dir):
     '''
@@ -167,20 +102,6 @@ def _parse_comma_delim_list(s):
     '''
     return [x.strip() for x in s.split(',')]
 
-class TemplateResolver(object):
-    '''
-    Resolver for templates. This is partially applied wrapper around
-    resolve_config_str but picklable.
-    '''
-    def __init__(self, **template_kwargs):
-        self.workdir = template_kwargs['workdir'] # raise if not found...
-        self._template_kwargs = template_kwargs
-
-    def __call__(self, s):
-        '''Given a string with template placeholders, return the resolved string'''
-        _template = _templated_strings(self.workdir)
-        return resolve_config_str(s, _template, **self._template_kwargs)
-
 class PreServiceConfigOpts(object):
     r"""
     Manifest file for the group of services responsible for defining service
@@ -194,7 +115,7 @@ class PreServiceConfigOpts(object):
         _config = load_service_config(fileobj)
         self.version = _config.get(_META_SECTION, 'version')
         self.workdir = _config.get(_CONFIG_SECTION, 'workdir')
-        self.localworkdir = _mklocalworkdir(self.workdir)
+        self.localworkdir = mklocalworkdir(self.workdir)
         self.configdir = mkpath(self.localworkdir, 'conf')
 
         fileobj_dir = _fileobj_dir(fileobj)
@@ -262,7 +183,6 @@ class ConfigOpts(object):
         self._runs_on = _parse_runs_on(_cfgget(self._config, _UNIT_SECTION, 'RunsOn'))
         self._tr = template_resolver
 
-
     @property
     def pre_start_script(self):
         return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStartPre', ''))
@@ -281,7 +201,7 @@ class ConfigOpts(object):
 
     @property
     def localworkdir(self):
-        return _mklocalworkdir(self._tr.workdir)
+        return mklocalworkdir(self._tr.workdir)
 
     @property
     def configdir(self):
@@ -317,7 +237,6 @@ class ConfigOpts(object):
 
     def __getstate__(self): return self.__dict__
     def __setstate__(self, d): self.__dict__.update(d)
-
 
 def service_config_fn(policy_path):
     """

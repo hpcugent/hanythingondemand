@@ -31,13 +31,13 @@ from os.path import basename
 from cStringIO import StringIO
 from cPickle import dumps, loads
 
-import hod.config.config as hcc
+import hod.config.template as hct
 import hod.config.writer as hcw
 
 class HodConfigHadoop(unittest.TestCase):
     '''Test Config functions'''
     def test_hadoop_xml(self):
-        tr = hcc.TemplateResolver(somename="potato", workdir='')
+        tr = hct.TemplateResolver(somename="potato", workdir='')
         vals = {"fs.defaultFs": "file:///",
                 "yarn.option.nested": "123",
                 "templated.value": "$somename"

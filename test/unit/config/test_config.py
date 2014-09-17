@@ -32,22 +32,10 @@ from cStringIO import StringIO
 from cPickle import dumps, loads
 
 import hod.config.config as hcc
+import hod.config.template as hct
 
 class HodConfigConfig(unittest.TestCase):
     '''Test Config functions'''
-
-    def test_resolve_templates(self):
-        self.assertEqual(hcc._resolve_templates(dict(a=1)), dict(a=1))
-        self.assertEqual(hcc._resolve_templates(dict(a=lambda: 1)), dict(a=1))
-
-    def test_resolve_config_str(self):
-        self.assertEqual(hcc.resolve_config_str('$configdir', dict(configdir='someval')), 'someval')
-
-    def test_TemplateResolver(self):
-        with patch('hod.config.config.os.environ', dict(BINDIR='/usr/bin')):
-            tr = hcc.TemplateResolver(workdir='someval', greeting='hello')
-            self.assertEqual(tr('$workdir $greeting joey joe joe',), 'someval hello joey joe joe')
-            self.assertEqual(tr('$BINDIR/wibble'), '/usr/bin/wibble')
 
     def test_PreServiceConfigOpts(self):
         config = StringIO("""
@@ -86,7 +74,7 @@ ExecStop=stopper
 
 [Environment]
 SOME_ENV=123""")
-        cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
+        cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
         self.assertEqual(cfg.name, 'testconfig')
         self.assertEqual(cfg._runs_on, hcc.RUNS_ON_MASTER)
         self.assertEqual(cfg.runs_on(0, [0, 1, 2, 3]), [0])
@@ -109,7 +97,7 @@ ExecStop=stopper
 
 [Environment]
 SOME_ENV=123""")
-        cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
+        cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
         self.assertEqual(cfg.name, 'testconfig')
         self.assertEqual(cfg._runs_on, hcc.RUNS_ON_SLAVE)
         self.assertEqual(cfg.runs_on(0, [0, 1, 2]), [1, 2])
@@ -127,7 +115,7 @@ ExecStop=stopper
 
 [Environment]
 SOME_ENV=123""")
-        cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
+        cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
         self.assertEqual(cfg.name, 'testconfig')
         self.assertEqual(cfg._runs_on, hcc.RUNS_ON_ALL)
         self.assertEqual(cfg.runs_on(0, [0, 1, 2]), [0, 1, 2])
@@ -155,8 +143,8 @@ ExecStop=$BINDIR/stopper
 
 [Environment]
 SOME_ENV=123""")
-        with patch('hod.config.config.os.environ', dict(BINDIR='/usr/bin')):
-            cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
+        with patch('hod.config.template.os.environ', dict(BINDIR='/usr/bin')):
+            cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
             self.assertEqual(cfg.start_script, '/usr/bin/starter')
             self.assertEqual(cfg.stop_script, '/usr/bin/stopper')
 
@@ -173,7 +161,7 @@ ExecStop=stopper
 
 [Environment]
 SOME_ENV=123""")
-        cfg = hcc.ConfigOpts(config, hcc.TemplateResolver(workdir=''))
+        cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
         remade_cfg = loads(dumps(cfg))
         self.assertEqual(cfg.name, remade_cfg.name)
         self.assertEqual(cfg.start_script, remade_cfg.start_script)

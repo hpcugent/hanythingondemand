@@ -74,8 +74,21 @@ class HodOption(GeneralOption):
                        (prefix, descr, opts))
         self.add_group_parser(opts, descr, prefix=prefix)
 
+    def help_options(self):
+        """Make the action related options"""
+        opts = {'templates': ("Print documentation regarding template strings.", None, "store_true", False),
+                }
+        descr = ["Help", "Help options"]
+
+        prefix = 'help'
+        self.log.debug("Add help option parser prefix %s descr %s opts %s" %
+                       (prefix, descr, opts))
+        self.add_group_parser(opts, descr, prefix=prefix)
+
+
     def make_init(self):
         """Trigger all inits"""
         self.rm_options()
         self.config_options()
         self.action_options()
+        self.help_options()

@@ -27,10 +27,9 @@
 @author: Stijn De Weirdt (Ghent University)
 """
 import time
-import os
 from mpi4py import MPI
 
-from hod.node import Node
+from hod.config.template import ConfigTemplate
 import hod.node as node
 from vsc import fancylogger
 from collections import namedtuple
@@ -126,14 +125,16 @@ def setup_tasks(svc):
     # Configure
     if svc.rank == MASTERRANK:
         master_dataname = node.sorted_network(node.get_networks())[0].hostname
-        master_template_kwargs = dict(masterhostname=socket.getfqdn(),
-            masterdataname=master_dataname)
+        master_template_kwargs = [
+                ConfigTemplate('masterhostname',socket.getfqdn(),''),
+                ConfigTemplate('masterdataname', master_dataname, '')
+                ]
         _master_spread(svc.comm, master_template_kwargs)
     else:
         master_template_kwargs = _slave_spread(svc.comm)
 
-    svc.distribution(**master_template_kwargs)
-    _log.debug("Setup tasks on rank '%d'" % svc.rank)
+    svc.distribution(*master_template_kwargs)
+    _log.debug("Setup tasks on rank '%d': %s" % (svc.rank, svc.tasks))
     barrier(svc.comm, "Setup tasks on rank '%d'" % svc.rank)
 
     # Collect tasks
@@ -212,7 +213,7 @@ class MpiService(object):
         _stop_comm(self.comm)
 
 
-    def distribution(self, **kwargs):
+    def distribution(self, *args, **kwargs):
         """Master makes the distribution"""
         if self.rank == MASTERRANK:
             self.log.error("Redefine this in proper master service")

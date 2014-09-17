@@ -31,7 +31,7 @@ from cStringIO import StringIO
 from optparse import OptionParser
 from hod.config.hodoption import HodOption
 import hod.hodproc as hh
-from hod.config.config import TemplateResolver
+from hod.config.template import TemplateResolver
 
 class TestHodProcConfiguredMaster(unittest.TestCase):
     def test_configured_master_init(self):

@@ -27,6 +27,7 @@
 """
 import hod.work.config_service as hwc
 import hod.config.config as hcc
+import hod.config.template as hct
 import unittest
 from mock import patch, sentinel
 from cStringIO import StringIO
@@ -58,31 +59,31 @@ class TestHodWorkConfiguredService(unittest.TestCase):
 
     def test_ConfiguredService_init(self):
         '''Test creation of the ConfiguredService'''
-        cfg = hcc.ConfigOpts(_mk_master_config(), hcc.TemplateResolver(workdir='/tmp'))
+        cfg = hcc.ConfigOpts(_mk_master_config(), hct.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
 
     def test_ConfiguredService_pre_start_work_service(self):
         '''Test ConfiguredService pre_start method'''
-        cfg = hcc.ConfigOpts(_mk_master_config(), hcc.TemplateResolver(workdir='/tmp'))
+        cfg = hcc.ConfigOpts(_mk_master_config(), hct.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
         cs.pre_start_work_service()
 
     def test_ConfiguredService_start_work_service(self):
         '''Test ConfiguredService start method'''
-        cfg = hcc.ConfigOpts(_mk_master_config(), hcc.TemplateResolver(workdir='/tmp'))
+        cfg = hcc.ConfigOpts(_mk_master_config(), hct.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
         cs.start_work_service()
 
     def test_ConfiguredService_stop_work_service(self):
         '''Test ConfiguredService stop method'''
-        cfg = hcc.ConfigOpts(_mk_master_config(), hcc.TemplateResolver(workdir='/tmp'))
+        cfg = hcc.ConfigOpts(_mk_master_config(), hct.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
         cs.stop_work_service()
 
     def test_ConfiguredService_prepare_work_cfg(self):
-        cfg = hcc.ConfigOpts(_mk_slave_config(), hcc.TemplateResolver(workdir='/tmp'))
+        cfg = hcc.ConfigOpts(_mk_slave_config(), hct.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
         with patch('hod.work.config_service.os.makedirs', side_effect=lambda *args: None):
-            with patch('hod.config.config._mklocalworkdir', side_effect=lambda *args: '/tmp/node1234.awesomeuser.123'):
+            with patch('hod.config.config.mklocalworkdir', side_effect=lambda *args: '/tmp/node1234.awesomeuser.123'):
                 cs.prepare_work_cfg()
         self.assertEqual(cs.controldir, '/tmp/node1234.awesomeuser.123/controldir')
