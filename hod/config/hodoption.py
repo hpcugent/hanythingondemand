@@ -65,7 +65,9 @@ class HodOption(GeneralOption):
 
     def config_options(self):
         """Make the action related options"""
-        opts = {'config': ("Top level configuration file (hod.conf)", "string", "store", ''),
+        opts = {'config': ("""Top level configuration file (hod.conf). This can be
+a comma separated list of config files with the later files taking
+precendence.""", "string", "store", ''),
                 }
         descr = ["Config", "Configuration files options"]
 

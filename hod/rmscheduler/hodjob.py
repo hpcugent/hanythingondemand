@@ -32,7 +32,7 @@ import sys
 
 from hod.rmscheduler.job import Job
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
-from hod.config.config import PreServiceConfigOpts
+from hod.config.config import parse_comma_delim_list, preserviceconfigopts_from_file_list
 
 from hod.config.hodoption import HodOption
 
@@ -214,8 +214,9 @@ class EasybuildMMHod(MympirunHod):
         # Add modules from hod.conf
         config_filename = options.options.config_config
         if config_filename:
-            self.log.info('Loading "%s" manifest config'  % config_filename)
-            precfg = PreServiceConfigOpts(open(config_filename, 'r'))
+            config_filenames = parse_comma_delim_list(config_filename)
+            self.log.info('Loading "%s" manifest config'  % config_filenames)
+            precfg = preserviceconfigopts_from_file_list(config_filenames)
             for module in precfg.modules:
                 self.log.debug("Adding '%s' module to startup script." % module)
                 self.modules.append(module)

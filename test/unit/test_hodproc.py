@@ -44,10 +44,10 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
 [Meta]
 version = 1
 [Config]
-master_env=
+workdir=/tmp
+master_env= 
 modules=
 services=svc.conf
-workdir=
 config_writer=some.module.function
 directories=
         """)
@@ -56,8 +56,8 @@ directories=
 Name=wibble
 RunsOn = master
 [Service]
-ExecStart=
-ExecStop=
+ExecStart=service start postgres
+ExecStop=service stop postgres
 [Environment]
         """)
         opts = HodOption(go_args=['progname', '--config-config', 'hod.conf'])

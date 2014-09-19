@@ -58,9 +58,77 @@ wibble.class=super
         self.assertEqual(precfg.modules, ['powerlevel/9001', 'scouter/1.0'])
         for x in precfg.service_files:
             self.assertTrue(basename(x) in ['scouter.conf'])
-        print precfg.service_configs
         self.assertTrue('scouter.yaml' in precfg.service_configs.keys())
         self.assertEqual(precfg.directories, ['/dfs/name', '/dfs/data'])
+        self.assertEqual(hcc.invalid_fields(precfg), [])
+
+    def test_PreServiceConfigOpts_invalid(self):
+        config = StringIO("""
+[Meta]
+version=
+
+[Config]
+master_env=TMPDIR
+modules=powerlevel/9001,scouter/1.0
+services=
+workdir=
+config_writer=hod.config.writer.scouter_yaml
+directories=/dfs/name,/dfs/data
+
+[scouter.yaml]
+wibble=abc
+wibble.class=super
+        """)
+        precfg = hcc.PreServiceConfigOpts(config)
+        self.assertEqual(hcc.invalid_fields(precfg), ['version',
+            'workdir', 'service_files'])
+
+
+    def test_PreServiceConfigOpts_merge(self):
+        config1 = StringIO("""
+[Meta]
+version=1
+
+[Config]
+master_env=TMPDIR1
+modules=powerlevel/9001,scouter/1.0
+services=scouter.conf
+workdir=/tmp
+config_writer=hod.config.writer.scouter_yaml
+directories=/dfs/name,/dfs/data
+
+[scouter.yaml]
+wibble=abc
+wibble.class=super
+    """)
+        config2 = StringIO("""
+[Meta]
+version=1
+
+[Config]
+master_env=TMPDIR2
+modules=Tackle/3.0,HydroPump/2.0
+workdir=/tmp
+config_writer=something_else
+directories=/dfs/name,/dfs/data
+
+[scouter.yaml]
+wibble=abc
+wibble.class=not-so-super
+
+[other-service.yaml]
+launch-code=1234
+missile-type=tomahawk
+    """)
+        precfg1 = hcc.PreServiceConfigOpts(config1)
+        precfg2 = hcc.PreServiceConfigOpts(config2)
+        precfg = hcc.merge(precfg1, precfg2)
+        self.assertEqual(precfg.master_env, precfg1.master_env + precfg2.master_env)
+        self.assertEqual(precfg.modules, precfg1.modules + precfg2.modules)
+        self.assertEqual(precfg.directories, precfg1.directories + precfg2.directories)
+        self.assertEqual(precfg.workdir, precfg2.workdir)
+        self.assertEqual(precfg.service_configs['scouter.yaml']['wibble.class'], 'not-so-super')
+        self.assertEqual(precfg.service_configs['other-service.yaml']['launch-code'], '1234')
 
     def test_ConfigOpts_runs_on_MASTER(self):
         config = StringIO("""
@@ -127,7 +195,7 @@ SOME_ENV=123""")
         self.assertRaises(ValueError, hcc._parse_runs_on, 'masterAndsLave')
 
     def test_parse_comma_delim_list(self):
-        lst = hcc._parse_comma_delim_list('hello,world, have, a , nice,day')
+        lst = hcc.parse_comma_delim_list('hello,world, have, a , nice,day')
         expect = ['hello', 'world', 'have', 'a', 'nice', 'day']
         self.assertEqual(lst, expect)
 

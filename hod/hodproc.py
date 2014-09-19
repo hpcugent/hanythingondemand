@@ -31,7 +31,8 @@ from errno import EEXIST
 from os.path import join as mkpath
 from hod.mpiservice import MpiService, Task, MASTERRANK
 from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
-        env2str, service_config_fn, write_service_config)
+        env2str, service_config_fn, write_service_config,
+        preserviceconfigopts_from_file_list, parse_comma_delim_list)
 from hod.config.template import (TemplateRegistry, TemplateResolver,
         register_templates)
 from hod.work.config_service import ConfiguredService
@@ -83,10 +84,11 @@ class ConfiguredMaster(MpiService):
     def distribution(self, *master_template_args, **kwargs):
         """Master makes the distribution"""
         self.tasks = []
-        m_config_filename = self.options.options.config_config
-        self.log.info('Loading "%s" manifest config'  % m_config_filename)
+        m_config_filenames = self.options.options.config_config
+        m_config_filenames = parse_comma_delim_list(m_config_filenames)
+        self.log.info('Loading "%s" manifest config'  % m_config_filenames)
 
-        m_config = PreServiceConfigOpts(open(m_config_filename, 'r'))
+        m_config = preserviceconfigopts_from_file_list(m_config_filenames)
 
         reg = TemplateRegistry()
         register_templates(reg, m_config.workdir)
@@ -122,9 +124,11 @@ class ConfiguredSlave(MpiService):
 
         This only needs to run if there are more than 1 node (self.size>1)
         """
-        m_config_filename = self.options.options.config_config
-        self.log.info('Loading "%s" manifest config'  % m_config_filename)
-        m_config = PreServiceConfigOpts(open(m_config_filename, 'r'))
+        m_config_filenames = self.options.options.config_config
+        m_config_filenames = parse_comma_delim_list(m_config_filenames)
+
+        self.log.info('Loading "%s" manifest config'  % m_config_filenames)
+        m_config = preserviceconfigopts_from_file_list(m_config_filenames)
 
         reg = TemplateRegistry()
         register_templates(reg, m_config.workdir)

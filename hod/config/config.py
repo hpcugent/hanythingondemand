@@ -26,10 +26,11 @@
 @author: Ewan Higgs (Ghent University)
 """
 
-from ConfigParser import SafeConfigParser, NoOptionError
-from collections import OrderedDict
+from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
+from collections import OrderedDict, Mapping
 from importlib import import_module
 from os.path import join as mkpath, realpath, dirname
+from copy import deepcopy
 
 from hod.config.template import mklocalworkdir
 
@@ -95,12 +96,22 @@ def _parse_runs_on(s):
     else:
         raise ValueError('runs-on field must be either "master", "slave", or "all".')
 
-def _parse_comma_delim_list(s):
+def _cfgget(config, section, item, dflt=None):
+    '''Get a value from a ConfigParser object or a default if it's not there.'''
+    if dflt is None:
+        return config.get(section, item)
+    try:
+        return config.get(section, item)
+    except (NoSectionError, NoOptionError):
+        return dflt
+
+def parse_comma_delim_list(s):
     '''
     Convert a string containing a comma delimited list into a list of strings
     with no spaces on the end or beginning.
+    Blanks are also removed. e.g. 'a,,b' results in ['a', 'b']
     '''
-    return [x.strip() for x in s.split(',')]
+    return [x.strip() for x in filter(lambda x: x, s.split(','))]
 
 class PreServiceConfigOpts(object):
     r"""
@@ -108,31 +119,95 @@ class PreServiceConfigOpts(object):
     level configs which need to be run through the template before any services
     can begin.
     """
-    __slots__ = ['version', 'workdir', 'localworkdir', 'configdir',
-        'config_writer', 'directories', 'modules', 'service_configs',
-        'service_files', 'master_env']
+    __slots__ = ['version', 'workdir', 'config_writer', 'directories',
+            'modules', 'service_configs', 'service_files', 'master_env']
+
+    OptionalFields=['master_env', 'modules', 'service_configs', 'directories']
+
     def __init__(self, fileobj):
         _config = load_service_config(fileobj)
-        self.version = _config.get(_META_SECTION, 'version')
-        self.workdir = _config.get(_CONFIG_SECTION, 'workdir')
-        self.localworkdir = mklocalworkdir(self.workdir)
-        self.configdir = mkpath(self.localworkdir, 'conf')
+        self.version = _cfgget(_config, _META_SECTION, 'version', '')
 
+        self.workdir = _cfgget(_config, _CONFIG_SECTION, 'workdir', '')
         fileobj_dir = _fileobj_dir(fileobj)
 
         def _fixup_path(cfg):
             return _abspath(cfg, fileobj_dir)
 
         def _get_list(name):
-            return _parse_comma_delim_list(_config.get(_CONFIG_SECTION, name))
+            return parse_comma_delim_list(_cfgget(_config, _CONFIG_SECTION, name, ''))
 
         self.modules = _get_list('modules')
         self.master_env = _get_list('master_env')
         self.service_files = _get_list('services')
         self.service_files = [_fixup_path(cfg) for cfg in self.service_files]
         self.directories = _get_list('directories')
-        self.config_writer = _config.get(_CONFIG_SECTION, 'config_writer')
+        self.config_writer = _cfgget(_config, _CONFIG_SECTION, 'config_writer', '')
+
         self.service_configs = _collect_configs(_config)
+
+    @property
+    def localworkdir(self):
+        return mklocalworkdir(self.workdir)
+
+    @property
+    def configdir(self):
+        return mkpath(self.localworkdir, 'conf')
+
+def preserviceconfigopts_from_file_list(filenames):
+    """Create and merge PreServiceConfigOpts from a list of filenames."""
+    precfgs = [PreServiceConfigOpts(open(f, 'r')) for f in filenames]
+    precfg = reduce(merge, precfgs)
+    bad_fields = invalid_fields(precfg)
+    if bad_fields:
+        raise RuntimeError("A valid configuration could not be generated from the files: %s: missing fields: %s" % (filenames, bad_fields))
+    return precfg
+
+def merge(lhs, rhs):
+    """
+    Merge two objects of the same type based on their __slot__ list. This
+    returns a fresh object and the originals should not be replaced.
+    Rules:
+        List types are concatenated.
+        Dict types are merged using a deep merge.
+        String types are overwritten. These are
+    """
+    if type(lhs) != type(rhs):
+        raise RuntimeError('merge can only use two of the same type')
+
+    def _update(a, b):
+        for k, v in b.iteritems():
+            if isinstance(v, Mapping):
+                c = _update(a.get(k, dict()), v)
+                a[k] = c
+            else:
+                a[k] = b[k]
+        return a
+
+    lhs = deepcopy(lhs)
+    for attr in lhs.__slots__:
+        _lhs = getattr(lhs, attr)
+        _rhs = getattr(rhs, attr)
+        # cat lists
+        if isinstance(_lhs, list):
+            setattr(lhs, attr, _lhs + _rhs)
+        # update dicts
+        elif isinstance(_lhs, Mapping):
+            setattr(lhs, attr, _update(_lhs, _rhs))
+        # replace strings
+        elif isinstance(_lhs, basestring) and _rhs:
+            setattr(lhs, attr, _rhs)
+
+    return lhs
+
+def invalid_fields(obj):
+    """Return list of fields which are empty."""
+    bad_fields = []
+    for attr in obj.__slots__:
+        print obj, attr, getattr(obj, attr)
+        if attr not in obj.OptionalFields and len(getattr(obj, attr)) == 0:
+            bad_fields.append(attr)
+    return bad_fields
 
 def _collect_configs(config):
     """Convert sections into dicts of options"""
@@ -146,15 +221,6 @@ def _collect_configs(config):
         service_configs[section] = option_dict
 
     return service_configs
-
-def _cfgget(config, section, item, dflt=None):
-    '''Get a value from a ConfigParser object or a default if it's not there.'''
-    if dflt is None:
-        return config.get(section, item)
-    try:
-        return config.get(section, item)
-    except NoOptionError:
-        return dflt
 
 def env2str(env):
     '''
