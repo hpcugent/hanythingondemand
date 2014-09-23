@@ -52,6 +52,7 @@ def main(args):
     except Exception, e:
         log.error(str(e))
         svc.log.exception("Main HanythingOnDemand failed")
+        return 1
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
