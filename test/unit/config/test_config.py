@@ -151,7 +151,7 @@ SOME_ENV=123""")
         self.assertTrue('SOME_ENV' in cfg.env)
         self.assertEqual(cfg.env['SOME_ENV'], '123')
         self.assertTrue(isinstance(cfg.env['SOME_ENV'], basestring))
-        self.assertEqual(hcc.env2str(cfg.env), 'SOME_ENV=123 ')
+        self.assertEqual(hcc.env2str(cfg.env), 'SOME_ENV="123" ')
 
     def test_ConfigOpts_runs_on_SLAVE(self):
         config = StringIO("""
@@ -192,7 +192,7 @@ SOME_ENV=123""")
         self.assertEqual(hcc._parse_runs_on('masTeR'), hcc.RUNS_ON_MASTER)
         self.assertEqual(hcc._parse_runs_on('slavE'), hcc.RUNS_ON_SLAVE)
         self.assertEqual(hcc._parse_runs_on('AlL'), hcc.RUNS_ON_ALL)
-        self.assertRaises(ValueError, hcc._parse_runs_on, 'masterAndsLave')
+        self.assertRaises(KeyError, hcc._parse_runs_on, 'masterAndsLave')
 
     def test_parse_comma_delim_list(self):
         lst = hcc.parse_comma_delim_list('hello,world, have, a , nice,day')
@@ -234,3 +234,25 @@ SOME_ENV=123""")
         self.assertEqual(cfg.name, remade_cfg.name)
         self.assertEqual(cfg.start_script, remade_cfg.start_script)
         self.assertEqual(cfg.stop_script, remade_cfg.stop_script)
+
+    def test_ConfigOpts_ConfigParser_replacement(self):
+        config = StringIO("""
+[Unit]
+Name=testconfig
+RunsOn=master
+
+[Service]
+daemon=$$MYPATH
+ExecStart=%(daemon)s/starter
+ExecStop=%(daemon)s/stopper
+
+[Environment]
+SOME_ENV=123""")
+        cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
+        self.assertEqual(cfg.start_script, '$MYPATH/starter')
+        self.assertEqual(cfg.stop_script, '$MYPATH/stopper')
+
+    def test_env2str(self):
+        env = dict(PATH="/usr/bin", LD_LIBRARY_PATH="something with spaces")
+        self.assertEqual(hcc.env2str(env), 'LD_LIBRARY_PATH="something with spaces" PATH="/usr/bin" ')
+

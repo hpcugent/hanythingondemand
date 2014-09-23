@@ -48,10 +48,6 @@ class TestConfigTemplate(unittest.TestCase):
         self.assertEqual(reg.fields['foo'].fn(), 'wibble')
         self.assertEqual(reg.fields['foo'].doc, 'A function')
 
-    def test_resolve_templates(self):
-        self.assertEqual(hct._resolve_templates(dict(a=1)), dict(a=1))
-        self.assertEqual(hct._resolve_templates(dict(a=lambda: 1)), dict(a=1))
-
     def test_resolve_config_str(self):
         self.assertEqual(hct.resolve_config_str('someval', **dict(configdir='someval')), 'someval')
 

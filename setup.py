@@ -33,6 +33,9 @@ import sys
 import subprocess
 from setuptools import setup, Command
 
+if sys.version_info[:2] < (2, 7):
+    raise RuntimeError("Python version 2.7 required.")
+
 def setup_openmpi_libpath():
     libpath = os.getenv('LD_LIBRARY_PATH')
     os.environ['LD_LIBRARY_PATH'] = '/usr/lib64/openmpi/lib:%s' % libpath

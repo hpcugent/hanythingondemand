@@ -30,7 +30,6 @@
 import re
 import os
 import socket
-import logging as log
 import netifaces
 import netaddr
 from collections import namedtuple
@@ -101,10 +100,10 @@ def sorted_network(network):
     """Try to find a preferred network (can be advanced like IPoIB of high-speed ethernet)"""
     nw = []
     _log.debug("Preferred network selection")
-    # # step 1 alphabetical ordering (who knows in what order ip returns the addresses) on hostname field
+    # step 1 alphabetical ordering (who knows in what order ip returns the addresses) on hostname field
     network.sort()
 
-    # # look for ib network
+    # look for ib network
     ib_reg = re.compile(r"^(ib)\d+$")
     for intf in network:
         if ib_reg.search(intf.device):
@@ -112,7 +111,7 @@ def sorted_network(network):
                 _log.debug("Added intf %s as ib interface" % str(intf))
                 nw.append(intf)
 
-    # # final selection prefer non-vlan
+    # final selection prefer non-vlan
     vlan_reg = re.compile(r"^(.*)\.\d+$")
     loopback_reg = re.compile(r"^(lo)\d*$")
     for intf in network:
@@ -121,14 +120,14 @@ def sorted_network(network):
                 _log.debug("Added intf %s as non-vlan or non-loopback interface" % str(intf))
                 nw.append(intf)
 
-    # # add remainder non-loopback
+    # add remainder non-loopback
     for intf in network:
         if not loopback_reg.search(intf.device):
             if not intf in nw:
                 _log.debug("Added intf %s as remaining non-loopback interface" % str(intf))
                 nw.append(intf)
 
-    # # add remainder
+    # add remainder
     for intf in network:
         if not intf in nw:
             _log.debug("Added intf %s as remaining interface" % str(intf))
@@ -150,7 +149,7 @@ def get_memory():
         try:
             value = line.split(':')[1].strip()
         except IndexError:
-            log.error("No :-separated entry for line %s in %s" %
+            _log.error("No :-separated entry for line %s in %s" %
                            (line, proc_meminfo_fn))
             continue
         reg = re_mem.search(value)
@@ -163,12 +162,12 @@ def get_memory():
             elif unit in ('kB',):
                 multi = 2 ** 10
             else:
-                log.error("Unsupported memory unit %s in key %s value %s" % (unit, key, value))
+                _log.error("Unsupported memory unit %s in key %s value %s" % (unit, key, value))
             memory['meminfo'][key] = mem * multi
         else:
-            log.error("Unknown memory entry in key %s value %s" % (key, value))
+            _log.error("Unknown memory entry in key %s value %s" % (key, value))
 
-    log.debug("Collected meminfo %s" % memory['meminfo'])
+    _log.debug("Collected meminfo %s" % memory['meminfo'])
     return memory
 
 

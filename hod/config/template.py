@@ -26,16 +26,18 @@
 @author: Ewan Higgs (Ghent University)
 """
 
-from os.path import join as mkpath
 from collections import namedtuple
+from os.path import join as mkpath
 
 import os
 import pwd
 import socket
 import string
-import logging as log
 
 import hod.node as node
+
+from vsc.utils import fancylogger
+_log = fancylogger.getLogger(fname=False)
 
 ConfigTemplate = namedtuple('ConfigTemplate', 'name, fn, doc')
 
@@ -44,7 +46,7 @@ def _config_template_error(name):
     to the master node fields yet.'''
     def _fn():
         msg = 'Field "%s" not yet available' % name
-        log.error(msg)
+        _log.error(msg)
     return _fn
 
 def _config_template_stub(name, doc):
@@ -110,23 +112,13 @@ def _current_user():
     '''
     return pwd.getpwuid(os.getuid()).pw_name
 
-def _resolve_templates(templates):
-    '''
-    Take a dict of string to either string or to a nullary function and
-    return the resolved data
-    '''
-    def _resolve(v):
-        return v if not callable(v) else v()
-    return dict([(k, _resolve(v)) for k, v in templates.items()])
-
 def resolve_config_str(s, **template_kwargs):
     '''
     Given a string, resolve the templates based on template_dict and
     template_kwargs.
     '''
     template = string.Template(s)
-    resolved_templates = _resolve_templates(template_kwargs)
-    return template.substitute(resolved_templates)
+    return template.substitute(template_kwargs)
 
 class TemplateResolver(object):
     '''

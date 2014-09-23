@@ -26,14 +26,16 @@
 
 @author: Stijn De Weirdt (Ghent University)
 """
-import time
-from mpi4py import MPI
 
-from hod.config.template import ConfigTemplate
-import hod.node as node
-from vsc import fancylogger
 from collections import namedtuple
+from hod.config.template import ConfigTemplate
+from mpi4py import MPI
+from vsc import fancylogger
+
 import socket
+import time
+
+import hod.node as node
 
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)

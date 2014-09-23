@@ -26,11 +26,11 @@
 @author: Ewan Higgs (Ghent University)
 """
 
-from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
-from collections import OrderedDict, Mapping
-from importlib import import_module
-from os.path import join as mkpath, realpath, dirname
+from ConfigParser import NoOptionError, NoSectionError, SafeConfigParser
+from collections import Mapping
 from copy import deepcopy
+from importlib import import_module
+from os.path import join as mkpath, dirname, realpath
 
 from hod.config.template import mklocalworkdir
 
@@ -86,15 +86,8 @@ def _fileobj_dir(fileobj):
 
 def _parse_runs_on(s):
     '''Returns the relevant constant depending on the string argument'''
-
-    if s.lower() == 'master':
-        return RUNS_ON_MASTER
-    elif s.lower() == 'slave':
-        return RUNS_ON_SLAVE
-    elif s.lower() == 'all':
-        return RUNS_ON_ALL
-    else:
-        raise ValueError('runs-on field must be either "master", "slave", or "all".')
+    options = dict(master=RUNS_ON_MASTER, slave=RUNS_ON_SLAVE, all=RUNS_ON_ALL)
+    return options[s.lower()]
 
 def _cfgget(config, section, item, dflt=None):
     '''Get a value from a ConfigParser object or a default if it's not there.'''
@@ -122,7 +115,7 @@ class PreServiceConfigOpts(object):
     __slots__ = ['version', 'workdir', 'config_writer', 'directories',
             'modules', 'service_configs', 'service_files', 'master_env']
 
-    OptionalFields=['master_env', 'modules', 'service_configs', 'directories']
+    OPTIONAL_FIELDS=['master_env', 'modules', 'service_configs', 'directories']
 
     def __init__(self, fileobj):
         _config = load_service_config(fileobj)
@@ -190,13 +183,13 @@ def merge(lhs, rhs):
         _rhs = getattr(rhs, attr)
         # cat lists
         if isinstance(_lhs, list):
-            setattr(lhs, attr, _lhs + _rhs)
+            _lhs += _rhs
         # update dicts
         elif isinstance(_lhs, Mapping):
-            setattr(lhs, attr, _update(_lhs, _rhs))
+            _lhs = _update(_lhs, _rhs)
         # replace strings
         elif isinstance(_lhs, basestring) and _rhs:
-            setattr(lhs, attr, _rhs)
+            _lhs = _rhs
 
     return lhs
 
@@ -204,8 +197,7 @@ def invalid_fields(obj):
     """Return list of fields which are empty."""
     bad_fields = []
     for attr in obj.__slots__:
-        print obj, attr, getattr(obj, attr)
-        if attr not in obj.OptionalFields and len(getattr(obj, attr)) == 0:
+        if attr not in obj.OPTIONAL_FIELDS and not getattr(obj, attr):
             bad_fields.append(attr)
     return bad_fields
 
@@ -228,8 +220,8 @@ def env2str(env):
     convert it to a string that can be used to prepend a command.
     '''
     envstr = ''
-    for k, v in env.items():
-        envstr += '%s=%s ' % (k, v)
+    for k, v in sorted(env.items()):
+        envstr += '%s="%s" ' % (k, v)
     return envstr
 
 
@@ -275,7 +267,7 @@ class ConfigOpts(object):
 
     @property
     def env(self):
-        return OrderedDict([(k, self._tr(v)) for k, v in self._config.items(_ENVIRONMENT_SECTION)])
+        return dict([(k, self._tr(v)) for k, v in self._config.items(_ENVIRONMENT_SECTION)])
 
     def runs_on(self, masterrank, ranks):
         '''
@@ -301,8 +293,11 @@ class ConfigOpts(object):
     def __repr__(self):
         return 'ConfigOpts(name=%s, runs_on=%d)' % (self.name, self._runs_on)
 
-    def __getstate__(self): return self.__dict__
-    def __setstate__(self, d): self.__dict__.update(d)
+    def __getstate__(self): 
+        return self.__dict__
+
+    def __setstate__(self, d): 
+        self.__dict__.update(d)
 
 def service_config_fn(policy_path):
     """

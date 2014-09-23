@@ -25,5 +25,5 @@
 """
 Nothing here for now.
 
-@author: Stijn De Weirdt (University of Ghent)
+@author: Stijn De Weirdt (Ghehnt University)
 """
