@@ -104,7 +104,7 @@ def parse_comma_delim_list(s):
     with no spaces on the end or beginning.
     Blanks are also removed. e.g. 'a,,b' results in ['a', 'b']
     '''
-    return [x.strip() for x in filter(lambda x: x, s.split(','))]
+    return [x.strip() for x in filter(lambda x: x.strip(), s.split(','))]
 
 class PreServiceConfigOpts(object):
     r"""
