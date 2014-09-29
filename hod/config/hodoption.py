@@ -28,7 +28,6 @@
 
 from vsc.utils.generaloption import GeneralOption
 
-
 class HodOption(GeneralOption):
     '''
     Command line options for hod_pbs.
@@ -65,7 +64,7 @@ class HodOption(GeneralOption):
 
     def config_options(self):
         """Make the action related options"""
-        opts = {'config': ("""Top level configuration file (hod.conf). This can be
+        opts = {'config': ("""Top level configuration file. This can be
 a comma separated list of config files with the later files taking
 precendence.""", "string", "store", ''),
                 }
