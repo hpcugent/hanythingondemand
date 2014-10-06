@@ -147,6 +147,14 @@ class PreServiceConfigOpts(object):
     def configdir(self):
         return mkpath(self.localworkdir, 'conf')
 
+    def __str__(self):
+        return 'PreServiceConfigOpts(version=%s, workdir=%s, modules=%s, ' \
+                'master_env=%s, service_files=%s, directories=%s, ' \
+                'config_writer=%s, service_configs=%s)' % (self.version,
+                        self.workdir, self.modules, self.master_env,
+                        self.service_files, self.directories,
+                        self.config_writer, self.service_configs)
+
 def preserviceconfigopts_from_file_list(filenames):
     """Create and merge PreServiceConfigOpts from a list of filenames."""
     precfgs = [PreServiceConfigOpts(open(f, 'r')) for f in filenames]
@@ -321,4 +329,4 @@ def service_config_fn(policy_path):
 def write_service_config(outfile, data_dict, config_writer, template_resolver):
     """Write service config files to disk."""
     with open(outfile, 'w') as f:
-        f.write(config_writer(data_dict, template_resolver))
+        f.write(config_writer(outfile, data_dict, template_resolver))
