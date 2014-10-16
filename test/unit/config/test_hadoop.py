@@ -58,7 +58,22 @@ class HodConfigHadoop(unittest.TestCase):
     <value>123</value>
 </property>
 </configuration>"""
-        output = hcw.hadoop_xml(vals, tr)
+        output = hcw.hadoop_xml('file.xml', vals, tr)
+        print "\"%s\"" % expected
+        print "\"%s\"" % output
+        self.assertEqual(output, expected)
+
+    def test_hadoop_xml_log4j_properties(self):
+        tr = hct.TemplateResolver(somename="potato", workdir='')
+        vals = {"fs.defaultFs": "file:///",
+                "yarn.option.nested": "123",
+                "templated.value": "$somename"
+                }
+        expected = """fs.defaultFs=file:///
+templated.value=$somename
+yarn.option.nested=123
+"""
+        output = hcw.hadoop_xml('file.properties', vals, tr)
         print "\"%s\"" % expected
         print "\"%s\"" % output
         self.assertEqual(output, expected)

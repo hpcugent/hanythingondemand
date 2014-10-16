@@ -27,20 +27,15 @@
 """
 
 
-def hadoop_xml(options, template_resolver):
-    """Given a dict of options, write the resulting xml
-    Params
-    ------
-    options : `dict`
-    string key value pairs.
-
-    template_resolver : `TemplateResolver`
-    Resolver for template arguments.
-    """
-    output = """<?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-<configuration>
+_XML_PREAMBLE = """<?xml version="1.0" encoding="utf-8"?>
 """
+
+_HADOOP_STYLESHEET = """<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+"""
+
+def _write_xml(outfile, options, template_resolver):
+    output = _XML_PREAMBLE + _HADOOP_STYLESHEET + "<configuration>\n"
+
     for k, v in sorted(options.items()):
         name = template_resolver(k)
         value = template_resolver(v)
@@ -51,3 +46,28 @@ def hadoop_xml(options, template_resolver):
 """ % (name, value)
     output += "</configuration>"
     return output
+
+def _write_properties(outfile, options, template_resolver):
+    output = ''
+    for k, v in sorted(options.items()):
+        output += '%s=%s\n' % (k, v)
+    return output
+ 
+def hadoop_xml(outfile, options, template_resolver):
+    """Given a dict of options, write the resulting .xml or .properties file.
+    Note: when dealing with .properties files, we don't use the templating
+    system since things like log4j.properties have their own templating system
+    and it's not reasonably sane to mix these.
+
+    Params
+    ------
+    options : `dict`
+    string key value pairs.
+
+    template_resolver : `TemplateResolver`
+    Resolver for template arguments.
+    """
+    if outfile.endswith('.xml'):
+        return _write_xml(outfile, options, template_resolver)
+    elif outfile.endswith('.properties'):
+        return _write_properties(outfile, options, template_resolver)
