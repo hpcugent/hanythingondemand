@@ -171,7 +171,7 @@ def merge(lhs, rhs):
     Rules:
         List types are concatenated.
         Dict types are merged using a deep merge.
-        String types are overwritten. These are
+        String types are overwritten. 
     """
     if type(lhs) != type(rhs):
         raise RuntimeError('merge can only use two of the same type')
@@ -276,21 +276,6 @@ class ConfigOpts(object):
     @property
     def env(self):
         return dict([(k, self._tr(v)) for k, v in self._config.items(_ENVIRONMENT_SECTION)])
-
-    def runs_on(self, masterrank, ranks):
-        '''
-        Given the master rank and all ranks, return a list of the ranks this
-        service will run on.
-        '''
-        if self._runs_on == RUNS_ON_MASTER:
-            return [masterrank]
-        elif self._runs_on == RUNS_ON_SLAVE:
-            return [x for x in ranks if x != masterrank]
-        elif self._runs_on == RUNS_ON_ALL:
-            return ranks
-        else:
-            raise ValueError('ConfigOpts.runs_on has invalid value: %s' %
-                    self._runs_on)
 
     def __str__(self):
         return 'ConfigOpts(name=%s, runs_on=%d, pre_start_script=%s, ' \

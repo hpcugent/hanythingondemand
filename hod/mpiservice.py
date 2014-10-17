@@ -64,8 +64,7 @@ def _check_comm(comm, txt):
             _log.debug("%s comm WORLD %s size %d rank %d" %
                            (txt, comm, mysize, myrank))
         else:
-            _log.debug(
-                "%scomm %s size %d rank %d" % (txt, comm, mysize, myrank))
+            _log.debug("%scomm %s size %d rank %d" % (txt, comm, mysize, myrank))
 
 def barrier(comm, txt):
     """Perform MPI.barrier"""
@@ -77,8 +76,7 @@ def _check_group(group, txt):
     """Report details about group"""
     myrank = group.Get_rank()
     mysize = group.Get_size()
-    _log.debug(
-        "%s group %s size %d rank %d" % (txt, group, mysize, myrank))
+    _log.debug("%s group %s size %d rank %d" % (txt, group, mysize, myrank))
 
 def _make_comm_group(comm, ranks):
     """Make a new communicator based on set of ranks"""
@@ -152,7 +150,7 @@ def run_tasks(svc):
     wait_iter_sleep = 60  # run through all active work, then wait wait_iter_sleep seconds
 
     for wrk in svc.tasks:
-        # # pass any existing previous work
+        # pass any existing previous work
         _log.debug("newcomm  for ranks %s for work %s: %s" % (wrk.ranks, wrk.options.name, wrk.type))
         newcomm = _make_comm_group(svc.comm, wrk.ranks)
 
@@ -165,7 +163,7 @@ def run_tasks(svc):
         work = wrk.type(wrk.options, wrk.master_env)
         svc.log.debug("work %s begin" % (wrk.type.__name__))
         work.prepare_work_cfg()
-        # # adding started work
+        # adding started work
         active_work.append(work)
 
     for act_work in active_work:

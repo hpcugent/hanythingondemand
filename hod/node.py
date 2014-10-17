@@ -60,7 +60,7 @@ def get_networks():
             iface = iface[netifaces.AF_INET][0]
             addr = iface['addr']
             mask_bits = netmask2maskbits(iface['netmask'])
-            hostname = socket.getfqdn(addr) # socket.gethostbyaddr(addr)[0] # used this before.
+            hostname = socket.getfqdn(addr)
             networks.append(NetworkInterface(hostname, addr, device, mask_bits))
     return networks
 
