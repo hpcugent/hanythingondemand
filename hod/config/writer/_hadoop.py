@@ -26,6 +26,8 @@
 @author: Ewan Higgs (University of Ghent)
 """
 
+from vsc.utils import fancylogger
+_log = fancylogger.getLogger(fname=False)
 
 _XML_PREAMBLE = """<?xml version="1.0" encoding="utf-8"?>
 """
@@ -71,3 +73,6 @@ def hadoop_xml(outfile, options, template_resolver):
         return _write_xml(outfile, options, template_resolver)
     elif outfile.endswith('.properties'):
         return _write_properties(outfile, options, template_resolver)
+    else:
+        _log.error('Unrecognized hadoop file type: %s', outfile)
+        raise RuntimeError('Unrecognized hadoop file type: %s' % outfile)

@@ -77,3 +77,11 @@ yarn.option.nested=123
         print "\"%s\"" % expected
         print "\"%s\"" % output
         self.assertEqual(output, expected)
+
+    def test_hadoop_xml_bad_file(self):
+        tr = hct.TemplateResolver(somename="potato", workdir='')
+        vals = {"fs.defaultFs": "file:///",
+                "yarn.option.nested": "123",
+                "templated.value": "$somename"
+                }
+        self.assertRaises(RuntimeError, hcw.hadoop_xml, 'file.ini', vals, tr)
