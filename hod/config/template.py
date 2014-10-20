@@ -76,7 +76,6 @@ def register_templates(template_registry, workdir):
     '''
     Register the common templates.
     '''
-    localworkdir = mklocalworkdir(workdir)
     local_data_network = node.sorted_network(node.get_networks())[0]
     templates = [
         _config_template_stub('masterhostname', 'Hostname bound to the Fully Qualified Domain Name (FQDN) of the master node.'),
@@ -86,7 +85,7 @@ def register_templates(template_registry, workdir):
         ConfigTemplate('dataname', local_data_network.hostname, 'Infiniband hostname if available'),
         ConfigTemplate('dataaddress', local_data_network.addr, 'Infiniband address if available'),
         ConfigTemplate('workdir', workdir, 'Base directory for configuration and logging, e.g. /tmp, or somewhere on a shared file system.'),
-        ConfigTemplate('localworkdir', localworkdir, 'Subdirectory of workdir with user, host, and pid in the name to make it distinct from other workdirs for use on shared file systems'),
+        ConfigTemplate('localworkdir', lambda: mklocalworkdir(workdir), 'Subdirectory of workdir with user, host, and pid in the name to make it distinct from other workdirs for use on shared file systems'),
         ConfigTemplate('user', _current_user, 'Current user'),
         ConfigTemplate('pid', os.getpid, 'PID for the current process'),
         ]

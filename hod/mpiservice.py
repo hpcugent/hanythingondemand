@@ -28,7 +28,9 @@
 """
 
 from collections import namedtuple
-from hod.config.template import ConfigTemplate
+from hod.config.template import (ConfigTemplate, TemplateRegistry,
+        TemplateResolver, register_templates)
+from hod.config.config import ConfigOpts
 from mpi4py import MPI
 from vsc import fancylogger
 
@@ -45,7 +47,10 @@ __all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_tasks',
 
 MASTERRANK = 0
 
-Task = namedtuple('Task', ['type', 'ranks', 'options', 'master_env'])
+# Parameters to send over the network to allow slaves to construct hod.config.ConfigOpts
+# objects
+ConfigOptsParams = namedtuple('ConfigOptsParams', ['filename', 'workdir'])
+Task = namedtuple('Task', ['type', 'name', 'ranks', 'config_opts', 'master_env'])
 
 def _who_is_out_there(comm, rank):
     """Get all self.ranks of members of communicator"""
@@ -121,7 +126,6 @@ def setup_tasks(svc):
     """Setup the per node services and spread the tasks out."""
     _log.debug("No tasks found. Running distribution and spread.")
 
-
     # Configure
     if svc.rank == MASTERRANK:
         master_dataname = node.sorted_network(node.get_networks())[0].hostname
@@ -143,6 +147,15 @@ def setup_tasks(svc):
     else:
         svc.tasks = _slave_spread(svc.comm)
 
+def _mkconfigopts(cfg_opts, master_env):
+    reg = TemplateRegistry()
+    register_templates(reg, cfg_opts.workdir)
+    for k,v  in master_env.items():
+        reg.register(ConfigTemplate(k, v, ''))
+
+    resolver = TemplateResolver(**reg.to_kwargs())
+    return ConfigOpts(open(cfg_opts.filename, 'r'), resolver)
+ 
 def run_tasks(svc):
     """Make communicators for tasks and execute the work there"""
     # Based on initial dist, create the groups and communicators and map with work
@@ -151,7 +164,7 @@ def run_tasks(svc):
 
     for wrk in svc.tasks:
         # pass any existing previous work
-        _log.debug("newcomm  for ranks %s for work %s: %s" % (wrk.ranks, wrk.options.name, wrk.type))
+        _log.debug("newcomm  for ranks %s for work %s: %s" % (wrk.ranks, wrk.name, wrk.type))
         newcomm = _make_comm_group(svc.comm, wrk.ranks)
 
         if newcomm == MPI.COMM_NULL:
@@ -160,7 +173,8 @@ def run_tasks(svc):
 
         _log.debug('Setting up rank %d of this type %s' % (svc.rank, wrk.type))
         svc.tempcomm.append(newcomm)
-        work = wrk.type(wrk.options, wrk.master_env)
+        cfg = _mkconfigopts(wrk.config_opts, wrk.master_env)
+        work = wrk.type(cfg, wrk.master_env)
         svc.log.debug("work %s begin" % (wrk.type.__name__))
         work.prepare_work_cfg()
         # adding started work

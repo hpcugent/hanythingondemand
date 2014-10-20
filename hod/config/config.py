@@ -292,6 +292,20 @@ class ConfigOpts(object):
     def __setstate__(self, d): 
         self.__dict__.update(d)
 
+    def runs_on(self, masterrank, ranks):
+        '''
+        Given the master rank and all ranks, return a list of the ranks this
+        service will run on.
+        '''
+        if self._runs_on == RUNS_ON_MASTER:
+            return [masterrank]
+        elif self._runs_on == RUNS_ON_SLAVE:
+            return [x for x in ranks if x != masterrank]
+        elif self._runs_on == RUNS_ON_ALL:
+            return ranks
+        else:
+            raise ValueError('ConfigOpts.runs_on has invalid value: %s' % self._runs_on)
+
 def service_config_fn(policy_path):
     """
     Given a module string ending in a function name, return the relevant

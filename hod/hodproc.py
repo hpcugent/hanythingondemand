@@ -29,7 +29,7 @@
 import os
 from errno import EEXIST
 from os.path import join as mkpath
-from hod.mpiservice import MpiService, Task, MASTERRANK
+from hod.mpiservice import MpiService, Task, MASTERRANK, ConfigOptsParams
 from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
         env2str, service_config_fn, write_service_config,
         preserviceconfigopts_from_file_list, parse_comma_delim_list)
@@ -108,8 +108,8 @@ class ConfiguredMaster(MpiService):
             config = ConfigOpts(open(config_filename, 'r'), resolver)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
             self.log.debug('Adding ConfiguredService Task to work with config: %s' % str(config))
-            self.tasks.append(Task(ConfiguredService, ranks_to_run, config, master_env))
-
+            cfg_opts = ConfigOptsParams(config_filename, m_config.workdir)
+            self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
 
 class ConfiguredSlave(MpiService):
     """
