@@ -49,7 +49,7 @@ MASTERRANK = 0
 
 # Parameters to send over the network to allow slaves to construct hod.config.ConfigOpts
 # objects
-ConfigOptsParams = namedtuple('ConfigOptsParams', ['filename', 'workdir'])
+ConfigOptsParams = namedtuple('ConfigOptsParams', ['filename', 'workdir', 'master_template_kwargs'])
 Task = namedtuple('Task', ['type', 'name', 'ranks', 'config_opts', 'master_env'])
 
 def _who_is_out_there(comm, rank):
@@ -147,11 +147,11 @@ def setup_tasks(svc):
     else:
         svc.tasks = _slave_spread(svc.comm)
 
-def _mkconfigopts(cfg_opts, master_env):
+def _mkconfigopts(cfg_opts):
     reg = TemplateRegistry()
     register_templates(reg, cfg_opts.workdir)
-    for k,v  in master_env.items():
-        reg.register(ConfigTemplate(k, v, ''))
+    for ct  in cfg_opts.master_template_kwargs:
+        reg.register(ct)
 
     resolver = TemplateResolver(**reg.to_kwargs())
     return ConfigOpts(open(cfg_opts.filename, 'r'), resolver)
@@ -173,7 +173,7 @@ def run_tasks(svc):
 
         _log.debug('Setting up rank %d of this type %s' % (svc.rank, wrk.type))
         svc.tempcomm.append(newcomm)
-        cfg = _mkconfigopts(wrk.config_opts, wrk.master_env)
+        cfg = _mkconfigopts(wrk.config_opts)
         work = wrk.type(cfg, wrk.master_env)
         svc.log.debug("work %s begin" % (wrk.type.__name__))
         work.prepare_work_cfg()

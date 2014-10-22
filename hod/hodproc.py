@@ -108,7 +108,7 @@ class ConfiguredMaster(MpiService):
             config = ConfigOpts(open(config_filename, 'r'), resolver)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
             self.log.debug('Adding ConfiguredService Task to work with config: %s' % str(config))
-            cfg_opts = ConfigOptsParams(config_filename, m_config.workdir)
+            cfg_opts = ConfigOptsParams(config_filename, m_config.workdir, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
 
 class ConfiguredSlave(MpiService):
