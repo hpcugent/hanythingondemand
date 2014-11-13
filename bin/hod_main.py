@@ -43,7 +43,6 @@ def main(args):
         svc = ConfiguredMaster(options)
     else:
         svc = ConfiguredSlave(options)
-
     try:
         setup_tasks(svc)
         run_tasks(svc)
