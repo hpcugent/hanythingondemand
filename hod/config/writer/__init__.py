@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# ##
-# Copyright 2009-2013 Ghent University
+##
+# Copyright 2009-2014 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -22,36 +21,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+##
 """
-Main hanythingondemand script, should be invoked in a job
-
-@author: Stijn De Weirdt (Universiteit Gent)
-@author: Ewan Higgs (Universiteit Gent)
+Config writers for the 
+@author: Ewan Higgs (Ghent University)
 """
-import logging as log
-import sys
 
-from hod.config.hodoption import HodOption
-from hod.hodproc import ConfiguredSlave, ConfiguredMaster
-from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
-from mpi4py import MPI
-
-def main(args):
-    options = HodOption(go_args=args)
-
-    if MPI.COMM_WORLD.rank == MASTERRANK:
-        svc = ConfiguredMaster(options)
-    else:
-        svc = ConfiguredSlave(options)
-    try:
-        setup_tasks(svc)
-        run_tasks(svc)
-
-        svc.stop_service()
-    except Exception, e:
-        log.error(str(e))
-        svc.log.exception("Main HanythingOnDemand failed")
-        return 1
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+from _hadoop import hadoop_xml

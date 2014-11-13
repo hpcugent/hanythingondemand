@@ -28,7 +28,7 @@ and attach to a screen session where they can interact with their services.
 
 ## Prerequisites
 * A cluster using [Torque](http://www.adaptivecomputing.com/products/open-source/torque/).
-* [environment-modules](http://modules.sourceforge.net/) (used to test HOD) to manage the environment
+* [environment-modules](http://modules.sourceforge.net/) to manage the environment
  * This is optional if everything is setup and usable (eg. `PATH`, `JAVA_HOME`, `PYTHONPATH`)
 * Python and various libraries.
  * [`mpi4py`](http://mpi4py.scipy.org/) 
@@ -38,11 +38,9 @@ and attach to a screen session where they can interact with their services.
  * [`vsc-base`](https://github.com/hpcugent/vsc-base) - Used for command line parsing.
  * [`vsc-mympirun`](https://github.com/hpcugent/vsc-mympirun) - Used for setting up the MPI job.
  * [`pbs_python`](https://oss.trac.surfsara.nl/pbs_python) - Used for interacting with the PBS (aka Torque) server.
-* Java 
- * Oracle JDK 
- * OpenJDK
- * Both installable with Easybuild
 * [Easybuild](https://github.com/hpcugent/easybuild) - we use Easybuild for installing software and hanythingondemand isn't tested without it.
+* Java 
+ * Oracle JDK or OpenJDK - both installable with Easybuild
 * Hadoop binaries
  * eg. the [Cloudera distribution versions](http://archive.cloudera.com/cdh4/cdh/4/) (used to test HOD)
 
@@ -60,25 +58,12 @@ and attach to a screen session where they can interact with their services.
    * Sourcing the following script will setup the correct environment.
  
 ```shell
-cat > $HOME/hod/localenv <<EOF
+# Create a Hadoop cluster on 16 nodes.
+hod_pbs.py --config-conf=$EBROOTHANYTHINGONDEMAND/etc/hod/Hadoop-2.3.0-cdh5.0/hod.conf --action-create -n16
 
-module load mpich2-x86_64
-HODPATH=$HOME/hod
-if [ -z $PYTHONPATH ]
-then
-    export PYTHONPATH=$HODPATH
-else
-    export PYTHONPATH=$HODPATH:$PYTHONPATH
-fi
-export JAVA_HOME=/usr/lib/jvm/java
-export PATH=$HOME/hadoop/cdh3u3/hadoop-0.20.2-cdh3u3/bin:$HODPATH/bin/:$PATH
+# Create a Hadoop cluster on 16 nodes with local overrides from your own hod.conf file
+hod_pbs.py --config-conf=$EBROOTHANYTHINGONDEMAND/etc/hod/Hadoop-2.3.0-cdh5.0/hod.conf,./hod.conf --action-create -n16
 
-EOF
-```
- 
- * Use hod with option `--hod_envscript=$HOME/hod/localenv`
- * Use `hod_main.py`
-  * don't forget the `--hod_envscript` option
 
 ## Wiki
 For more documentation, check the wiki

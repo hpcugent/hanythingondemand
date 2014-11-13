@@ -34,43 +34,23 @@ class MPIServiceTestCase(unittest.TestCase):
     def test_mpiservice_init(self):
         '''test mpiservice init'''
         ms = hm.MpiService(False)
-        self.assertEqual(ms.size, -1)
-        self.assertEqual(ms.rank, -1)
-
-    def test_mpiservice_init_init_com(self):
-        '''test mpiservice init init com'''
-        ms = hm.MpiService()
-        self.assertTrue(ms.comm is not None)
-        self.assertTrue(ms.size is not None)
-        self.assertTrue(ms.rank is not None)
+        self.assertEqual(ms.size, 1)
+        self.assertEqual(ms.rank, 0)
 
     def test_mpiservice_barrier(self):
         '''test mpiservice barrier'''
         ms = hm.MpiService()
-        ms.barrier('Wibble')
-
-    def test_mpiservice_collectnodes(self):
-        '''test mpiservice collectnodes'''
-        ms = hm.MpiService()
-        ms.collect_nodes()
-
-    def test_mpiservice_make_topoplogy_comm(self):
-        '''test mpiservice make topology comm'''
-        ms = hm.MpiService()
-        ms.make_topology_comm()
+        hm.barrier(ms.comm, 'Wibble')
 
     def test_mpiservice_who_is_out_there(self):
         '''test mpiservice who is out there'''
         ms = hm.MpiService()
-        ms.init_comm()
-        others = ms.who_is_out_there(ms.comm)
-        print others
+        others = hm._who_is_out_there(ms.comm, ms.rank)
 
     def test_mpiservice_stop_comm(self):
         '''test mpiservice stop comm'''
         ms = hm.MpiService()
-        ms.init_comm()
-        ms.stop_comm(ms.comm)
+        hm._stop_comm(ms.comm)
 
     def test_mpiservice_stop_service(self):
         '''test mpiservice stop service'''
@@ -80,29 +60,33 @@ class MPIServiceTestCase(unittest.TestCase):
     def test_mpiservice_check_group(self):
         '''test mpiservice check group'''
         ms = hm.MpiService()
-        ms.init_comm()
-        ms.check_group(ms.comm.Get_group())
+        hm._check_group(ms.comm.Get_group(), 'some text')
 
     def test_mpiservice_check_comm(self):
         '''test mpiservice check comm'''
         ms = hm.MpiService()
-        ms.init_comm()
-        ms.check_comm(ms.comm)
+        hm._check_comm(ms.comm, 'blah')
 
-    def test_mpiservice_make_comm_group(self):
+    def test_make_comm_group(self):
         '''test mpiservice make check group'''
         ms = hm.MpiService()
-        ms.make_comm_group(range(1))
+        hm._make_comm_group(ms.comm, range(1))
 
     def test_mpiservice_distribution(self):
         '''test mpiservice distribution'''
         ms = hm.MpiService()
         ms.distribution() # TODO:  Does nothing. If it's an interface, make abstract.
 
-    def test_mpiservice_spread(self):
-        '''test mpiservice spread'''
+    def test_master_spread(self):
+        '''test master spread'''
         ms = hm.MpiService()
-        ms.spread()
+        hm._master_spread(ms.comm, None)
+
+    def test_slave_spread(self):
+        '''test master spread'''
+        ms = hm.MpiService()
+        tasks = hm._slave_spread(ms.comm)
+        self.assertEqual(tasks, None)
 
     @unittest.expectedFailure
     def test_mpiservice_run_dist(self):

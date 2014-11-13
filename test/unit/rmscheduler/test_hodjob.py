@@ -47,26 +47,26 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
         self.mpiopt = MympirunHodOption(go_args=['progname'])
 
     def test_hodjob_init(self):
-        '''testt HodJob init function'''
+        '''test HodJob init function'''
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
             hj = hrh.HodJob(self.opt)
 
     def test_hodjob_set_type_class(self):
-        '''testt HodJob set_type_class'''
+        '''test HodJob set_type_class'''
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
             hj = hrh.HodJob(self.opt)
             hj.set_type_class()
         self.assertEqual(hj.type_class, ResourceManagerScheduler)
 
     def test_hodjob_get_hod(self):
-        '''testt HodJob get_hod'''
+        '''test HodJob get_hod'''
         # TODO: Determine some tests for this path hacking 
         with patch('os.path.isfile', side_effect=lambda x: True):
             hj = hrh.HodJob(self.opt)
             hj.get_hod('hod_main')
 
     def test_hodjob_run(self):
-        '''testt HodJob run'''
+        '''test HodJob run'''
         with patch('os.path.isfile', side_effect=lambda x: True):
             hj = hrh.HodJob(self.opt)
             hj.run()
@@ -81,7 +81,7 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
             o = hrh.MympirunHod(self.mpiopt)
             exe = o.generate_exe()
         # not sure we want SNone/hod.output.SNone or a bunch of these defaults here.
-        self.assertEqual(exe[0], 'mympirun --output=$None/hod.output.$None --hybrid=1 --variablesprefix=HADOOP,JAVA,HOD,MAPRED,HDFS,HDFS,MAPRED python sentinel1 --hod-envclass=MympirunHod')
+        self.assertEqual(exe[0], 'mympirun --output=$None/hod.output.$None --hybrid=1 --variablesprefix=HOD python sentinel1')
         """ From prod:
         /usr/bin/python /apps/gent/SL6/sandybridge/software/vsc-mympirun/3.2.3/bin/mympirun --output=/vscmnt/gent_vulpix/_/user/home/gent/vsc410/vsc41041/jobs/hadoop/hod.output.12191.master16.delcatty.gent.vsc --hybrid=1 --variablesprefix=HADOOP,JAVA,HOD,MAPRED,HDFS,HDFS,MAPRED python /apps/gent/SL6/sandybridge/software/hanythingondemand/2.1.1-ictce-5.5.0-Python-2.7.6/bin/hod_main --hod-script=/user/home/gent/vsc410/vsc41041/jobs/hadoop/run_job.sh --hod-envclass=PbsEBMMHod
         """

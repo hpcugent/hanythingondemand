@@ -26,104 +26,43 @@
 '''
 
 import unittest
-from mock import sentinel
+from mock import sentinel, patch
+from cStringIO import StringIO
 from optparse import OptionParser
 from hod.config.hodoption import HodOption
 import hod.hodproc as hh
+from hod.config.template import TemplateResolver
 
-class HodProcTestCase(unittest.TestCase):
-    '''Test HodProc functions'''
-
-    def test_slave_init_options(self):
-        '''test slave init options blank'''
-        opts = sentinel.opts
-        s = hh.Slave(opts)
-        self.assertTrue( s.options == opts)
-
-    def test_hadoop_master_init(self):
-        '''test hadoop master init'''
-        opts = sentinel.opts
-        hm = hh.HadoopMaster(opts)
-        hm.options is not None
-
-    def test_hadoop_master_distribution(self):
-        '''test hadoop master distribution'''
+class TestHodProcConfiguredMaster(unittest.TestCase):
+    def test_configured_master_init(self):
         opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        hm.distribution()
+        self.assertTrue(hasattr(opts.options, 'config_config'))
+        cm = hh.ConfiguredMaster(opts)
 
-    def test_hadoop_master_make_client(self):
-        '''test hadoop master make client'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        hm.distribution()
-        hm.make_client()
-
-    def test_hadoop_master_distribution_hdfs(self):
-        '''test hadoop master distribution hdfs'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        hm.distribution()
-        hm.distribution_HDFS()
-        self.assertTrue(hm.dists is not None)
-
-    def test_hadoop_master_distribution_yarn(self):
-        '''test hadoop master distribution yarn'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        hm.distribution()
-        hm.distribution_Yarn()
-        self.assertTrue(hm.dists is not None)
-
-    def test_hadoop_master_distribution_mapred(self):
-        '''test hadoop master distribution mapred'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        hm.distribution()
-        hm.distribution_Mapred()
-        self.assertTrue(hm.dists is not None)
-
-    def test_hadoop_master_distribution_hbase(self):
-        '''test hadoop master distribution hbase'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        hm.distribution()
-        hm.distribution_Hbase()
-        self.assertTrue(hm.dists is not None)
-
-    def test_hadoop_master_select_network(self):
-        '''test hadoop master select network'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        idx = hm.select_network()
-        self.assertEqual(idx, 0)  #TODO: 5 line Function which just returns 0... remove.
-
-    def test_hadoop_master_select_hdfs_ranks(self):
-        '''test hadoop master select hdfs ranks'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        ranks, allranks = hm.select_hdfs_ranks() # TODO: Remove convoluted nonsense.
-        self.assertTrue(isinstance(ranks, int))
-        self.assertTrue(isinstance(allranks, list))
-        self.assertEqual(ranks, 0)
-        self.assertEqual(allranks, range(hm.size))
-
-    def test_hadoop_master_select_mapred_ranks(self):
-        '''test hadoop master select mapred ranks'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts) 
-        ranks, allranks = hm.select_mapred_ranks() # TODO: Remove convoluted nonsense.
-        self.assertTrue(isinstance(ranks, int))
-        self.assertTrue(isinstance(allranks, list))
-        self.assertEqual(ranks, 0)
-        self.assertEqual(allranks, range(hm.size))
-
-    def test_hadoop_master_select_hbasemaster_ranks(self):
-        '''test hadoop master select hbasemaster ranks'''
-        opts = HodOption(go_args=['progname'])
-        hm = hh.HadoopMaster(opts)
-        ranks, allranks = hm.select_hbasemaster_ranks() # TODO: Remove convoluted nonsense.
-        self.assertTrue(isinstance(ranks, int))
-        self.assertTrue(isinstance(allranks, list))
-        self.assertEqual(ranks, 0)
-        self.assertEqual(allranks, range(hm.size))
+    def test_configured_master_distribution(self):
+        manifest_config = StringIO("""
+[Meta]
+version = 1
+[Config]
+workdir=/tmp
+master_env= 
+modules=
+services=svc.conf
+config_writer=some.module.function
+directories=
+        """)
+        service_config = StringIO("""
+[Unit]
+Name=wibble
+RunsOn = master
+[Service]
+ExecStart=service start postgres
+ExecStop=service stop postgres
+[Environment]
+        """)
+        opts = HodOption(go_args=['progname', '--config-config', 'hod.conf'])
+        cm = hh.ConfiguredMaster(opts)
+        with patch('hod.hodproc._setup_config_paths', side_effect=lambda *args: None):
+            with patch('__builtin__.open', side_effect=lambda name, *args: manifest_config if name == 'hod.conf' else service_config):
+                cm.distribution()
+        self.assertEqual(len(cm.tasks), 1)

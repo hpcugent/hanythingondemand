@@ -30,8 +30,20 @@ Generate a PBS job script using pbs_python. Will use mympirun to get the all sta
 @author: Ewan Higgs (Universiteit Gent)
 """
 
+import sys
 from hod.rmscheduler.hodjob import PbsEBMMHod, MympirunHodOption
 
-options = MympirunHodOption()
-j = PbsEBMMHod(options)
-j.run()
+from vsc.utils import fancylogger
+
+def main(args):
+    try:
+        options = MympirunHodOption(go_args=args)
+        j = PbsEBMMHod(options)
+        j.run()
+    except StandardError, e:
+        fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
+        fancylogger.logToScreen(enable=True)
+        fancylogger.raiseException(e)
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))

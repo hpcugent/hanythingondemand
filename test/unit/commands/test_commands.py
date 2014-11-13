@@ -79,30 +79,6 @@ class HodCommandsCommandTestCase(unittest.TestCase):
         self.assertEqual(out, '')
         self.assertEqual(err, 'hello')
 
-    def test_ipaddrshow(self):
-        '''test ipaddrshow'''
-        c = hcc.IpAddrShow()
-        self.assertEqual(str(c), '/sbin/ip addr show')
-        out, err = c.run()
-        self.assertNotEqual(out,  '') # loads of text which is different on each platform
-        self.assertEqual(err, '') # Probably won't work on non Linux.
-
-    def test_java_command(self):
-        '''test java command'''
-        c = hcc.JavaCommand('-version')
-        self.assertEqual(str(c), 'java -version')
-        out, err = c.run()
-        self.assertEqual(out, '')
-        self.assertTrue(err.startswith('java version "1'))
-
-    def test_java_version(self):
-        '''test java version - note how it copies the stderr to stdout.'''
-        c = hcc.JavaVersion()
-        self.assertEqual(str(c), 'java -version')
-        out, err = c.run()
-        self.assertTrue(out.startswith('\njava version "1'))
-        self.assertTrue(err.startswith('java version "1'))
-
     def test_generate_ssh_key(self):
         '''test generate ssh key'''
         c = hcc.GenerateSshKey('.')
