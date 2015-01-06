@@ -30,6 +30,9 @@ from vsc.utils.fancylogger import getLogger
 from vsc.utils.missing import get_subclasses
 
 class Job(object):
+    """
+    Base class for Hanythingondemand jobs.
+    """
     def __init__(self, options):
         self.log = getLogger(self.__class__.__name__, fname=False)
 
@@ -51,9 +54,9 @@ class Job(object):
         if self.script is None:
             self.generate_script()
 
-        self.log.debug("Going to submit jobscript %s" % self.script)
+        self.log.debug("Going to submit jobscript %s", self.script)
         self.type.submit(self.script)
-        self.log.debug("Submission returned jobid %s" % self.type.jobid)
+        self.log.debug("Submission returned jobid %s", self.type.jobid)
 
     def generate_script(self):
         """Build the submit script"""
@@ -67,7 +70,7 @@ class Job(object):
 
         script += self.generate_exe()
 
-        self.log.debug("Generated script %s" % script)
+        self.log.debug("Generated script %s", script)
         self.script = "\n".join(script + [''])
 
     def generate_environment(self):
@@ -92,7 +95,7 @@ class Job(object):
     def generate_script_header(self):
         """Create the job arguments. Retrun as header (if used)"""
         hdr = self.type.header()
-        self.log.debug("Generated header %s" % hdr)
+        self.log.debug("Generated header %s", hdr)
 
         return hdr
 
@@ -111,9 +114,9 @@ class Job(object):
                 else:
                     allmods.append(md)
             else:
-                self.log.error("Unknown module type %s (%s)" % (type(md), md))
+                self.log.error("Unknown module type %s (%s)", type(md), md)
 
-        self.log.debug("Going to generate string for modules %s" % allmods)
+        self.log.debug("Going to generate string for modules %s", allmods)
         return ['module %s' % (" ".join(md)) for md in allmods]
 
     @classmethod

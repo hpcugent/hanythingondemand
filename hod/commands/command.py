@@ -89,7 +89,7 @@ class Command(object):
             self.log.error("No command set")
             return
 
-        self.log.debug("Run going to run %s" % self.command)
+        self.log.debug("Run going to run %s", self.command)
         start = datetime.datetime.now()
 
         popen_kwargs = {
@@ -126,7 +126,8 @@ class Command(object):
                 if (now - start).seconds > self.timeout:
                     if timedout is False:
                         os.kill(p.pid, signal.SIGTERM)
-                        self.log.debug("Timeout occured with cmd %s. took more than %i secs to complete." % (self.command, self.timeout))
+                        self.log.debug("Timeout occured with cmd %s. took more than %i secs to complete.",
+                                self.command, self.timeout)
                         timedout = True
                     else:
                         os.kill(p.pid, signal.SIGKILL)
@@ -144,9 +145,9 @@ class Command(object):
         ec = p.returncode
         if not ec == 0:
             err += "Exitcode %s\n" % ec
-            self.log.warning("Problem occured with cmd %s: out %s, err %s" % (self.command, out, err))
+            self.log.warning("Problem occured with cmd %s: out %s, err %s", self.command, out, err)
         else:
-            self.log.debug("cmd ok %s: out %s err %s" % (self.command, out, err))
+            self.log.debug("cmd ok %s: out %s err %s", self.command, out, err)
         return out, err
 
 
@@ -196,5 +197,5 @@ class RunInScreen(Command):
     def run(self, command):
         self.command = self.command_templ[:]
         self.command[-1] = self.command[-1] % command
-        self.log.debug("Added command %s to create real command %s" % (command, self.command))
+        self.log.debug("Added command %s to create real command %s", command, self.command)
         Command.run(self)

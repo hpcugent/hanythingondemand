@@ -64,12 +64,12 @@ def _setup_config_paths(precfg, resolver):
     for d in precfg.directories:
         _ignore_eexist(lambda: os.makedirs(resolver(d)))
 
-    _log.info("Looking up config_writer %s" % (len(precfg.config_writer)))
+    _log.info("Looking up config_writer %s", len(precfg.config_writer))
     config_writer = service_config_fn(precfg.config_writer)
 
-    _log.info("Copying %d config files to %s" % (len(precfg.service_configs), precfg.configdir))
+    _log.info("Copying %d config files to %s", len(precfg.service_configs), precfg.configdir)
     for dest_file, cfg in precfg.service_configs.items():
-        _log.info("Copying config %s file to '%s'" % (cfg, precfg.configdir))
+        _log.info("Copying config %s file to '%s'", cfg, precfg.configdir)
         dest_path = mkpath(precfg.configdir, dest_file)
         write_service_config(dest_path, cfg, config_writer, resolver)
 
@@ -86,10 +86,10 @@ class ConfiguredMaster(MpiService):
         self.tasks = []
         m_config_filenames = self.options.options.config_config
         m_config_filenames = parse_comma_delim_list(m_config_filenames)
-        self.log.info('Loading "%s" manifest config'  % m_config_filenames)
+        self.log.info('Loading "%s" manifest config', m_config_filenames)
 
         m_config = preserviceconfigopts_from_file_list(m_config_filenames)
-        self.log.debug('Loaded manifest config: %s'  % str(m_config))
+        self.log.debug('Loaded manifest config: %s', str(m_config))
 
         reg = TemplateRegistry()
         register_templates(reg, m_config.workdir)
@@ -99,15 +99,16 @@ class ConfiguredMaster(MpiService):
         _setup_config_paths(m_config, resolver)
 
         master_env = dict([(v, os.getenv(v)) for v in m_config.master_env])
-        self.log.debug('MasterEnv is: %s' % env2str(master_env))
+        self.log.debug('MasterEnv is: %s', env2str(master_env))
 
         svc_cfgs = m_config.service_files
-        self.log.info('Loading %d service configs.'  % len(svc_cfgs))
+        self.log.info('Loading %d service configs.', len(svc_cfgs))
         for config_filename in svc_cfgs:
-            self.log.info('Loading "%s" service config'  % config_filename)
+            self.log.info('Loading "%s" service config', config_filename)
             config = ConfigOpts(open(config_filename, 'r'), resolver)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
-            self.log.debug('Adding ConfiguredService Task to work with config: %s' % str(config))
+            self.log.debug('Adding ConfiguredService Task to work with config: %s',
+                    str(config))
             cfg_opts = ConfigOptsParams(config_filename, m_config.workdir, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
 
@@ -128,9 +129,9 @@ class ConfiguredSlave(MpiService):
         m_config_filenames = self.options.options.config_config
         m_config_filenames = parse_comma_delim_list(m_config_filenames)
 
-        self.log.info('Loading "%s" manifest config'  % m_config_filenames)
+        self.log.info('Loading "%s" manifest config', m_config_filenames)
         m_config = preserviceconfigopts_from_file_list(m_config_filenames)
-        self.log.debug('Loaded manifest config: %s'  % str(m_config))
+        self.log.debug('Loaded manifest config: %s', str(m_config))
 
         reg = TemplateRegistry()
         register_templates(reg, m_config.workdir)

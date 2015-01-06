@@ -108,7 +108,7 @@ def sorted_network(network):
     for intf in network:
         if ib_reg.search(intf.device):
             if not intf in nw:
-                _log.debug("Added intf %s as ib interface" % str(intf))
+                _log.debug("Added intf %s as ib interface", str(intf))
                 nw.append(intf)
 
     # final selection prefer non-vlan
@@ -117,23 +117,27 @@ def sorted_network(network):
     for intf in network:
         if not (vlan_reg.search(intf.device) or loopback_reg.search(intf.device)):
             if not intf in nw:
-                _log.debug("Added intf %s as non-vlan or non-loopback interface" % str(intf))
+                _log.debug("Added intf %s as non-vlan or non-loopback interface",
+                        str(intf))
                 nw.append(intf)
 
     # add remainder non-loopback
     for intf in network:
         if not loopback_reg.search(intf.device):
             if not intf in nw:
-                _log.debug("Added intf %s as remaining non-loopback interface" % str(intf))
+                _log.debug("Added intf %s as remaining non-loopback interface",
+                        str(intf))
                 nw.append(intf)
 
     # add remainder
     for intf in network:
         if not intf in nw:
-            _log.debug("Added intf %s as remaining interface" % str(intf))
+            _log.debug("Added intf %s as remaining interface",
+                    str(intf))
             nw.append(intf)
 
-    _log.debug("ordered network %s" % nw)
+    _log.debug("ordered network %s",
+            nw)
     return nw
 
 def get_memory():
@@ -149,8 +153,8 @@ def get_memory():
         try:
             value = line.split(':')[1].strip()
         except IndexError:
-            _log.error("No :-separated entry for line %s in %s" %
-                           (line, proc_meminfo_fn))
+            _log.error("No :-separated entry for line %s in %s",
+                           line, proc_meminfo_fn)
             continue
         reg = re_mem.search(value)
         if reg:
@@ -162,12 +166,12 @@ def get_memory():
             elif unit in ('kB',):
                 multi = 2 ** 10
             else:
-                _log.error("Unsupported memory unit %s in key %s value %s" % (unit, key, value))
+                _log.error("Unsupported memory unit %s in key %s value %s", unit, key, value)
             memory['meminfo'][key] = mem * multi
         else:
-            _log.error("Unknown memory entry in key %s value %s" % (key, value))
+            _log.error("Unknown memory entry in key %s value %s", key, value)
 
-    _log.debug("Collected meminfo %s" % memory['meminfo'])
+    _log.debug("Collected meminfo %s", memory['meminfo'])
     return memory
 
 
