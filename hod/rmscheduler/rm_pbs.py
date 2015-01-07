@@ -46,7 +46,7 @@ class Pbs(ResourceManagerScheduler):
         super(Pbs, self).__init__(options)
         self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
         self.options = options
-        self.log.debug("Provided options %s" % options)
+        self.log.debug("Provided options %s", options)
 
         self.pbs_server = pbs.pbs_default()
         self.pbsconn = pbs.pbs_connect(self.pbs_server)
@@ -60,7 +60,7 @@ class Pbs(ResourceManagerScheduler):
 
     def submit(self, txt):
         """Submit the jobscript txt, set self.jobid"""
-        self.log.debug("Going to submit script %s" % txt)
+        self.log.debug("Going to submit script %s", txt)
 
         attropl = pbs.new_attropl(2)  # jobparams
         attropl[0].name = 'Job_Name'
@@ -88,7 +88,7 @@ class Pbs(ResourceManagerScheduler):
                 # # use destination field of pbs_submit
                 pass
             else:
-                self.log.error('Unknown arg %s' % arg)
+                self.log.error('Unknown arg %s', arg)
                 tmpattropl = pbs.new_attropl(0)
 
             attropl.extend(tmpattropl)
@@ -114,7 +114,7 @@ class Pbs(ResourceManagerScheduler):
         queue = self.args.get(
             'queue', self.options.get('queue', ''))  # do not set with attropl
         if queue:
-            self.log.debug("Going to submit to queue %s" % queue)
+            self.log.debug("Going to submit to queue %s", queue)
         else:
             self.log.debug("No queue specified. Will submit to default destination.")
 
@@ -123,10 +123,10 @@ class Pbs(ResourceManagerScheduler):
 
         is_error, errormsg = pbs.error()
         if is_error:
-            self.log.error("Failed to submit job script %s: error %s" %
-                           (scriptfn, errormsg))
+            self.log.error("Failed to submit job script %s: error %s",
+                           scriptfn, errormsg)
         else:
-            self.log.debug("Succesful jobsubmission returned jobid %s" % jobid)
+            self.log.debug("Succesful jobsubmission returned jobid %s", jobid)
             self.jobid = jobid
             os.remove(scriptfn)
 
@@ -155,8 +155,8 @@ class Pbs(ResourceManagerScheduler):
             return res[:num]
         ehosts = [get_uniq_hosts(x.get('exec_host', '')) for x in state]
 
-        self.log.debug("Jobid  %s jid %s state %s ehosts %s (%s)" %
-                       (jobid, jid, jstate, ehosts, state))
+        self.log.debug("Jobid  %s jid %s state %s ehosts %s (%s)",
+                       jobid, jid, jstate, ehosts, state)
 
         joined = zip(jid, jstate, [''.join(x[:1]) for x in ehosts])  # only use first node (don't use [0], job in Q have empty list; use ''.join to make string)
         temp = "Id %s State %s Node %s"
@@ -168,25 +168,25 @@ class Pbs(ResourceManagerScheduler):
             msg = "Found %s jobs\n" % len(joined)
             for j in joined:
                 msg += "    %s\n" % (temp % tuple(j))
-        self.log.debug("msg %s" % msg)
+        self.log.debug("msg %s", msg)
 
         return msg
 
     def info(self, jobid, types=None, job_filter=None):
         """Return jobinfo"""
-        # # TODO restrict to current user jobs
+        # TODO restrict to current user jobs
         if type(types) is str:
             types = [types]
-        self.log.debug("Return info types %s" % types)
+        self.log.debug("Return info types %s", types)
 
-        # # add all filter values to the types
+        # add all filter values to the types
         if job_filter is None:
             job_filter = {}
-        self.log.debug("Job filter passed %s" % job_filter)
+        self.log.debug("Job filter passed %s", job_filter)
         if self.job_filter is not None:
-            self.log.debug("Job filter update with %s" % self.job_filter)
+            self.log.debug("Job filter update with %s", self.job_filter)
             job_filter.update(self.job_filter)
-        self.log.debug("Job filter used %s" % job_filter)
+        self.log.debug("Job filter used %s", job_filter)
 
         for filter_name in job_filter.keys():
             if not filter_name in types:
@@ -203,15 +203,15 @@ class Pbs(ResourceManagerScheduler):
         if len(jobs) == 0:
             res = [dict([(typ, None) for typ in types + ['id']])]  # add id
             res = []  # return nothing
-            self.log.debug("No job found. Wrong id %s or job finished? Returning %s" % (jobid, res))
+            self.log.debug("No job found. Wrong id %s or job finished? Returning %s",
+                    jobid, res)
             return res
         elif len(jobs) == 1:
-            self.log.debug(
-                "Request for jobid %s returned one result %s" % (jobid, jobs))
+            self.log.debug("Request for jobid %s returned one result %s", jobid, jobs)
         else:
-            self.log.error("Request for jobid %s returned more then one result %s" % (jobid, jobs))
+            self.log.error("Request for jobid %s returned more then one result %s", jobid, jobs)
 
-        # # more then one, return value
+        # more then one, return value
         res = []
         for j in jobs:
             job_details = dict(
@@ -219,7 +219,7 @@ class Pbs(ResourceManagerScheduler):
             job_details['id'] = j.name  # add id
             if self.match_filter(job_details, job_filter):
                 res.append(job_details)
-        self.log.debug("Found jobinfo %s" % res)
+        self.log.debug("Found jobinfo %s", res)
         return res
 
     def match_filter(self, job, filter=None):
@@ -243,9 +243,9 @@ class Pbs(ResourceManagerScheduler):
         result = pbs.pbs_deljob(self.pbsconn, self.jobid, '')  # use empty string, not NULL (one can pass the deldelay=nnnn option)
         if result:
             self.log.error(
-                "Failed to delete job %s: error %s" % (jobid, result))
+                "Failed to delete job %s: error %s", jobid, result)
         else:
-            self.log.debug("Succesfully deleted job %s" % jobid)
+            self.log.debug("Succesfully deleted job %s", jobid)
 
     def header(self):
         """Return the script header that requests the properties.
@@ -260,7 +260,8 @@ class Pbs(ResourceManagerScheduler):
         mail_others = self.options.get('mailothers', [])
         queue = self.options.get('queue', 'default')
 
-        self.log.debug("Arguments nodes %s, ppn %s, walltime %s, mail %s, mail_others %s, queue %s" % (nodes, ppn, walltime, mail, mail_others, queue))
+        self.log.debug("Arguments nodes %s, ppn %s, walltime %s, mail %s, mail_others %s, queue %s",
+                nodes, ppn, walltime, mail, mail_others, queue)
         if nodes is None:
             nodes = 1
 
@@ -274,12 +275,12 @@ class Pbs(ResourceManagerScheduler):
         m, s = divmod(walltime, 60)
         h, m = divmod(m, 60)
         # d, h = divmod(h, 24) ## no days
-        # # also prints leading 0s (do not insert if x > 0 (eg print 1:0)!
+        # also prints leading 0s (do not insert if x > 0 (eg print 1:0)!
         # walltimetxt = ":".join(["%02d" % x for x in [ d,h, m, s]]) ## no days
         walltimetxt = ":".join(["%02d" % x for x in [h, m, s]])
 
-        self.log.debug("Going to generate for nodes %s, ppn %s, walltime %s" %
-                       (nodes, ppn, walltimetxt))
+        self.log.debug("Going to generate for nodes %s, ppn %s, walltime %s",
+                       nodes, ppn, walltimetxt)
 
         self.args = {'resources': {'walltime': walltimetxt,
                                    'nodes': '%d:ppn=%d' % (nodes, ppn)
@@ -297,7 +298,7 @@ class Pbs(ResourceManagerScheduler):
             if mail_others:
                 self.args['mail']['others'] = ','.join(mail_others)
 
-        self.log.debug("Create args %s" % self.args)
+        self.log.debug("Create args %s", self.args)
 
         # # creating the header. Not used in submission!!
         opts = []
@@ -313,12 +314,12 @@ class Pbs(ResourceManagerScheduler):
                 if self.args[arg]:
                     opts.append('-q %s' % self.args[arg])
             else:
-                self.log.debug("Unknown arg %s. Not adding to args." % arg)
+                self.log.debug("Unknown arg %s. Not adding to args.", arg)
 
         hdr = ['## Not actually used. pbs_submit bypasses submit filter.']
         hdr += ["#PBS %s" % x for x in opts]
         self.log.debug(
-            "Created header %s (although not used by pbs_submit)" % hdr)
+            "Created header %s (although not used by pbs_submit)", hdr)
         return hdr
 
     def get_ppn(self):
@@ -334,7 +335,8 @@ class Pbs(ResourceManagerScheduler):
         # # return most frequent
         if not len(res):
             return None
-        freq_np, freq_count = max(res.iteritems(), key=lambda x:x[1])
-        self.log.debug("Found most frequent np %s (%s times) in interesni nodes %s" % (freq_np, freq_count, interesni_nodes))
+        freq_np, freq_count = max(res.iteritems(), key=lambda x: x[1])
+        self.log.debug("Found most frequent np %s (%s times) in interesting nodes %s",
+                freq_np, freq_count, interesni_nodes)
 
         return freq_np

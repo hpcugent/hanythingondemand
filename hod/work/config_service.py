@@ -50,19 +50,19 @@ class ConfiguredService(Work):
         """Run the ExecStartPre script"""
         rank = self.svc.rank
         if len(self._config.pre_start_script) == 0:
-            self.log.info('Prestarting %s service on rank %s: No work.' %
-                (self._config.name, rank))
+            self.log.info('Prestarting %s service on rank %s: No work.',
+                self._config.name, rank)
             return
         env = os.environ
         env.update(self._config.env)
         env.update(self._master_env)
 
-        self.log.info('Prestarting %s service on rank %s: "%s"' %
-                (self._config.name, rank, self._config.pre_start_script))
+        self.log.info('Prestarting %s service on rank %s: "%s"',
+                self._config.name, rank, self._config.pre_start_script)
         command = Command(self._config.pre_start_script, env=env)
         output = command.run()
-        self.log.info('Ran %s service on rank %s prestart script. Output: "%s"' %
-                (self._config.name, rank, output))
+        self.log.info('Ran %s service on rank %s prestart script. Output: "%s"',
+                self._config.name, rank, output)
 
     def start_work_service(self):
         """Start service by running the ExecStart script."""
@@ -71,14 +71,14 @@ class ConfiguredService(Work):
         env.update(self._master_env)
         rank = self.svc.rank
 
-        self.log.info('Starting %s service on rank %s: "%s"' %
-                (self._config.name, rank, self._config.start_script))
-        self.log.info("Env for %s service on rank %s: %s" % 
-                (self._config.name, rank, env2str(env)))
+        self.log.info('Starting %s service on rank %s: "%s"',
+                self._config.name, rank, self._config.start_script)
+        self.log.info("Env for %s service on rank %s: %s",
+                self._config.name, rank, env2str(env))
         command = Command(self._config.start_script, env=env)
         output = command.run()
-        self.log.info('Ran %s service on rank %s start script. Output: "%s"' % 
-                (self._config.name, rank, output))
+        self.log.info('Ran %s service on rank %s start script. Output: "%s"',
+                self._config.name, rank, output)
 
     def stop_work_service(self):
         """Stop service by running the ExecStop script."""
@@ -86,12 +86,12 @@ class ConfiguredService(Work):
         env.update(self._config.env)
         env.update(self._master_env)
         rank = self.svc.rank
-        self.log.info('Stopping %s service on rank %s: "%s"' %
-            (self._config.name, rank, self._config.stop_script))
+        self.log.info('Stopping %s service on rank %s: "%s"',
+            self._config.name, rank, self._config.stop_script)
         command = Command(self._config.stop_script, env=env)
         output = command.run()
-        self.log.info('Ran %s service on rank %s stop script. Output: "%s"' % 
-                (self._config.name, rank, output))
+        self.log.info('Ran %s service on rank %s stop script. Output: "%s"',
+                self._config.name, rank, output)
 
     def prepare_work_cfg(self):
         """Prepare the config: collect the parameters and make the necessary xml cfg files"""

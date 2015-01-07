@@ -69,7 +69,7 @@ class HodJob(Job):
         self.type = self.type_class(options_dict['rm'])
 
         # all jobqueries are filtered on this suffix
-        self.type.job_filter = {'Job_Name': '%s$' % self.name_suffix }
+        self.type.job_filter = {'Job_Name': '%s$' % self.name_suffix}
 
         self.run_in_cwd = True
 
@@ -91,22 +91,20 @@ class HodJob(Job):
         hodpythondir = os.path.abspath("%s/.." % bindir)
         hoddir = os.path.abspath("%s/../hod" % bindir)
 
-        self.log.debug("Found fullscriptname %s binname %s hoddir %s" %
-                       (fullscriptname, bindir, hoddir))
+        self.log.debug("Found fullscriptname %s binname %s hoddir %s",
+                       fullscriptname, bindir, hoddir)
 
         fn = None
         paths = [bindir, hoddir]
         for tmpdir in paths:
             fn = os.path.join(tmpdir, exe_name)
             if os.path.isfile(fn):
-                self.log.debug(
-                    "Found exe_name %s location %s" % (exe_name, fn))
+                self.log.debug("Found exe_name %s location %s", exe_name, fn)
                 break
             else:
                 fn = None
         if not fn:
-            self.log.error(
-                "No exe_name %s found in paths %s" % (exe_name, paths))
+            self.log.error("No exe_name %s found in paths %s", exe_name, paths)
 
         return fn, hodpythondir
 
@@ -114,7 +112,7 @@ class HodJob(Job):
         """Do stuff based upon options"""
         options_dict = self.options.dict_by_prefix()
         actions = options_dict['action']
-        self.log.debug("Found actions %s" % actions)
+        self.log.debug("Found actions %s", actions)
         if actions.get('create', False):
             self.submit()
             msg = self.type.state()
@@ -128,7 +126,7 @@ class HodJob(Job):
             msg = self.type.state()
             print msg
         else:
-            self.log.error("Unknown action in actions %s" % actions)
+            self.log.error("Unknown action in actions %s", actions)
 
 
 class MympirunHodOption(HodOption):
@@ -140,8 +138,8 @@ class MympirunHodOption(HodOption):
         descr = ['mympirun', 'Provide mympirun related options']
         prefix = 'mympirun'
 
-        self.log.debug("Add mympirun option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
+        self.log.debug("Add mympirun option parser prefix %s descr %s opts %s",
+                prefix, descr, opts)
         self.add_group_parser(opts, descr, prefix=prefix)
 
     def make_init(self):
@@ -171,7 +169,7 @@ class MympirunHod(HodJob):
 
         exe.extend(self.hodargs)
 
-        self.log.debug("Generated exe %s" % exe)
+        self.log.debug("Generated exe %s", exe)
         return [" ".join(exe)]
 
 
@@ -196,18 +194,19 @@ class EasybuildMMHod(MympirunHod):
         # TODO this is undefined, module should be provided via E, eg EBMODULENAME
         ebmodname_envvar = 'EBMODNAME%s' % modname.upper()
 
-        ebmodname =  os.environ.get(ebmodname_envvar, None)
+        ebmodname = os.environ.get(ebmodname_envvar, None)
         if ebmodname is None:
             # TODO: is this environment modules specific?
             env_list = 'LOADEDMODULES'
-            self.log.debug(('Missing environment variable %s,'
-                              ' going to guess it via %s and modname %s.') % (ebmodname_envvar, env_list, modname))
+            self.log.debug('Missing environment variable %s, going to guess it via %s and modname %s.',
+                    ebmodname_envvar, env_list, modname)
             candidates = [x for x in os.environ.get(env_list, '').split(':') if x.startswith(modname)]
             if candidates:
                 ebmodname = candidates[-1]
-                self.log.debug("Using guessed modulename %s" % ebmodname)
+                self.log.debug("Using guessed modulename %s", ebmodname)
             else:
-                self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.' % ebmodname_envvar)
+                self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.',
+                        ebmodname_envvar)
 
         self.modules.append(ebmodname)
 
@@ -215,10 +214,10 @@ class EasybuildMMHod(MympirunHod):
         config_filename = options.options.config_config
         if config_filename:
             config_filenames = parse_comma_delim_list(config_filename)
-            self.log.info('Loading "%s" manifest config'  % config_filenames)
+            self.log.info('Loading "%s" manifest config', config_filenames)
             precfg = preserviceconfigopts_from_file_list(config_filenames)
             for module in precfg.modules:
-                self.log.debug("Adding '%s' module to startup script." % module)
+                self.log.debug("Adding '%s' module to startup script.", module)
                 self.modules.append(module)
 
 class PbsEBMMHod(EasybuildMMHod):

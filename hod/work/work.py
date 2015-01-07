@@ -64,7 +64,8 @@ class Work(object):
         """What to do between start and stop (and how stop is triggered). Returns True is the wait is over"""
         now = time.time()
         if (now - self.work_start_time) > self.work_max_age:
-            self.log.debug("Work started at %s, now is %s, which is more then max_age %s" % (time.localtime(self.work_start_time), time.localtime(now), self.work_max_age))
+            self.log.debug("Work started at %s, now is %s, which is more then max_age %s",
+                    time.localtime(self.work_start_time), time.localtime(now), self.work_max_age)
             return True  # wait is over
 
     def do_work_start(self):
@@ -82,18 +83,17 @@ class Work(object):
         # # override mechanisms
         force_fn = os.path.join(self.controldir, 'force_stop')
         if os.path.isfile(force_fn):
-            self.log.warn(
-                "Force stop detected. work_wait was %s. return True" % ans)
+            self.log.warn("Force stop detected. work_wait was %s. return True", ans)
             return True
         else:
-            self.log.debug("No force stop file %s found" % force_fn)
+            self.log.debug("No force stop file %s found", force_fn)
 
         force_fn = os.path.join(self.controldir, 'force_continue')
         if os.path.isfile(force_fn):
-            self.log.warn("Force continue detected. work_wait was %s. return False" % ans)
+            self.log.warn("Force continue detected. work_wait was %s. return False", ans)
             return False
         else:
-            self.log.debug("No force continue file %s found" % force_fn)
+            self.log.debug("No force continue file %s found", force_fn)
 
         return ans
 

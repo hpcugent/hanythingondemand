@@ -45,7 +45,8 @@ class HodOption(GeneralOption):
         descr = ["Resource manager / Scheduler", "Provide resource manager/scheduler related options (eg number of nodes)"]
 
         prefix = 'rm'
-        self.log.debug("Add resourcemanager option parser prefix %s descr %s opts %s" % (prefix, descr, opts))
+        self.log.debug("Add resourcemanager option parser prefix %s descr %s opts %s", 
+                prefix, descr, opts)
         self.add_group_parser(opts, descr, prefix=prefix)
 
     def action_options(self):
@@ -58,8 +59,8 @@ class HodOption(GeneralOption):
         descr = ["Action", "What action to take"]
 
         prefix = 'action'
-        self.log.debug("Add action option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
+        self.log.debug("Add action option parser prefix %s descr %s opts %s",
+                prefix, descr, opts)
         self.add_group_parser(opts, descr, prefix=prefix)
 
     def config_options(self):
@@ -71,8 +72,8 @@ precendence.""", "string", "store", ''),
         descr = ["Config", "Configuration files options"]
 
         prefix = 'config'
-        self.log.debug("Add config option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
+        self.log.debug("Add config option parser prefix %s descr %s opts %s",
+                prefix, descr, opts)
         self.add_group_parser(opts, descr, prefix=prefix)
 
     def help_options(self):
@@ -82,8 +83,8 @@ precendence.""", "string", "store", ''),
         descr = ["Help", "Help options"]
 
         prefix = 'help'
-        self.log.debug("Add help option parser prefix %s descr %s opts %s" %
-                       (prefix, descr, opts))
+        self.log.debug("Add help option parser prefix %s descr %s opts %s",
+                prefix, descr, opts)
         self.add_group_parser(opts, descr, prefix=prefix)
 
 
