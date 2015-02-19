@@ -256,3 +256,23 @@ SOME_ENV=123""")
         env = dict(PATH="/usr/bin", LD_LIBRARY_PATH="something with spaces")
         self.assertEqual(hcc.env2str(env), 'LD_LIBRARY_PATH="something with spaces" PATH="/usr/bin" ')
 
+
+    def test_cfgget(self):
+        config = StringIO("""
+[Unit]
+Name=testconfig
+RunsOn=master
+
+[Service]
+daemon=$$MYPATH
+ExecStart=%(daemon)s/starter
+ExecStop=%(daemon)s/stopper
+
+[Environment]
+SOME_ENV=123""")
+        cfg = hcc.load_service_config(config)
+        self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon'), '$$MYPATH')
+        self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon', 'default'), '$$MYPATH')
+        self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon', 'default', daemon='override'), 'override')
+        self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon2', 'notfound'), 'notfound')
+        self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon2', 'notfound', daemon2='override'), 'override')

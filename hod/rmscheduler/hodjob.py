@@ -215,7 +215,7 @@ class EasybuildMMHod(MympirunHod):
         if config_filename:
             config_filenames = parse_comma_delim_list(config_filename)
             self.log.info('Loading "%s" manifest config', config_filenames)
-            precfg = preserviceconfigopts_from_file_list(config_filenames)
+            precfg = preserviceconfigopts_from_file_list(config_filenames, workdir=options.options.config_workdir)
             for module in precfg.modules:
                 self.log.debug("Adding '%s' module to startup script.", module)
                 self.modules.append(module)

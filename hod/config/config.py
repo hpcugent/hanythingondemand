@@ -89,8 +89,13 @@ def _parse_runs_on(s):
     options = dict(master=RUNS_ON_MASTER, slave=RUNS_ON_SLAVE, all=RUNS_ON_ALL)
     return options[s.lower()]
 
-def _cfgget(config, section, item, dflt=None):
-    '''Get a value from a ConfigParser object or a default if it's not there.'''
+def _cfgget(config, section, item, dflt=None, **kwargs):
+    '''
+    Get a value from a ConfigParser object or a default if it's not there.
+    Options in kwargs come from the command line and override the config.
+    '''
+    if item in kwargs:
+        return kwargs.get(item)
     if dflt is None:
         return config.get(section, item)
     try:
@@ -117,11 +122,11 @@ class PreServiceConfigOpts(object):
 
     OPTIONAL_FIELDS=['master_env', 'modules', 'service_configs', 'directories']
 
-    def __init__(self, fileobj):
+    def __init__(self, fileobj, **kwargs):
         _config = load_service_config(fileobj)
         self.version = _cfgget(_config, _META_SECTION, 'version', '')
 
-        self.workdir = _cfgget(_config, _CONFIG_SECTION, 'workdir', '')
+        self.workdir = _cfgget(_config, _CONFIG_SECTION, 'workdir', '', **kwargs)
         fileobj_dir = _fileobj_dir(fileobj)
 
         def _fixup_path(cfg):
@@ -155,9 +160,9 @@ class PreServiceConfigOpts(object):
                         self.service_files, self.directories,
                         self.config_writer, self.service_configs)
 
-def preserviceconfigopts_from_file_list(filenames):
+def preserviceconfigopts_from_file_list(filenames, **kwargs):
     """Create and merge PreServiceConfigOpts from a list of filenames."""
-    precfgs = [PreServiceConfigOpts(open(f, 'r')) for f in filenames]
+    precfgs = [PreServiceConfigOpts(open(f, 'r'), **kwargs) for f in filenames]
     precfg = reduce(merge, precfgs)
     bad_fields = invalid_fields(precfg)
     if bad_fields:
