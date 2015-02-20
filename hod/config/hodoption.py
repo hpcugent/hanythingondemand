@@ -68,7 +68,7 @@ class HodOption(GeneralOption):
         opts = {'config': ("""Top level configuration file. This can be
 a comma separated list of config files with the later files taking
 precendence.""", "string", "store", ''),
-                'workdir': ("""Working directory""", "string", "store", ''),
+                'workdir': ("""Working directory""", "string", "store", None),
                 }
         descr = ["Config", "Configuration files options"]
 

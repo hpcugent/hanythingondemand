@@ -37,7 +37,7 @@ from vsc import fancylogger
 import socket
 import time
 
-import hod.node as node
+import hod.node.node as node
 
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)

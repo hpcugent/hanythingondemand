@@ -94,8 +94,8 @@ def _cfgget(config, section, item, dflt=None, **kwargs):
     Get a value from a ConfigParser object or a default if it's not there.
     Options in kwargs come from the command line and override the config.
     '''
-    if item in kwargs:
-        return kwargs.get(item)
+    if item in kwargs and kwargs[item] is not None:
+        return kwargs[item]
     if dflt is None:
         return config.get(section, item)
     try:

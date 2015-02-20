@@ -88,7 +88,8 @@ class ConfiguredMaster(MpiService):
         m_config_filenames = parse_comma_delim_list(m_config_filenames)
         self.log.info('Loading "%s" manifest config', m_config_filenames)
 
-        m_config = preserviceconfigopts_from_file_list(m_config_filenames)
+        m_config = preserviceconfigopts_from_file_list(m_config_filenames,
+                workdir=self.options.options.config_workdir)
         self.log.debug('Loaded manifest config: %s', str(m_config))
 
         reg = TemplateRegistry()
@@ -130,7 +131,8 @@ class ConfiguredSlave(MpiService):
         m_config_filenames = parse_comma_delim_list(m_config_filenames)
 
         self.log.info('Loading "%s" manifest config', m_config_filenames)
-        m_config = preserviceconfigopts_from_file_list(m_config_filenames)
+        m_config = preserviceconfigopts_from_file_list(m_config_filenames,
+                workdir=self.options.options.config_workdir)
         self.log.debug('Loaded manifest config: %s', str(m_config))
 
         reg = TemplateRegistry()
