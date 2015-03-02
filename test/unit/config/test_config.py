@@ -1,5 +1,5 @@
 ###
-# Copyright 2009-2014 Ghent University
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -82,6 +82,27 @@ wibble.class=super
         precfg = hcc.PreServiceConfigOpts(config)
         self.assertEqual(hcc.invalid_fields(precfg), ['version',
             'workdir', 'service_files'])
+
+    def test_PreServiceConfigOpts_autogen_hadoop(self):
+        config = StringIO("""
+[Meta]
+version=1
+
+[Config]
+master_env=TMPDIR
+modules=powerlevel/9001,scouter/1.0
+services=scouter.conf
+workdir=/tmp
+config_writer=hod.config.writer.scouter_yaml
+directories=/dfs/name,/dfs/data
+autogen=hadoop
+        """)
+        precfg = hcc.PreServiceConfigOpts(config)
+        self.assertEqual(len(precfg.service_configs), 3)
+        self.assertTrue('core-site.xml' in precfg.service_configs)
+        self.assertTrue('mapred-site.xml' in precfg.service_configs)
+        self.assertTrue('yarn-site.xml' in precfg.service_configs)
+
 
 
     def test_PreServiceConfigOpts_merge(self):

@@ -33,6 +33,7 @@ from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
 
 from hod.config.template import mklocalworkdir
+from hod.config.autogen_hadoop import autogen_hadoop_config
 
 # hod manifest config sections
 _META_SECTION = 'Meta'
@@ -144,6 +145,9 @@ class PreServiceConfigOpts(object):
         self.config_writer = _cfgget(_config, _CONFIG_SECTION, 'config_writer', '')
 
         self.service_configs = _collect_configs(_config)
+        autogen = _cfgget(_config, _CONFIG_SECTION, 'autogen', '')
+        if autogen == 'hadoop':
+            self.service_configs = autogen_hadoop_config(self.workdir, self.service_configs)
 
     @property
     def localworkdir(self):
