@@ -90,6 +90,7 @@ class ConfiguredMaster(MpiService):
 
         m_config = preserviceconfigopts_from_file_list(m_config_filenames,
                 workdir=self.options.options.config_workdir)
+        m_config.autogen_configs()
         self.log.debug('Loaded manifest config: %s', str(m_config))
 
         reg = TemplateRegistry()
@@ -98,6 +99,7 @@ class ConfiguredMaster(MpiService):
             reg.register(ct)
         resolver = TemplateResolver(**reg.to_kwargs())
         _setup_config_paths(m_config, resolver)
+
 
         master_env = dict([(v, os.getenv(v)) for v in m_config.master_env])
         self.log.debug('MasterEnv is: %s', env2str(master_env))
@@ -133,6 +135,7 @@ class ConfiguredSlave(MpiService):
         self.log.info('Loading "%s" manifest config', m_config_filenames)
         m_config = preserviceconfigopts_from_file_list(m_config_filenames,
                 workdir=self.options.options.config_workdir)
+        m_config.autogen_configs()
         self.log.debug('Loaded manifest config: %s', str(m_config))
 
         reg = TemplateRegistry()

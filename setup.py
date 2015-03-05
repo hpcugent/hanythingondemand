@@ -94,6 +94,7 @@ PACKAGE = {
         'hod.commands',
         'hod.config',
         'hod.config.writer',
+        'hod.config.autogen',
         'hod.rmscheduler',
         'hod.node',
     ],

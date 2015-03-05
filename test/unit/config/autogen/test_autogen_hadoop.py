@@ -28,7 +28,7 @@ Nothing here for now.
 @author: Ewan Higgs (Ghent University)
 """
 
-import hod.config.autogen_hadoop as hca
+import hod.config.autogen.hadoop as hca
 import hod.config.template as hct
 import unittest
 from mock import patch, MagicMock
@@ -66,6 +66,8 @@ class TestConfigAutogenHadoop(unittest.TestCase):
         self.assertEqual(hca.format_memory(hca.parse_memory('9t')), '9t')
         self.assertEqual(hca.format_memory(hca.parse_memory('7.5m')), '7680k')
         self.assertEqual(hca.format_memory(hca.parse_memory('7.5m'), round_val=True), '8m')
+        # e.g. from our high memory machines
+        self.assertEqual(hca.format_memory(540950507520, round_val=True), '504g')
 
     def test_reserved_memory(self):
         self.assertEqual(hca.reserved_memory(1024**0), hca.parse_memory('2g'))
@@ -108,7 +110,7 @@ class TestConfigAutogenHadoop(unittest.TestCase):
         d = dict()
         with patch('os.statvfs', return_value=MagicMock(f_bsize=4194304)):
             d = hca.core_site_xml_defaults('/', node, d)
-        self.assertEqual(len(d), 4)
+        self.assertEqual(len(d), 8)
         self.assertEqual(d['fs.inmemory.size.mb'], 200)
         self.assertEqual(d['io.file.buffer.size'],  4194304)
         self.assertEqual(d['io.sort.factor'], 64)
@@ -120,11 +122,9 @@ class TestConfigAutogenHadoop(unittest.TestCase):
                 memory=dict(meminfo=dict(memtotal=68719476736)))
         d = dict()
         d = hca.mapred_site_xml_defaults('/', node, d)
-        self.assertEqual(len(d), 4)
-        self.assertEqual(d['mapreduce.map.memory.mb'], hca.parse_memory('8G'))
-        self.assertEqual(d['mapreduce.reduce.memory.mb'], hca.parse_memory('16G'))
-        self.assertEqual(d['mapreduce.map.java.opts'], '-Xmx6g')
-        self.assertEqual(d['mapreduce.reduce.java.opts'], '-Xmx13g')
+        self.assertEqual(len(d), 6)
+        self.assertEqual(d['mapreduce.map.memory.mb'], hca.parse_memory('8G') / (1024**2))
+        self.assertEqual(d['mapreduce.reduce.memory.mb'], hca.parse_memory('16G') / (1024**2))
 
     def test_yarn_site_xml_defaults(self):
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
@@ -132,27 +132,38 @@ class TestConfigAutogenHadoop(unittest.TestCase):
                 memory=dict(meminfo=dict(memtotal=68719476736)))
         d = dict()
         d = hca.yarn_site_xml_defaults('/', node, d)
-        self.assertEqual(len(d), 3)
-        self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], hca.parse_memory('64G'))
-        self.assertEqual(d['yarn.nodemanager.minimum-allocation-mb'], hca.parse_memory('8G'))
-        self.assertEqual(d['yarn.nodemanager.maximum-allocation-mb'], hca.parse_memory('64G'))
+        self.assertEqual(len(d), 9)
+        self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], hca.parse_memory('64G') / (1024**2))
+        self.assertEqual(d['yarn.nodemanager.minimum-allocation-mb'], hca.parse_memory('8G') / (1024**2))
+        self.assertEqual(d['yarn.nodemanager.maximum-allocation-mb'], hca.parse_memory('64G') / (1024**2))
 
-    def test_autogen_hadoop_config(self):
+    def test_capacity_scheduler_xml_defaults(self):
+        node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
+                cores=24, usablecores=[0, 1, 2, 3], topology=[0],
+                memory=dict(meminfo=dict(memtotal=68719476736)))
+        d = dict()
+        d = hca.capacity_scheduler_xml_defaults('/', node, d)
+        self.assertEqual(len(d), 3)
+        self.assertEqual(d['yarn.scheduler.capacity.root.queues'], 'default')
+        self.assertEqual(d['yarn.scheduler.capacity.root.default.capacity'], 100)
+        self.assertEqual(d['yarn.scheduler.capacity.root.default.minimum-user-limit-percent'], 100)
+
+    def test_autogen_config(self):
         d = {}
         with patch('os.statvfs', return_value=MagicMock(f_bsize=4194304)):
-            d = hca.autogen_hadoop_config('/', d)
-        print d
-        self.assertEqual(len(d), 3)
+            d = hca.autogen_config('/', d)
+        self.assertEqual(len(d), 4)
         self.assertTrue('core-site.xml' in d)
         self.assertTrue('mapred-site.xml' in d)
         self.assertTrue('yarn-site.xml' in d)
+        self.assertTrue('capacity-scheduler.xml' in d)
 
-    def test_autogen_hadoop_config_update(self):
+    def test_autogen_config_update(self):
         d = {'core-site.xml': {}}
         with patch('os.statvfs', return_value=MagicMock(f_bsize=4194304)):
-            d = hca.autogen_hadoop_config('/', d)
-        print d
-        self.assertEqual(len(d), 3)
+            d = hca.autogen_config('/', d)
+        self.assertEqual(len(d), 4)
         self.assertTrue('core-site.xml' in d)
         self.assertTrue('mapred-site.xml' in d)
         self.assertTrue('yarn-site.xml' in d)
+        self.assertTrue('capacity-scheduler.xml' in d)

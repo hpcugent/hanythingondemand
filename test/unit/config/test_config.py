@@ -98,7 +98,9 @@ directories=/dfs/name,/dfs/data
 autogen=hadoop
         """)
         precfg = hcc.PreServiceConfigOpts(config)
-        self.assertEqual(len(precfg.service_configs), 3)
+        self.assertEqual(len(precfg.service_configs), 0)
+        precfg.autogen_configs()
+        self.assertEqual(len(precfg.service_configs), 4)
         self.assertTrue('core-site.xml' in precfg.service_configs)
         self.assertTrue('mapred-site.xml' in precfg.service_configs)
         self.assertTrue('yarn-site.xml' in precfg.service_configs)
