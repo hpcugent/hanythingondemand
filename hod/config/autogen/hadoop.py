@@ -29,10 +29,13 @@ Nothing here for now.
 """
 
 from collections import namedtuple
+from os.path import dirname
+import errno
 import os
 import re
-
 from hod.node.node import Node
+
+__all__ = ['autogen_config']
 
 def parse_memory(memstr):
     '''
@@ -137,6 +140,15 @@ def memory_defaults(total_memory, ncores):
             num_containers,
             ram_per_container)
 
+def blocksize(path):
+    try:
+        return os.statvfs(path).f_bsize
+    except OSError, e:
+        if e.errno == errno.ENOENT:
+            return os.statvfs(dirname(path)).f_bsize
+        raise
+
+
 def set_default(d, key, val):
     '''If a value is not in dict d, set it'''
     if key not in d:
@@ -153,14 +165,18 @@ def core_site_xml_defaults(workdir, node_info, config_dict):
     '''
     Default entries for the core-site.xml config file.
     '''
-    blocksize = os.statvfs(workdir).f_bsize
 
-    dflts = {}
-    dflts['fs.inmemory.size.mb'] = 200
-    # If there is hdfs, probably don't set to this blocksize.
-    dflts['io.file.buffer.size'] = blocksize
-    dflts['io.sort.factor'] = 64
-    dflts['io.sort.mb'] = 256
+    dflts = {
+        'dfs.replication': 1,
+        'fs.defaultFS': 'file:///',
+        'fs.inmemory.size.mb': 200,
+        'hadoop.rpc.socket.factory.class.default': 'org.apache.hadoop.net.StandardSocketFactory',
+        'hadoop.tmp.dir': '$localworkdir',
+        # If there is hdfs, probably don't set to this blocksize.
+        'io.file.buffer.size': blocksize(workdir),
+        'io.sort.factor': 64,
+        'io.sort.mb': 256,
+    }
     return dflts
 
 def mapred_site_xml_defaults(workdir, node_info, config_dict):
@@ -170,11 +186,18 @@ def mapred_site_xml_defaults(workdir, node_info, config_dict):
     total_memory = int(node_info['memory']['meminfo']['memtotal'])
     ncores = len(node_info['usablecores'])
     mem_dflts = memory_defaults(total_memory, ncores)
-    dflts = {}
-    dflts['mapreduce.map.memory.mb'] = mem_dflts.ram_per_container
-    dflts['mapreduce.reduce.memory.mb'] = 2 * mem_dflts.ram_per_container
-    dflts['mapreduce.map.java.opts'] = '-Xmx%s' % format_memory(0.8 * mem_dflts.ram_per_container, round_val=True)
-    dflts['mapreduce.reduce.java.opts'] = '-Xmx%s' % format_memory(0.8 * 2 * mem_dflts.ram_per_container, round_val=True)
+
+    java_map_mem = format_memory(0.8 * mem_dflts.ram_per_container, round_val=True)
+    java_reduce_mem = format_memory(0.8 * 2 * mem_dflts.ram_per_container, round_val=True)
+
+    dflts = {
+        'mapreduce.framework.name': 'yarn',
+        'mapreduce.map.java.opts': '-Xmx%s' % java_map_mem,
+        'mapreduce.map.memory.mb': mem_dflts.ram_per_container / (1024**2),
+        'mapreduce.reduce.java.opts': '-Xmx%s' % java_reduce_mem,
+        'mapreduce.reduce.memory.mb': 2 * mem_dflts.ram_per_container / (1024**2),
+        'yarn.app.mapreduce.am.staging-dir': '$localworkdir/tmp/hadoop-yarn/staging',
+    }
     return dflts
 
 def yarn_site_xml_defaults(workdir, node_info, config_dict):
@@ -185,24 +208,46 @@ def yarn_site_xml_defaults(workdir, node_info, config_dict):
     ncores = len(node_info['usablecores'])
     mem_dflts = memory_defaults(total_memory, ncores)
 
-    dflts = {}
-    dflts['yarn.nodemanager.resource.memory-mb'] = mem_dflts.ram_per_container * mem_dflts.num_containers
-    dflts['yarn.nodemanager.minimum-allocation-mb'] = mem_dflts.ram_per_container
-    dflts['yarn.nodemanager.maximum-allocation-mb'] = mem_dflts.ram_per_container * mem_dflts.num_containers
+    max_alloc = mem_dflts.ram_per_container * mem_dflts.num_containers / (1024**2)
+    min_alloc = mem_dflts.ram_per_container / (1024**2)
+    dflts = {
+        'yarn.nodemanager.aux-services': 'mapreduce_shuffle',
+        'yarn.nodemanager.maximum-allocation-mb': max_alloc,
+        'yarn.nodemanager.minimum-allocation-mb': min_alloc,
+        'yarn.nodemanager.resource.memory-mb': max_alloc,
+        'yarn.nodemanager.vmem-check-enabled':'false',
+        'yarn.nodemanager.vmem-pmem-ratio': 2.1,
+        'yarn.resourcemanager.hostname': '$masterdataname',
+        'yarn.resourcemanager.scheduler.class':'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler',
+        'yarn.scheduler.capacity.allocation.file': 'capacity-scheduler.xml',
+    }
     return dflts
 
-def autogen_hadoop_config(workdir, config_dict):
+def capacity_scheduler_xml_defaults(workdir, node_info, config_dict):
+    dflts = {
+        'yarn.scheduler.capacity.root.queues': 'default',
+        'yarn.scheduler.capacity.root.default.capacity': 100,
+        'yarn.scheduler.capacity.root.default.minimum-user-limit-percent': 100,
+    }
+    return dflts
+
+def autogen_config(workdir, config_dict):
     '''
     Bless a hadoop config with automatically generated information based on
     the nodes. i.e. memory settings and file system block size.
+
+    NB: The name is important here; it must be 'autogen_config' as it's loaded lazily from 
+    hod.config.config.
+
     '''
     node = Node()
     node_info = node.go()
     cfg2fn = {
-            'core-site.xml': core_site_xml_defaults,
-            'mapred-site.xml': mapred_site_xml_defaults,
-            'yarn-site.xml': yarn_site_xml_defaults,
-            }
+        'core-site.xml': core_site_xml_defaults,
+        'mapred-site.xml': mapred_site_xml_defaults,
+        'yarn-site.xml': yarn_site_xml_defaults,
+        'capacity-scheduler.xml': capacity_scheduler_xml_defaults,
+    }
     for cfg, fn in cfg2fn.items():
         dflts = fn(workdir, node_info, config_dict)
         if cfg not in config_dict:

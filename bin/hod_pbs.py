@@ -34,6 +34,7 @@ import sys
 from hod.rmscheduler.hodjob import PbsEBMMHod, MympirunHodOption
 
 from vsc.utils import fancylogger
+_log = fancylogger.getLogger(fname=False)
 
 def main(args):
     try:
@@ -43,7 +44,7 @@ def main(args):
     except StandardError, e:
         fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
         fancylogger.logToScreen(enable=True)
-        fancylogger.raiseException(e)
+        _log.raiseException(e.message)
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))

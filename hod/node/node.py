@@ -103,22 +103,29 @@ def sorted_network(network):
     # step 1 alphabetical ordering (who knows in what order ip returns the addresses) on hostname field
     network.sort()
 
+    # filter for interfaces which have not been assigned hostnames
+    ip_hostname = re.compile(r"^\d+\.\d+\.\d+\.\d+$")
+
     # look for ib network
     ib_reg = re.compile(r"^(ib)\d+$")
     for intf in network:
-        if ib_reg.search(intf.device):
+        if ib_reg.search(intf.device) and not ip_hostname.search(intf.hostname):
             if not intf in nw:
                 _log.debug("Added intf %s as ib interface", str(intf))
+                print 'adding ib', intf
                 nw.append(intf)
 
     # final selection prefer non-vlan
     vlan_reg = re.compile(r"^(.*)\.\d+$")
     loopback_reg = re.compile(r"^(lo)\d*$")
     for intf in network:
-        if not (vlan_reg.search(intf.device) or loopback_reg.search(intf.device)):
+        if not (vlan_reg.search(intf.device) or 
+                loopback_reg.search(intf.device) or
+                ip_hostname.search(intf.hostname)):
             if not intf in nw:
                 _log.debug("Added intf %s as non-vlan or non-loopback interface",
                         str(intf))
+                print 'adding intf', intf
                 nw.append(intf)
 
     # add remainder non-loopback
@@ -127,6 +134,7 @@ def sorted_network(network):
             if not intf in nw:
                 _log.debug("Added intf %s as remaining non-loopback interface",
                         str(intf))
+                print 'adding other', intf
                 nw.append(intf)
 
     # add remainder

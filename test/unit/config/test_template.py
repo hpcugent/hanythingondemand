@@ -50,6 +50,7 @@ class TestConfigTemplate(unittest.TestCase):
 
     def test_resolve_config_str(self):
         self.assertEqual(hct.resolve_config_str('someval', **dict(configdir='someval')), 'someval')
+        self.assertEqual(hct.resolve_config_str(47, **dict(configdir='someval')), 47)
 
     def test_TemplateResolver(self):
         with patch('hod.config.template.os.environ', dict(BINDIR='/usr/bin')):

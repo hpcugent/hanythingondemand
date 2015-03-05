@@ -28,6 +28,7 @@
 import unittest
 from mock import patch
 import socket
+import copy
 import hod.node.node as hn
 
 class HodNodeTestCase(unittest.TestCase):
@@ -168,7 +169,22 @@ class HodNodeTestCase(unittest.TestCase):
         '''test sorted_network puts IB before loopback'''
         nw = [hn.NetworkInterface('localhost', '127.0.0.1', 'lo', 8),
               hn.NetworkInterface('localhost', '127.0.0.1', 'ib3', 8)]
-        self.assertEqual([nw[1], nw[0]], hn.sorted_network(nw))
+        sorted_nw = hn.sorted_network(copy.copy(nw))
+        self.assertEqual([nw[1], nw[0]], sorted_nw)
+
+    def test_sorted_networks_multiple_infiniband(self):
+        '''
+        We don't want to use infiniband interfaces that haven't had a
+        hostname assigned to them.
+        '''
+        nw = [hn.NetworkInterface('localhost', '127.0.0.1', 'lo', 8),
+              hn.NetworkInterface('wibble01.wibble.os', '10.1.1.2', 'em1', 16),
+              hn.NetworkInterface('wibble01.sitename.tld', '157.193.16.9', 'em3', 25),
+              hn.NetworkInterface('wibble01.wibble.data', '10.143.13.2', 'ib0', 16),
+              hn.NetworkInterface('10.143.113.2', '10.143.113.2', 'ib1', 16)]
+        sorted_nw = hn.sorted_network(copy.copy(nw))
+        print sorted_nw
+        self.assertEqual([nw[3], nw[2], nw[1], nw[4], nw[0]], sorted_nw)
 
     def test_node_get_memory(self):
         '''test node get memory'''

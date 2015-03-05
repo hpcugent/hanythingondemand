@@ -33,7 +33,6 @@ from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
 
 from hod.config.template import mklocalworkdir
-from hod.config.autogen_hadoop import autogen_hadoop_config
 
 # hod manifest config sections
 _META_SECTION = 'Meta'
@@ -119,9 +118,9 @@ class PreServiceConfigOpts(object):
     can begin.
     """
     __slots__ = ['version', 'workdir', 'config_writer', 'directories',
-            'modules', 'service_configs', 'service_files', 'master_env']
+                 'autogen', 'modules', 'service_configs', 'service_files', 'master_env']
 
-    OPTIONAL_FIELDS=['master_env', 'modules', 'service_configs', 'directories']
+    OPTIONAL_FIELDS=['master_env', 'modules', 'service_configs', 'directories', 'autogen']
 
     def __init__(self, fileobj, **kwargs):
         _config = load_service_config(fileobj)
@@ -145,9 +144,7 @@ class PreServiceConfigOpts(object):
         self.config_writer = _cfgget(_config, _CONFIG_SECTION, 'config_writer', '')
 
         self.service_configs = _collect_configs(_config)
-        autogen = _cfgget(_config, _CONFIG_SECTION, 'autogen', '')
-        if autogen == 'hadoop':
-            self.service_configs = autogen_hadoop_config(self.workdir, self.service_configs)
+        self.autogen = parse_comma_delim_list(_cfgget(_config, _CONFIG_SECTION, 'autogen', ''))
 
     @property
     def localworkdir(self):
@@ -156,6 +153,17 @@ class PreServiceConfigOpts(object):
     @property
     def configdir(self):
         return mkpath(self.localworkdir, 'conf')
+
+    def autogen_configs(self):
+        '''
+        Lazily generate the missing configurations as a convenience to
+        users.
+        This should only be run when processing the config file while the job is
+        being run (e.g. from hod_main.py).
+        '''
+        for autocfg in self.autogen:
+            fn = autogen_fn(autocfg)
+            self.service_configs = fn(self.workdir, self.service_configs)
 
     def __str__(self):
         return 'PreServiceConfigOpts(version=%s, workdir=%s, modules=%s, ' \
@@ -316,10 +324,29 @@ class ConfigOpts(object):
         else:
             raise ValueError('ConfigOpts.runs_on has invalid value: %s' % self._runs_on)
 
+def autogen_fn(name):
+    """
+    Given a product name (hadoop, hdfs, etc), generate default configuration
+    parameters for things that haven't been defined yet.
+
+    Params
+    ------
+    name : `str`
+    Product name.
+
+    Returns
+    -------
+    Function taking a working directory (for detecting block sizes and so on)
+    and a dict of config settings.
+    """
+    module = import_module('hod.config.autogen.%s' % name)
+    return getattr(module, 'autogen_config')
+
 def service_config_fn(policy_path):
     """
     Given a module string ending in a function name, return the relevant
     function.
+
     Params
     ------
     policy_path : `str`
