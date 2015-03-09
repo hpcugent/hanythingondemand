@@ -41,6 +41,22 @@ def parse_memory(memstr):
     '''
     Given a string representation of memory, return the memory size in
     bytes. It supports up to terabytes.
+
+    No size defaults to byte:
+
+    >>> parse_memory('200')
+    200
+
+    Also supports k for kilobytes:
+
+    >>> parse_memory('200k')
+    204800
+
+
+    kb, mb, gb, tb, etc also works:
+
+    >>> parse_memory('200kb')
+    204800
     '''
     size = re.search(r'[bBkKmMgGtT]', memstr)
     if size is not None:
@@ -49,7 +65,7 @@ def parse_memory(memstr):
     else:
         try:
             coef = float(memstr)
-        except ValueError, e:
+        except ValueError:
             raise RuntimeError('Unable to parse memory string:', memstr)
         exp = ''
 
@@ -63,35 +79,13 @@ def parse_memory(memstr):
         return coef * (1024 ** 3)
     elif exp in ['t', 'T']:
         return coef * (1024 ** 4)
+    # Should not be able to get here
     raise RuntimeError('Unable to parse memory amount:', memstr)
-
-def format_memory(mem, round_val=False):
-    '''
-    Given an integer 'mem', return the string with associated units Note
-    that this is used to set heap sizes for the jvm awhich doesn't accept non
-    integer sizes. Therefore this truncates.
-
-    If round_val is set, then the value will be rounded to the nearest unit
-    where mem will be over 1.
-
-    Note also that this supports outputting 'b' for bytes and java -Xmx${somenum}b won't work.
-    '''
-    units = 'bkmgt'
-    unit_idx = len(units) - 1
-    while unit_idx > 0:
-        mem_in_units = mem/(1024.**unit_idx)
-        if mem >= (1024**unit_idx):
-            if round_val:
-                return '%d%s' % (round(mem_in_units), units[unit_idx])
-            elif mem_in_units - int(mem_in_units) == 0:
-                return '%d%s' % (mem_in_units, units[unit_idx])
-        unit_idx -= 1
-    return '%db' % mem
 
 # mapping for total system memory -> reserved for OS
 # Retrieved from:
 # http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.0.6.0/bk_installing_manually_book/content/rpm-chap1-11.html
-MemRec = namedtuple('MemRec', ['total','os'])
+MemRec = namedtuple('MemRec', ['total', 'os'])
 _RECOMMENDATIONS = [
     MemRec(parse_memory('8g'), parse_memory('2g')),
     MemRec(parse_memory('16g'), parse_memory('2g')),
@@ -105,13 +99,55 @@ _RECOMMENDATIONS = [
     MemRec(parse_memory('512g'), parse_memory('64g')),
 ]
 
+MemDefaults = namedtuple('MemDefaults', [
+    'available_memory',
+    'min_container_sz',
+    'num_containers',
+    'ram_per_container'
+])
+
+
+def format_memory(mem, round_val=False):
+    '''
+    Given an integer 'mem' for the amount of memory in bytes, return the string
+    with associated units. If round_val is set, then the value will be rounded
+    to the nearest unit where mem will be over 1.
+
+    Note that this is used to set heap sizes for the jvm which doesn't accept
+    non integer sizes. Therefore this truncates.
+
+    Note also that this supports outputting 'b' for bytes even though java
+    -Xmx${somenum}b won't work.
+    '''
+    units = 'bkmgt'
+    unit_idx = len(units) - 1
+    while unit_idx > 0:
+        mem_in_units = mem/(1024.**unit_idx)
+        if mem >= (1024**unit_idx):
+            if round_val:
+                return '%d%s' % (round(mem_in_units), units[unit_idx])
+            elif mem_in_units - int(mem_in_units) == 0:
+                return '%d%s' % (mem_in_units, units[unit_idx])
+        unit_idx -= 1
+    return '%db' % mem
+
 def reserved_memory(totalmem):
+    '''
+    Given an amount of memory in bytes, return the amount of memory that
+    should be reserved by the operating system (also in bytes).
+    '''
     for mem in _RECOMMENDATIONS:
         if totalmem <= mem.total:
             return mem.os
+    # totalmem > 512g
     return _RECOMMENDATIONS[-1].os
 
 def min_container_size(totalmem):
+    '''
+    Given an amount of memory in bytes, return theh amount of memory that
+    represents the minimum amount of memory (in bytes) to be allocated in a Yarn
+    container.
+    '''
     if totalmem < parse_memory('4G'):
         return  256 * (1024**2)
     elif totalmem < parse_memory('8G'):
@@ -121,15 +157,10 @@ def min_container_size(totalmem):
     else:
         return 2 * (1024**3)
 
-MemDefaults = namedtuple('MemDefaults',
-        [
-            'available_memory',
-            'min_container_sz',
-            'num_containers',
-            'ram_per_container'
-        ])
-
 def memory_defaults(total_memory, ncores):
+    '''
+    Return default memory information.
+    '''
     available_memory = total_memory - reserved_memory(total_memory)
     min_container_sz = min_container_size(total_memory)
     num_containers = min(2*ncores, total_memory/min_container_sz)
@@ -141,6 +172,12 @@ def memory_defaults(total_memory, ncores):
             ram_per_container)
 
 def blocksize(path):
+    '''
+    Find the block size for the file system given a path. If the path points to
+    a directory that does not yet exist, use the parent directory under the
+    assumption that the provided path will appear later on the existing file
+    system (as opposed to being a new mount).
+    '''
     try:
         return os.statvfs(path).f_bsize
     except OSError, e:
@@ -236,8 +273,8 @@ def autogen_config(workdir, config_dict):
     Bless a hadoop config with automatically generated information based on
     the nodes. i.e. memory settings and file system block size.
 
-    NB: The name is important here; it must be 'autogen_config' as it's loaded lazily from 
-    hod.config.config.
+    NB: The name is important here; it must be 'autogen_config' as it's loaded
+    lazily from hod.config.config.
 
     '''
     node = Node()
