@@ -28,4 +28,3 @@ Config writers for the
 """
 
 from _hadoop import hadoop_xml
-from _detect import detected_xml

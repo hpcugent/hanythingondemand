@@ -28,30 +28,13 @@ Nothing here for now.
 @author: Ewan Higgs (Ghent University)
 """
 
-import hod.config.autogen.hadoop as hca
-import hod.config.autogen.common as hcc
-import hod.config.template as hct
 import unittest
 from mock import patch, MagicMock
 
-class TestConfigAutogenHadoop(unittest.TestCase):
-    def test_reserved_memory(self):
-        self.assertEqual(hca.reserved_memory(1024**0), hcc.parse_memory('2g'))
-        self.assertEqual(hca.reserved_memory(1024**1), hcc.parse_memory('2g'))
-        self.assertEqual(hca.reserved_memory(1024**2), hcc.parse_memory('2g'))
-        self.assertEqual(hca.reserved_memory(1024**2), hcc.parse_memory('2g'))
-        self.assertEqual(hca.reserved_memory(1024**3), hcc.parse_memory('2g'))
-        self.assertEqual(hca.reserved_memory(1024**4), hcc.parse_memory('64g'))
-        self.assertEqual(hca.reserved_memory(1024**5), hcc.parse_memory('64g'))
+import hod.config.autogen.common as hcc
+import hod.config.autogen.hadoop_on_lustre2 as hca
 
-    def test_min_container_size(self):
-        pm = hcc.parse_memory
-        self.assertEqual(hca.min_container_size(pm('2g')), pm('256m'))
-        self.assertEqual(hca.min_container_size(pm('4g')), pm('512m'))
-        self.assertEqual(hca.min_container_size(pm('8g')), pm('1g'))
-        self.assertEqual(hca.min_container_size(pm('16g')), pm('1g'))
-        self.assertEqual(hca.min_container_size(pm('24g')), pm('2g'))
-
+class TestConfigAutogenHadoopOnLustre(unittest.TestCase):
     def test_core_site_xml_defaults(self):
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
                 cores=24, usablecores=[0, 1, 2, 3], topology=[0],
@@ -60,6 +43,7 @@ class TestConfigAutogenHadoop(unittest.TestCase):
             d = hca.core_site_xml_defaults('/', node)
         self.assertEqual(len(d), 8)
         self.assertEqual(d['fs.inmemory.size.mb'], 200)
+        self.assertEqual(d['hadoop.tmp.dir'], '$workdir/tmp')
         self.assertEqual(d['io.file.buffer.size'],  4194304)
         self.assertEqual(d['io.sort.factor'], 64)
         self.assertEqual(d['io.sort.mb'], 256)
@@ -69,7 +53,9 @@ class TestConfigAutogenHadoop(unittest.TestCase):
                 cores=24, usablecores=[0, 1, 2, 3], topology=[0],
                 memory=dict(meminfo=dict(memtotal=68719476736)))
         d = hca.mapred_site_xml_defaults('/', node)
-        self.assertEqual(len(d), 6)
+        self.assertEqual(len(d), 8)
+        self.assertEqual(d['hadoop.ln.cmd'], '/bin/ln')
+        self.assertEqual(d['lustre.dir'], '$workdir')
         self.assertEqual(d['mapreduce.map.memory.mb'], hcc.parse_memory('8G') / (1024**2))
         self.assertEqual(d['mapreduce.reduce.memory.mb'], hcc.parse_memory('16G') / (1024**2))
 
@@ -78,31 +64,13 @@ class TestConfigAutogenHadoop(unittest.TestCase):
                 cores=24, usablecores=[0, 1, 2, 3], topology=[0],
                 memory=dict(meminfo=dict(memtotal=68719476736)))
         d = hca.yarn_site_xml_defaults('/', node)
-        self.assertEqual(len(d), 9)
+        self.assertEqual(len(d), 10)
         self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], hcc.parse_memory('64G') / (1024**2))
         self.assertEqual(d['yarn.nodemanager.minimum-allocation-mb'], hcc.parse_memory('8G') / (1024**2))
         self.assertEqual(d['yarn.nodemanager.maximum-allocation-mb'], hcc.parse_memory('64G') / (1024**2))
-
-    def test_capacity_scheduler_xml_defaults(self):
-        node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
-                cores=24, usablecores=[0, 1, 2, 3], topology=[0],
-                memory=dict(meminfo=dict(memtotal=68719476736)))
-        d = hca.capacity_scheduler_xml_defaults('/', node)
-        self.assertEqual(len(d), 3)
-        self.assertEqual(d['yarn.scheduler.capacity.root.queues'], 'default')
-        self.assertEqual(d['yarn.scheduler.capacity.root.default.capacity'], 100)
-        self.assertEqual(d['yarn.scheduler.capacity.root.default.minimum-user-limit-percent'], 100)
+        self.assertEqual(d['yarn.nodemanager.local-dirs'], '$workdir/$hostname')
 
     def test_autogen_config(self):
-        with patch('os.statvfs', return_value=MagicMock(f_bsize=4194304)):
-            d = hca.autogen_config('/')
-        self.assertEqual(len(d), 4)
-        self.assertTrue('core-site.xml' in d)
-        self.assertTrue('mapred-site.xml' in d)
-        self.assertTrue('yarn-site.xml' in d)
-        self.assertTrue('capacity-scheduler.xml' in d)
-
-    def test_autogen_config_update(self):
         with patch('os.statvfs', return_value=MagicMock(f_bsize=4194304)):
             d = hca.autogen_config('/')
         self.assertEqual(len(d), 4)
