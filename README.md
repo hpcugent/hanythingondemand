@@ -1,4 +1,6 @@
 # hanythingondemand  (HOD for short)
+[![Build
+Status](https://travis-ci.org/ehiggs/hanythingondemand.svg?branch=autoconf)](https://travis-ci.org/ehiggs/hanythingondemand)
 
 ## Goal
 hanythingondemand is a set of scripts to start a Hadoop cluster from within
