@@ -33,6 +33,7 @@ from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
 
 from hod.config.template import mklocalworkdir
+from hod.config.autogen.common import update_defaults
 
 # hod manifest config sections
 _META_SECTION = 'Meta'
@@ -164,7 +165,8 @@ class PreServiceConfigOpts(object):
         '''
         for autocfg in self.autogen:
             fn = autogen_fn(autocfg)
-            self.service_configs = fn(self.workdir, self.service_configs)
+            new_configs = fn(self.workdir)
+            update_defaults(self.service_configs, new_configs)
 
     def __str__(self):
         return 'PreServiceConfigOpts(version=%s, workdir=%s, modules=%s, ' \
