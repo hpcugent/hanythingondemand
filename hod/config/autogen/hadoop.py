@@ -31,7 +31,7 @@ Nothing here for now.
 from collections import namedtuple
 from hod.node.node import Node
 from hod.config.autogen.common import (blocksize,
-        parse_memory, format_memory)
+        parse_memory, format_memory, round_mb, cap)
 
 __all__ = ['autogen_config']
 
@@ -127,13 +127,18 @@ def mapred_site_xml_defaults(workdir, node_info):
 
     java_map_mem = format_memory(0.8 * mem_dflts.ram_per_container, round_val=True)
     java_reduce_mem = format_memory(0.8 * 2 * mem_dflts.ram_per_container, round_val=True)
-
+    # In my tests, Yarn gets shirty if I try to job if these values are set to
+    # more then 8g:
+    map_memory = cap(round_mb(mem_dflts.ram_per_container), 8192)
+    reduce_memory = cap(round_mb(2 * mem_dflts.ram_per_container), 8192)
     dflts = {
         'mapreduce.framework.name': 'yarn',
         'mapreduce.map.java.opts': '-Xmx%s' % java_map_mem,
-        'mapreduce.map.memory.mb': mem_dflts.ram_per_container / (1024**2),
+        'mapreduce.map.memory.mb': map_memory,
         'mapreduce.reduce.java.opts': '-Xmx%s' % java_reduce_mem,
-        'mapreduce.reduce.memory.mb': 2 * mem_dflts.ram_per_container / (1024**2),
+        'mapreduce.reduce.memory.mb': reduce_memory,
+        # io.sort.mb can't be > 2047mb
+        'mapreduce.task.io.sort.mb': min(int(0.4 * map_memory), 2047),
         'yarn.app.mapreduce.am.staging-dir': '$localworkdir/tmp/hadoop-yarn/staging',
     }
     return dflts

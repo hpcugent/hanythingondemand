@@ -110,4 +110,21 @@ class TestConfigAutogenCommon(unittest.TestCase):
         self.assertEqual(x['b'], 2)
         self.assertEqual(x['c'], 0)
 
+    def test_round_mb(self):
+        mb = 1024
+        self.assertEqual(hcc.round_mb(512 * (1024**3)), 512 * mb)
+        self.assertEqual(hcc.round_mb(64 * (1024**3)), 64 * mb)
+        self.assertEqual(hcc.round_mb(32 * (1024**3)), 32 * mb)
+        self.assertEqual(hcc.round_mb(32 * (1024**3) + 100*(1024**2)), 32 * mb)
+        self.assertEqual(hcc.round_mb(32 * (1024**3) - 100*(1024**2)), 32 * mb - 1024)
+        self.assertEqual(hcc.round_mb(16 * (1024**3)), 16 * mb)
+        self.assertEqual(hcc.round_mb(8 * (1024**3)), 8 * mb)
+        self.assertEqual(hcc.round_mb(4 * (1024**3)), 4 * mb)
+        self.assertEqual(hcc.round_mb(3 * (1024**3)), 3 * mb)
+        self.assertEqual(hcc.round_mb(2 * (1024**3)), 2 * mb)
 
+    def test_cap(self):
+        self.assertEqual(hcc.cap(10, 10), 10)
+        self.assertEqual(hcc.cap(-10, 10), -10)
+        self.assertEqual(hcc.cap(-10, 0), -10)
+        self.assertEqual(hcc.cap(10, 0), 0)
