@@ -53,11 +53,11 @@ class TestConfigAutogenHadoopOnLustre(unittest.TestCase):
                 cores=24, usablecores=[0, 1, 2, 3], topology=[0],
                 memory=dict(meminfo=dict(memtotal=68719476736)))
         d = hca.mapred_site_xml_defaults('/', node)
-        self.assertEqual(len(d), 8)
+        self.assertEqual(len(d), 9)
         self.assertEqual(d['hadoop.ln.cmd'], '/bin/ln')
         self.assertEqual(d['lustre.dir'], '$workdir')
         self.assertEqual(d['mapreduce.map.memory.mb'], hcc.parse_memory('8G') / (1024**2))
-        self.assertEqual(d['mapreduce.reduce.memory.mb'], hcc.parse_memory('16G') / (1024**2))
+        self.assertEqual(d['mapreduce.reduce.memory.mb'], hcc.parse_memory('8G') / (1024**2))
 
     def test_yarn_site_xml_defaults(self):
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
