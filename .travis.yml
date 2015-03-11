@@ -1,7 +1,0 @@
-language: python
-before_install:
-    - sudo apt-get update && sudo apt-get install openmpi-bin openmpi-dev openmpi1.6
-install:
-    - pip install tox
-script:
-    - tox
