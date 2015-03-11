@@ -1,0 +1,7 @@
+language: python
+before_install:
+    - sudo apt-get update && sudo apt-get install -y libpython-dev libtorque2-dev libopenmpi-dev openmpi-bin
+install:
+     - pip install tox
+script:
+    - tox
