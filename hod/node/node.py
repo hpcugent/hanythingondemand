@@ -33,6 +33,7 @@ import socket
 import netifaces
 import netaddr
 from collections import namedtuple
+from hod.commands.command import ULimit
 
 from vsc.utils.affinity import sched_getaffinity
 
@@ -112,7 +113,6 @@ def sorted_network(network):
         if ib_reg.search(intf.device) and not ip_hostname.search(intf.hostname):
             if not intf in nw:
                 _log.debug("Added intf %s as ib interface", str(intf))
-                print 'adding ib', intf
                 nw.append(intf)
 
     # final selection prefer non-vlan
@@ -125,7 +125,6 @@ def sorted_network(network):
             if not intf in nw:
                 _log.debug("Added intf %s as non-vlan or non-loopback interface",
                         str(intf))
-                print 'adding intf', intf
                 nw.append(intf)
 
     # add remainder non-loopback
@@ -134,7 +133,6 @@ def sorted_network(network):
             if not intf in nw:
                 _log.debug("Added intf %s as remaining non-loopback interface",
                         str(intf))
-                print 'adding other', intf
                 nw.append(intf)
 
     # add remainder
@@ -148,13 +146,12 @@ def sorted_network(network):
             nw)
     return nw
 
-def get_memory():
-    """Extract information about the available memory"""
-    memory = {}
-    memory['meminfo'] = {}
+
+def _get_memory_proc_meminfo():
     re_mem = re.compile(r"^\s*(?P<mem>\d+)(?P<unit>(?:k)B)?\s*$")
-    proc_meminfo_fn = '/proc/meminfo'
-    for line in open(proc_meminfo_fn).read().replace(' ', '').split('\n'):
+    proc_meminfo_filename = '/proc/meminfo'
+    meminfo = {}
+    for line in open(proc_meminfo_filename).read().replace(' ', '').split('\n'):
         if not line.strip():
             continue
         key = line.split(':')[0].lower().strip()
@@ -162,7 +159,7 @@ def get_memory():
             value = line.split(':')[1].strip()
         except IndexError:
             _log.error("No :-separated entry for line %s in %s",
-                           line, proc_meminfo_fn)
+                           line, proc_meminfo_filename)
             continue
         reg = re_mem.search(value)
         if reg:
@@ -175,12 +172,45 @@ def get_memory():
                 multi = 2 ** 10
             else:
                 _log.error("Unsupported memory unit %s in key %s value %s", unit, key, value)
-            memory['meminfo'][key] = mem * multi
+            meminfo[key] = mem * multi
         else:
             _log.error("Unknown memory entry in key %s value %s", key, value)
 
-    _log.debug("Collected meminfo %s", memory['meminfo'])
+    _log.debug("Collected meminfo %s", meminfo)
+    return meminfo
+
+
+def _get_memory_ulimit_v():
+    '''
+    Return the ulimit for virtual memory in bytes or "unlimited"
+    '''
+    stdout, _ = ULimit('-v').run()
+
+    if stdout == 'unlimited':
+        return stdout
+    else:
+        #ulimit -v returns kbytes; we want bytes
+        return int(stdout) * 1024
+
+
+def get_memory():
+    """Extract information about the available memory"""
+    memory = {}
+    memory['meminfo'] = _get_memory_proc_meminfo()
+    memory['ulimit'] = _get_memory_ulimit_v()
     return memory
+
+def get_totalcores():
+    '''Parse /proc/cpuinfo to find the total number of cores.'''
+    cores = 0
+    proc_cpuinfo_filename = '/proc/cpuinfo'
+    cpu_info = open(proc_cpuinfo_filename, 'r').read()
+    for line in cpu_info.replace(' ', '').split('\n'):
+        if not line.strip():
+            continue
+        if line.startswith('processor:'):
+            cores += 1
+    return cores
 
 
 class Node(object):
@@ -193,6 +223,7 @@ class Node(object):
         self.pid = -1
         self.cores = -1
         self.usablecores = None
+        self.totalcores = None
 
         self.topology = [0] # default topology plain set
 
@@ -209,6 +240,7 @@ class Node(object):
         self.pid = os.getpid()
         self.usablecores = [idx for idx, used in enumerate(sched_getaffinity().cpus) if used]
         self.cores = len(self.usablecores)
+        self.totalcores = get_totalcores()
 
         self.memory = get_memory()
 
@@ -218,6 +250,7 @@ class Node(object):
             'pid': self.pid,
             'cores': self.cores,
             'usablecores': self.usablecores,
+            'totalcores': self.totalcores,
             'topology': self.topology,
             'memory': self.memory,
         }

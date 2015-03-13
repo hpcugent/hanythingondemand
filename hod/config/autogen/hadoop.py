@@ -29,28 +29,10 @@ Nothing here for now.
 """
 
 from collections import namedtuple
-from hod.node.node import Node
 from hod.config.autogen.common import (blocksize,
-        parse_memory, format_memory, round_mb, cap)
+        available_memory, parse_memory, format_memory, round_mb, cap)
 
 __all__ = ['autogen_config']
-
-# mapping for total system memory -> reserved for OS
-# Retrieved from:
-# http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.0.6.0/bk_installing_manually_book/content/rpm-chap1-11.html
-MemRec = namedtuple('MemRec', ['total', 'os'])
-_RECOMMENDATIONS = [
-    MemRec(parse_memory('8g'), parse_memory('2g')),
-    MemRec(parse_memory('16g'), parse_memory('2g')),
-    MemRec(parse_memory('24g'), parse_memory('4g')),
-    MemRec(parse_memory('48g'), parse_memory('6g')),
-    MemRec(parse_memory('64g'), parse_memory('8g')),
-    MemRec(parse_memory('72g'), parse_memory('8g')),
-    MemRec(parse_memory('96g'), parse_memory('12g')),
-    MemRec(parse_memory('128g'), parse_memory('24g')),
-    MemRec(parse_memory('256g'), parse_memory('32g')),
-    MemRec(parse_memory('512g'), parse_memory('64g')),
-]
 
 MemDefaults = namedtuple('MemDefaults', [
     'available_memory',
@@ -58,17 +40,6 @@ MemDefaults = namedtuple('MemDefaults', [
     'num_containers',
     'ram_per_container'
 ])
-
-def reserved_memory(totalmem):
-    '''
-    Given an amount of memory in bytes, return the amount of memory that
-    should be reserved by the operating system (also in bytes).
-    '''
-    for mem in _RECOMMENDATIONS:
-        if totalmem <= mem.total:
-            return mem.os
-    # totalmem > 512g
-    return _RECOMMENDATIONS[-1].os
 
 def min_container_size(totalmem):
     '''
@@ -85,16 +56,17 @@ def min_container_size(totalmem):
     else:
         return 2 * (1024**3)
 
-def memory_defaults(total_memory, ncores):
+def memory_defaults(node_info):
     '''
     Return default memory information.
     '''
-    available_memory = total_memory - reserved_memory(total_memory)
-    min_container_sz = min_container_size(total_memory)
-    num_containers = min(2*ncores, total_memory/min_container_sz)
-    ram_per_container = max(min_container_sz, total_memory/num_containers)
+    ncores = node_info['cores']
+    hadoop_memory = available_memory(node_info)
+    min_container_sz = min_container_size(hadoop_memory)
+    num_containers = min(2*ncores, hadoop_memory/min_container_sz)
+    ram_per_container = max(min_container_sz, hadoop_memory/num_containers)
     return MemDefaults(
-            available_memory,
+            hadoop_memory,
             min_container_sz,
             num_containers,
             ram_per_container)
@@ -121,13 +93,11 @@ def mapred_site_xml_defaults(workdir, node_info):
     '''
     Default entries for the mapred-site.xml config file.
     '''
-    total_memory = int(node_info['memory']['meminfo']['memtotal'])
-    ncores = len(node_info['usablecores'])
-    mem_dflts = memory_defaults(total_memory, ncores)
+    mem_dflts = memory_defaults(node_info)
 
     java_map_mem = format_memory(0.8 * mem_dflts.ram_per_container, round_val=True)
     java_reduce_mem = format_memory(0.8 * 2 * mem_dflts.ram_per_container, round_val=True)
-    # In my tests, Yarn gets shirty if I try to job if these values are set to
+    # In my tests, Yarn gets shirty if I try to run a job and these values are set to
     # more then 8g:
     map_memory = cap(round_mb(mem_dflts.ram_per_container), 8192)
     reduce_memory = cap(round_mb(2 * mem_dflts.ram_per_container), 8192)
@@ -147,16 +117,16 @@ def yarn_site_xml_defaults(workdir, node_info):
     '''
     Default entries for the yarn-site.xml config file.
     '''
-    total_memory = node_info['memory']['meminfo']['memtotal']
-    ncores = len(node_info['usablecores'])
-    mem_dflts = memory_defaults(total_memory, ncores)
+    mem_dflts = memory_defaults(node_info)
 
     max_alloc = mem_dflts.ram_per_container * mem_dflts.num_containers / (1024**2)
     min_alloc = mem_dflts.ram_per_container / (1024**2)
     dflts = {
         'yarn.nodemanager.aux-services': 'mapreduce_shuffle',
-        'yarn.nodemanager.maximum-allocation-mb': max_alloc,
-        'yarn.nodemanager.minimum-allocation-mb': min_alloc,
+        # It doesn't make sense to make containers with more memory than we allow the
+        # mappers and reducers.
+        'yarn.nodemanager.maximum-allocation-mb': cap(max_alloc, 8192),
+        'yarn.nodemanager.minimum-allocation-mb': cap(min_alloc, 8192),
         'yarn.nodemanager.resource.memory-mb': max_alloc,
         'yarn.nodemanager.vmem-check-enabled':'false',
         'yarn.nodemanager.vmem-pmem-ratio': 2.1,
@@ -174,7 +144,7 @@ def capacity_scheduler_xml_defaults(workdir, node_info):
     }
     return dflts
 
-def autogen_config(workdir):
+def autogen_config(workdir, node_info):
     '''
     Bless a hadoop config with automatically generated information based on
     the nodes. i.e. memory settings and file system block size.
@@ -183,8 +153,6 @@ def autogen_config(workdir):
     lazily from hod.config.config.
 
     '''
-    node = Node()
-    node_info = node.go()
     cfg2fn = {
         'core-site.xml': core_site_xml_defaults,
         'mapred-site.xml': mapred_site_xml_defaults,

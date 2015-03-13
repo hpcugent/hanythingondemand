@@ -177,6 +177,14 @@ class KillPidFile(Command):
         self.command = ['kill', pid]
         Command.run(self)
 
+class ULimit(Command):
+    '''
+    Find the user limit for the given flag.
+    e.g. ULimit('-v') will produce the virtual memory limit.
+    '''
+    def __init__(self, flag):
+        Command.__init__(self)
+        self.command = ['ulimit', flag]
 
 class ScreenDaemon(Command):
     """Start a named screen session in background"""

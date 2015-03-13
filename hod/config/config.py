@@ -32,6 +32,7 @@ from copy import deepcopy
 from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
 
+from hod.node.node import Node
 from hod.config.template import mklocalworkdir
 from hod.config.autogen.common import update_defaults
 
@@ -163,9 +164,11 @@ class PreServiceConfigOpts(object):
         file system that is not accessible from the login node then we can't
         process this information from the login node.
         '''
+        node = Node()
+        node_info = node.go()
         for autocfg in self.autogen:
             fn = autogen_fn(autocfg)
-            new_configs = fn(self.workdir)
+            new_configs = fn(self.workdir, node_info)
             update_defaults(self.service_configs, new_configs)
 
     def __str__(self):

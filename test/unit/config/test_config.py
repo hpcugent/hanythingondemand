@@ -99,13 +99,15 @@ autogen=hadoop
         """)
         precfg = hcc.PreServiceConfigOpts(config)
         self.assertEqual(len(precfg.service_configs), 0)
-        precfg.autogen_configs()
+        node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
+                cores=24, totalcores=24, usablecores=range(24), topology=[0],
+                memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
+        with patch('hod.node.node.Node.go', return_value=node):
+            precfg.autogen_configs()
         self.assertEqual(len(precfg.service_configs), 4)
         self.assertTrue('core-site.xml' in precfg.service_configs)
         self.assertTrue('mapred-site.xml' in precfg.service_configs)
         self.assertTrue('yarn-site.xml' in precfg.service_configs)
-
-
 
     def test_PreServiceConfigOpts_merge(self):
         config1 = StringIO("""
