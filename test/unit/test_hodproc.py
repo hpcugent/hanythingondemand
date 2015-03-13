@@ -40,7 +40,7 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
         cm = hh.ConfiguredMaster(opts)
 
     def test_configured_master_distribution(self):
-        manifest_config = StringIO("""
+        manifest_config = """
 [Meta]
 version = 1
 [Config]
@@ -50,8 +50,8 @@ modules=
 services=svc.conf
 config_writer=some.module.function
 directories=
-        """)
-        service_config = StringIO("""
+        """
+        service_config = """
 [Unit]
 Name=wibble
 RunsOn = master
@@ -59,10 +59,15 @@ RunsOn = master
 ExecStart=service start postgres
 ExecStop=service stop postgres
 [Environment]
-        """)
+        """
+        def _mock_open(name, *args):
+            if name == 'hod.conf':
+                return StringIO(manifest_config)
+            else: 
+                return StringIO(service_config)
         opts = HodOption(go_args=['progname', '--config-config', 'hod.conf'])
         cm = hh.ConfiguredMaster(opts)
         with patch('hod.hodproc._setup_config_paths', side_effect=lambda *args: None):
-            with patch('__builtin__.open', side_effect=lambda name, *args: manifest_config if name == 'hod.conf' else service_config):
+            with patch('__builtin__.open', side_effect=_mock_open):
                 cm.distribution()
         self.assertEqual(len(cm.tasks), 1)

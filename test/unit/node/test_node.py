@@ -25,10 +25,11 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
-import unittest
+from StringIO import StringIO
 from mock import patch
-import socket
 import copy
+import socket
+import unittest
 import hod.node.node as hn
 
 class HodNodeTestCase(unittest.TestCase):
@@ -186,7 +187,40 @@ class HodNodeTestCase(unittest.TestCase):
         print sorted_nw
         self.assertEqual([nw[3], nw[2], nw[1], nw[4], nw[0]], sorted_nw)
 
-    def test_node_get_memory(self):
+    def test_node_get_memory_proc_meminfo(self):
         '''test node get memory'''
+        meminfo = hn._get_memory_proc_meminfo()
+        self.assertTrue(isinstance(meminfo, dict))
+        self.assertTrue(len(meminfo) > 0)
+
+    def test_node_ulimit_v(self):
+        '''test node get memory'''
+        ulimit = hn._get_memory_ulimit_v()
+        print ulimit , type(ulimit)
+        self.assertTrue(isinstance(ulimit, basestring))
+        self.assertTrue(ulimit > 0)
+
+    def test_node_get_memory(self):
         memory = hn.get_memory()
-        self.assertTrue(memory['meminfo'] > 512)
+        self.assertTrue(isinstance(memory, dict))
+        self.assertTrue('meminfo' in memory)
+        self.assertTrue('ulimit' in memory)
+
+    def test_node_get_totalcores(self):
+        cpuinfo = StringIO('''
+processor   : 0
+vendor_id   : GenuineIntel
+cpu family  : 6
+processor   : 1
+vendor_id   : GenuineIntel
+cpu family  : 6
+processor   : 2
+vendor_id   : GenuineIntel
+cpu family  : 6
+processor   : 3
+vendor_id   : GenuineIntel
+cpu family  : 6
+''')
+        with patch('__builtin__.open', side_effect=lambda *args: cpuinfo):
+            cores = hn.get_totalcores()
+        self.assertEqual(cores, 4)

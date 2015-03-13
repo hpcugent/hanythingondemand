@@ -95,6 +95,10 @@ class HodCommandsCommandTestCase(unittest.TestCase):
         self.assertEqual(str(c), 'None') # wat.
         self.assertRaises(IOError, c.run)
 
+    def  test_ulimit(self):
+        c = hcc.ULimit('-v')
+        self.assertEqual(str(c), 'ulimit -v')
+
     def test_screen_daemon(self):
         '''test screen daemon'''
         name = 'hanythingondemand-unittest-screen-daemon'

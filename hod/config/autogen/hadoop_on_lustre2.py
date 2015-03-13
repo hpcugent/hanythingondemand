@@ -27,8 +27,6 @@ Nothing here for now.
 
 @author: Ewan Higgs (Ghent University)
 """
-from hod.node.node import Node
-
 import hod.config.autogen.hadoop as hcah
 from hod.config.autogen.common import update_defaults
 
@@ -58,7 +56,7 @@ def yarn_site_xml_defaults(workdir, node_info):
     base_hadoop_dflts = hcah.yarn_site_xml_defaults(workdir, node_info)
     return update_defaults(dflts, base_hadoop_dflts)
 
-def autogen_config(workdir):
+def autogen_config(workdir, node_info):
     '''
     Bless a hadoop config with automatically generated information based on
     the nodes. i.e. memory settings and file system block size.
@@ -67,8 +65,6 @@ def autogen_config(workdir):
     lazily from hod.config.config.
 
     '''
-    node = Node()
-    node_info = node.go()
     cfg2fn = {
         'core-site.xml': core_site_xml_defaults,
         'mapred-site.xml': mapred_site_xml_defaults,

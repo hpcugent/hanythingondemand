@@ -37,7 +37,7 @@ import hod.config.autogen.hadoop_on_lustre2 as hca
 class TestConfigAutogenHadoopOnLustre(unittest.TestCase):
     def test_core_site_xml_defaults(self):
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
-                cores=24, usablecores=[0, 1, 2, 3], topology=[0],
+                cores=4, totalcores=24, usablecores=[0, 1, 2, 3], topology=[0],
                 memory=dict(meminfo=dict(memtotal=68719476736)))
         with patch('os.statvfs', return_value=MagicMock(f_bsize=4194304)):
             d = hca.core_site_xml_defaults('/', node)
@@ -49,30 +49,35 @@ class TestConfigAutogenHadoopOnLustre(unittest.TestCase):
         self.assertEqual(d['io.sort.mb'], 256)
 
     def test_mapred_site_xml_defaults(self):
+        '''Test mapred defaults; note: only using 4 from 24 cores.'''
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
-                cores=24, usablecores=[0, 1, 2, 3], topology=[0],
-                memory=dict(meminfo=dict(memtotal=68719476736)))
+                cores=4, totalcores=24, usablecores=[0, 1, 2, 3], topology=[0],
+                memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         d = hca.mapred_site_xml_defaults('/', node)
         self.assertEqual(len(d), 9)
         self.assertEqual(d['hadoop.ln.cmd'], '/bin/ln')
         self.assertEqual(d['lustre.dir'], '$workdir')
-        self.assertEqual(d['mapreduce.map.memory.mb'], hcc.parse_memory('8G') / (1024**2))
-        self.assertEqual(d['mapreduce.reduce.memory.mb'], hcc.parse_memory('8G') / (1024**2))
+        self.assertEqual(d['mapreduce.map.memory.mb'], hcc.parse_memory('1G') / (1024**2))
+        self.assertEqual(d['mapreduce.reduce.memory.mb'], hcc.parse_memory('2G') / (1024**2))
 
     def test_yarn_site_xml_defaults(self):
+        '''Test yarn defaults; note: only using 4 from 24 cores.'''
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
-                cores=24, usablecores=[0, 1, 2, 3], topology=[0],
-                memory=dict(meminfo=dict(memtotal=68719476736)))
+                cores=4, totalcores=24, usablecores=[0, 1, 2, 3], topology=[0],
+                memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         d = hca.yarn_site_xml_defaults('/', node)
         self.assertEqual(len(d), 10)
-        self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], hcc.parse_memory('64G') / (1024**2))
-        self.assertEqual(d['yarn.nodemanager.minimum-allocation-mb'], hcc.parse_memory('8G') / (1024**2))
-        self.assertEqual(d['yarn.nodemanager.maximum-allocation-mb'], hcc.parse_memory('64G') / (1024**2))
+        self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], 9557)
+        self.assertEqual(d['yarn.nodemanager.minimum-allocation-mb'], 1194)
+        self.assertEqual(d['yarn.nodemanager.maximum-allocation-mb'], hcc.parse_memory('8G') / (1024**2))
         self.assertEqual(d['yarn.nodemanager.local-dirs'], '$workdir/$hostname')
 
     def test_autogen_config(self):
+        node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
+                cores=24, totalcores=24, usablecores=range(24), topology=[0],
+                memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         with patch('os.statvfs', return_value=MagicMock(f_bsize=4194304)):
-            d = hca.autogen_config('/')
+            d = hca.autogen_config('/', node)
         self.assertEqual(len(d), 4)
         self.assertTrue('core-site.xml' in d)
         self.assertTrue('mapred-site.xml' in d)
