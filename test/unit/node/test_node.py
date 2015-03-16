@@ -207,6 +207,7 @@ class HodNodeTestCase(unittest.TestCase):
         self.assertTrue('ulimit' in memory)
 
     def test_node_get_totalcores(self):
+        # NB: processor : 3 line has a tab in it.
         cpuinfo = StringIO('''
 processor   : 0
 vendor_id   : GenuineIntel
@@ -217,7 +218,7 @@ cpu family  : 6
 processor   : 2
 vendor_id   : GenuineIntel
 cpu family  : 6
-processor   : 3
+processor	: 3
 vendor_id   : GenuineIntel
 cpu family  : 6
 ''')
