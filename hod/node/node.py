@@ -205,7 +205,8 @@ def get_totalcores():
     cores = 0
     proc_cpuinfo_filename = '/proc/cpuinfo'
     cpu_info = open(proc_cpuinfo_filename, 'r').read()
-    for line in cpu_info.replace(' ', '').split('\n'):
+    cpu_info = cpu_info.replace(' ', '').replace('\t', '').split('\n')
+    for line in cpu_info:
         if not line.strip():
             continue
         if line.startswith('processor:'):

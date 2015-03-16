@@ -31,10 +31,14 @@ from collections import Mapping
 from copy import deepcopy
 from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
+from vsc import fancylogger
 
 from hod.node.node import Node
 from hod.config.template import mklocalworkdir
 from hod.config.autogen.common import update_defaults
+
+from vsc.utils import fancylogger
+_log = fancylogger.getLogger(fname=False)
 
 # hod manifest config sections
 _META_SECTION = 'Meta'
@@ -166,6 +170,7 @@ class PreServiceConfigOpts(object):
         '''
         node = Node()
         node_info = node.go()
+        _log.debug('Collected Node information: %s', node_info)
         for autocfg in self.autogen:
             fn = autogen_fn(autocfg)
             new_configs = fn(self.workdir, node_info)
