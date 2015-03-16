@@ -67,8 +67,8 @@ class TestConfigAutogenHadoopOnLustre(unittest.TestCase):
                 memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         d = hca.yarn_site_xml_defaults('/', node)
         self.assertEqual(len(d), 10)
-        self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], 9557)
-        self.assertEqual(d['yarn.nodemanager.minimum-allocation-mb'], 1194)
+        self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], 9216)
+        self.assertEqual(d['yarn.nodemanager.minimum-allocation-mb'], 1024)
         self.assertEqual(d['yarn.nodemanager.maximum-allocation-mb'], hcc.parse_memory('8G') / (1024**2))
         self.assertEqual(d['yarn.nodemanager.local-dirs'], '$workdir/$hostname')
 
