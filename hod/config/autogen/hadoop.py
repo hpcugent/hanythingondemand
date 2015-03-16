@@ -119,8 +119,8 @@ def yarn_site_xml_defaults(workdir, node_info):
     '''
     mem_dflts = memory_defaults(node_info)
 
-    max_alloc = mem_dflts.ram_per_container * mem_dflts.num_containers / (1024**2)
-    min_alloc = mem_dflts.ram_per_container / (1024**2)
+    max_alloc = round_mb(mem_dflts.ram_per_container * mem_dflts.num_containers)
+    min_alloc = round_mb(mem_dflts.ram_per_container)
     dflts = {
         'yarn.nodemanager.aux-services': 'mapreduce_shuffle',
         # It doesn't make sense to make containers with more memory than we allow the

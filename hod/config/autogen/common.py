@@ -204,7 +204,7 @@ def round_mb(mem):
     else:
         denom = 128
 
-    return math.floor(mem_in_mb/denom) * denom
+    return int(math.floor(mem_in_mb/denom) * denom)
 
 def cap(val, limit):
     '''
