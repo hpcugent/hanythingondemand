@@ -34,6 +34,7 @@ import errno
 import os
 import re
 import math
+from copy import copy
 
 def parse_memory(memstr):
     '''
@@ -131,11 +132,14 @@ def available_memory(node):
     1. If we are using all the cores, we assume we can use all the
     memory in the machine (minus what the OS needs).
 
-    2. If ulimit is set and less than meminfo, we use it, we use it.
+    2. If ulimit is set and less than meminfo, we use it.
 
     3. If ulimit for vmem is not set (unlimited) then we use the amount of
     available memory according based on total machine memory scaled by
     usablecpus/totalcpus
+
+    TODO: Take a look at supporting cgroups and parsing PBS environment
+    variables.
     '''
     meminfo = node['memory']['meminfo']['memtotal']
     memory = meminfo - reserved_memory(meminfo)
@@ -151,18 +155,6 @@ def available_memory(node):
         return int(memory)
     else:
         return min(int(memory), int(ulimit))
-
-def set_default(d, key, val):
-    '''If a value is not in dict d, set it'''
-    if key not in d:
-        d[key] = val
-    return d
-
-def update_defaults(d1, d2):
-    '''Update dict d1 with data from d2 iff values are not already in d1.'''
-    for k, v in d2.items():
-        set_default(d1, k, v)
-    return d1
 
 def format_memory(mem, round_val=False):
     '''
@@ -205,13 +197,4 @@ def round_mb(mem):
         denom = 128
 
     return int(math.floor(mem_in_mb/denom) * denom)
-
-def cap(val, limit):
-    '''
-    Return val unless val is over the limit; then return the limit.
-    '''
-    if val > limit:
-        return limit
-    else:
-        return val
 

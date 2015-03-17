@@ -28,7 +28,6 @@ Nothing here for now.
 @author: Ewan Higgs (Ghent University)
 """
 import hod.config.autogen.hadoop as hcah
-from hod.config.autogen.common import update_defaults
 
 __all__ = ['autogen_config']
 
@@ -37,7 +36,8 @@ def core_site_xml_defaults(workdir, node_info):
         'hadoop.tmp.dir': '$workdir/tmp'
     }
     base_hadoop_dflts = hcah.core_site_xml_defaults(workdir, node_info)
-    return update_defaults(dflts, base_hadoop_dflts)
+    base_hadoop_dflts.update(dflts)
+    return base_hadoop_dflts
 
 def mapred_site_xml_defaults(workdir, node_info):
     dflts = {
@@ -47,14 +47,16 @@ def mapred_site_xml_defaults(workdir, node_info):
         'hadoop.ln.cmd': '/bin/ln',
     }
     base_hadoop_dflts = hcah.mapred_site_xml_defaults(workdir, node_info)
-    return update_defaults(dflts, base_hadoop_dflts)
+    base_hadoop_dflts.update(dflts)
+    return base_hadoop_dflts
 
 def yarn_site_xml_defaults(workdir, node_info):
     dflts = {
         'yarn.nodemanager.local-dirs': '$workdir/$hostname',
     }
     base_hadoop_dflts = hcah.yarn_site_xml_defaults(workdir, node_info)
-    return update_defaults(dflts, base_hadoop_dflts)
+    base_hadoop_dflts.update(dflts)
+    return base_hadoop_dflts
 
 def autogen_config(workdir, node_info):
     '''

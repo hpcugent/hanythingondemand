@@ -102,23 +102,6 @@ class TestConfigAutogenCommon(unittest.TestCase):
         # e.g. from our high memory machines
         self.assertEqual(hcc.format_memory(540950507520, round_val=True), '504g')
 
-    def test_set_default(self):
-        x = dict(a=1, b=2)
-        hcc.set_default(x, 'c', 3)
-        self.assertEqual(len(x), 3)
-        hcc.set_default(x, 'b', 4)
-        self.assertEqual(x['b'], 2)
-        hcc.set_default(x, 'c', 4)
-        self.assertEqual(x['c'], 3)
-
-    def test_update_defaults(self):
-        x = dict(a=1, b=2)
-        hcc.update_defaults(x, dict(a=0, b=0, c=0))
-        self.assertEqual(len(x), 3)
-        self.assertEqual(x['a'], 1)
-        self.assertEqual(x['b'], 2)
-        self.assertEqual(x['c'], 0)
-
     def test_round_mb(self):
         mb = 1024
         self.assertEqual(hcc.round_mb(512 * (1024**3)), 512 * mb)
@@ -132,12 +115,6 @@ class TestConfigAutogenCommon(unittest.TestCase):
         self.assertEqual(hcc.round_mb(3 * (1024**3)), 3 * mb)
         self.assertEqual(hcc.round_mb(2 * (1024**3)), 2 * mb)
         self.assertEqual(hcc.round_mb(1 * (1024**3)), 1 * mb)
-
-    def test_cap(self):
-        self.assertEqual(hcc.cap(10, 10), 10)
-        self.assertEqual(hcc.cap(-10, 10), -10)
-        self.assertEqual(hcc.cap(-10, 0), -10)
-        self.assertEqual(hcc.cap(10, 0), 0)
 
     def test_available_memory_entire_machine(self):
         total_mem = 68719476736
