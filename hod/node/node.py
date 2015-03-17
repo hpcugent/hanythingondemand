@@ -200,20 +200,6 @@ def get_memory():
     memory['ulimit'] = _get_memory_ulimit_v()
     return memory
 
-def get_totalcores():
-    '''Parse /proc/cpuinfo to find the total number of cores.'''
-    cores = 0
-    proc_cpuinfo_filename = '/proc/cpuinfo'
-    cpu_info = open(proc_cpuinfo_filename, 'r').read()
-    cpu_info = cpu_info.replace(' ', '').replace('\t', '').split('\n')
-    for line in cpu_info:
-        if not line.strip():
-            continue
-        if line.startswith('processor:'):
-            cores += 1
-    return cores
-
-
 class Node(object):
     """Detect localnode properties"""
     def __init__(self):
@@ -241,7 +227,7 @@ class Node(object):
         self.pid = os.getpid()
         self.usablecores = [idx for idx, used in enumerate(sched_getaffinity().cpus) if used]
         self.cores = len(self.usablecores)
-        self.totalcores = get_totalcores()
+        self.totalcores = os.sysconf('SC_NPROCESSORS_ONLN')
 
         self.memory = get_memory()
 

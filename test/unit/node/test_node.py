@@ -205,23 +205,3 @@ class HodNodeTestCase(unittest.TestCase):
         self.assertTrue(isinstance(memory, dict))
         self.assertTrue('meminfo' in memory)
         self.assertTrue('ulimit' in memory)
-
-    def test_node_get_totalcores(self):
-        # NB: processor : 3 line has a tab in it.
-        cpuinfo = StringIO('''
-processor   : 0
-vendor_id   : GenuineIntel
-cpu family  : 6
-processor   : 1
-vendor_id   : GenuineIntel
-cpu family  : 6
-processor   : 2
-vendor_id   : GenuineIntel
-cpu family  : 6
-processor	: 3
-vendor_id   : GenuineIntel
-cpu family  : 6
-''')
-        with patch('__builtin__.open', side_effect=lambda *args: cpuinfo):
-            cores = hn.get_totalcores()
-        self.assertEqual(cores, 4)

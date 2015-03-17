@@ -23,14 +23,18 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 ##
 """
-Nothing here for now.
+Calculate Hadoop configuration parameters based on HortonWorks' recommendations
+and my own testing.
+HortonWorks recommendations are here:
+
+http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.0.6.0/bk_installing_manually_book/content/rpm-chap1-11.html
 
 @author: Ewan Higgs (Ghent University)
 """
 
 from collections import namedtuple
 from hod.config.autogen.common import (blocksize,
-        available_memory, parse_memory, format_memory, round_mb, cap)
+        available_memory, parse_memory, format_memory, round_mb)
 
 __all__ = ['autogen_config']
 
@@ -43,7 +47,7 @@ MemDefaults = namedtuple('MemDefaults', [
 
 def min_container_size(totalmem):
     '''
-    Given an amount of memory in bytes, return theh amount of memory that
+    Given an amount of memory in bytes, return the amount of memory that
     represents the minimum amount of memory (in bytes) to be allocated in a Yarn
     container.
     '''
@@ -99,8 +103,8 @@ def mapred_site_xml_defaults(workdir, node_info):
     java_reduce_mem = format_memory(0.8 * 2 * mem_dflts.ram_per_container, round_val=True)
     # In my tests, Yarn gets shirty if I try to run a job and these values are set to
     # more then 8g:
-    map_memory = cap(round_mb(mem_dflts.ram_per_container), 8192)
-    reduce_memory = cap(round_mb(2 * mem_dflts.ram_per_container), 8192)
+    map_memory = min(round_mb(mem_dflts.ram_per_container), 8192)
+    reduce_memory = min(round_mb(2 * mem_dflts.ram_per_container), 8192)
     dflts = {
         'mapreduce.framework.name': 'yarn',
         'mapreduce.map.java.opts': '-Xmx%s' % java_map_mem,
@@ -125,8 +129,8 @@ def yarn_site_xml_defaults(workdir, node_info):
         'yarn.nodemanager.aux-services': 'mapreduce_shuffle',
         # It doesn't make sense to make containers with more memory than we allow the
         # mappers and reducers.
-        'yarn.nodemanager.maximum-allocation-mb': cap(max_alloc, 8192),
-        'yarn.nodemanager.minimum-allocation-mb': cap(min_alloc, 8192),
+        'yarn.nodemanager.maximum-allocation-mb': min(max_alloc, 8192),
+        'yarn.nodemanager.minimum-allocation-mb': min(min_alloc, 8192),
         'yarn.nodemanager.resource.memory-mb': max_alloc,
         'yarn.nodemanager.vmem-check-enabled':'false',
         'yarn.nodemanager.vmem-pmem-ratio': 2.1,

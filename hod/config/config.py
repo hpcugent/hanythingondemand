@@ -35,7 +35,6 @@ from vsc import fancylogger
 
 from hod.node.node import Node
 from hod.config.template import mklocalworkdir
-from hod.config.autogen.common import update_defaults
 
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
@@ -175,7 +174,8 @@ class PreServiceConfigOpts(object):
         for autocfg in self.autogen:
             fn = autogen_fn(autocfg)
             new_configs = fn(self.workdir, node_info)
-            update_defaults(self.service_configs, new_configs)
+            new_configs.update(self.service_configs)
+            self.service_configs = new_configs
 
     def __str__(self):
         return 'PreServiceConfigOpts(version=%s, workdir=%s, modules=%s, ' \
