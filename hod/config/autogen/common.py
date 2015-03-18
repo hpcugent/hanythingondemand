@@ -34,7 +34,6 @@ import errno
 import os
 import re
 import math
-from copy import copy
 
 def parse_memory(memstr):
     '''
