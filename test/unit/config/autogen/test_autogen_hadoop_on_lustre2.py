@@ -57,8 +57,8 @@ class TestConfigAutogenHadoopOnLustre(unittest.TestCase):
         self.assertEqual(len(d), 9)
         self.assertEqual(d['hadoop.ln.cmd'], '/bin/ln')
         self.assertEqual(d['lustre.dir'], '$workdir')
-        self.assertEqual(d['mapreduce.map.memory.mb'], hcc.parse_memory('1G') / (1024**2))
-        self.assertEqual(d['mapreduce.reduce.memory.mb'], hcc.parse_memory('2G') / (1024**2))
+        self.assertEqual(d['mapreduce.map.memory.mb'], hcc.round_mb(hcc.parse_memory('1G')))
+        self.assertEqual(d['mapreduce.reduce.memory.mb'], hcc.round_mb(hcc.parse_memory('2G')))
 
     def test_yarn_site_xml_defaults(self):
         '''Test yarn defaults; note: only using 4 from 24 cores.'''
@@ -69,7 +69,7 @@ class TestConfigAutogenHadoopOnLustre(unittest.TestCase):
         self.assertEqual(len(d), 10)
         self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], 9216)
         self.assertEqual(d['yarn.nodemanager.minimum-allocation-mb'], 1024)
-        self.assertEqual(d['yarn.nodemanager.maximum-allocation-mb'], hcc.parse_memory('8G') / (1024**2))
+        self.assertEqual(d['yarn.nodemanager.maximum-allocation-mb'], hcc.round_mb(hcc.parse_memory('8G')))
         self.assertEqual(d['yarn.nodemanager.local-dirs'], '$workdir/$hostname')
 
     def test_autogen_config(self):
