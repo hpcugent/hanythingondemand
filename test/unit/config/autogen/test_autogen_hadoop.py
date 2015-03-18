@@ -62,8 +62,8 @@ class TestConfigAutogenHadoop(unittest.TestCase):
         d = hca.mapred_site_xml_defaults('/', node)
         self.assertEqual(len(d), 7)
         # Capped at 8g
-        self.assertEqual(d['mapreduce.map.memory.mb'], hcc.parse_memory('2G') / (1024**2))
-        self.assertEqual(d['mapreduce.reduce.memory.mb'], hcc.parse_memory('4G') / (1024**2))
+        self.assertEqual(d['mapreduce.map.memory.mb'], hcc.round_mb(hcc.parse_memory('2G')))
+        self.assertEqual(d['mapreduce.reduce.memory.mb'], hcc.round_mb(hcc.parse_memory('4G')))
 
     def test_yarn_site_xml_defaults(self):
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
@@ -71,9 +71,9 @@ class TestConfigAutogenHadoop(unittest.TestCase):
                 memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         d = hca.yarn_site_xml_defaults('/', node)
         self.assertEqual(len(d), 9)
-        self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], hcc.parse_memory('56G') / (1024**2))
-        self.assertEqual(d['yarn.nodemanager.minimum-allocation-mb'], hcc.parse_memory('2G') / (1024**2))
-        self.assertEqual(d['yarn.nodemanager.maximum-allocation-mb'], hcc.parse_memory('8G') / (1024**2))
+        self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], hcc.round_mb(hcc.parse_memory('56G')))
+        self.assertEqual(d['yarn.nodemanager.minimum-allocation-mb'], hcc.round_mb(hcc.parse_memory('2G')))
+        self.assertEqual(d['yarn.nodemanager.maximum-allocation-mb'], hcc.round_mb(hcc.parse_memory('8G')))
 
     def test_capacity_scheduler_xml_defaults(self):
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,

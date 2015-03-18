@@ -60,6 +60,9 @@ def min_container_size(totalmem):
     else:
         return 2 * (1024**3)
 
+# Maximum container size is 8 GB.
+_MAX_CONTAINER_SIZE = 8192
+
 def memory_defaults(node_info):
     '''
     Return default memory information.
@@ -103,8 +106,8 @@ def mapred_site_xml_defaults(workdir, node_info):
     java_reduce_mem = format_memory(0.8 * 2 * mem_dflts.ram_per_container, round_val=True)
     # In my tests, Yarn gets shirty if I try to run a job and these values are set to
     # more then 8g:
-    map_memory = min(round_mb(mem_dflts.ram_per_container), 8192)
-    reduce_memory = min(round_mb(2 * mem_dflts.ram_per_container), 8192)
+    map_memory = min(round_mb(mem_dflts.ram_per_container), _MAX_CONTAINER_SIZE)
+    reduce_memory = min(round_mb(2 * mem_dflts.ram_per_container), _MAX_CONTAINER_SIZE)
     dflts = {
         'mapreduce.framework.name': 'yarn',
         'mapreduce.map.java.opts': '-Xmx%s' % java_map_mem,
@@ -129,8 +132,8 @@ def yarn_site_xml_defaults(workdir, node_info):
         'yarn.nodemanager.aux-services': 'mapreduce_shuffle',
         # It doesn't make sense to make containers with more memory than we allow the
         # mappers and reducers.
-        'yarn.nodemanager.maximum-allocation-mb': min(max_alloc, 8192),
-        'yarn.nodemanager.minimum-allocation-mb': min(min_alloc, 8192),
+        'yarn.nodemanager.maximum-allocation-mb': min(max_alloc, _MAX_CONTAINER_SIZE),
+        'yarn.nodemanager.minimum-allocation-mb': min(min_alloc, _MAX_CONTAINER_SIZE),
         'yarn.nodemanager.resource.memory-mb': max_alloc,
         'yarn.nodemanager.vmem-check-enabled':'false',
         'yarn.nodemanager.vmem-pmem-ratio': 2.1,
