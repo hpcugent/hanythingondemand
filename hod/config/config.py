@@ -92,7 +92,7 @@ def _parse_runs_on(s):
 def _cfgget(config, section, item, dflt=None, **kwargs):
     '''
     Get a value from a ConfigParser object or a default if it's not there.
-    Options in kwargs come from the command line and override the config.
+    Options in kwargs override the config.
     '''
     if item in kwargs and kwargs[item] is not None:
         return kwargs[item]
@@ -124,7 +124,7 @@ class PreServiceConfigOpts(object):
 
     def __init__(self, fileobj, **kwargs):
         _config = load_service_config(fileobj)
-        self.version = _cfgget(_config, _META_SECTION, 'version', '')
+        self.version = _cfgget(_config, _META_SECTION, 'version', '', **kwargs)
 
         self.workdir = _cfgget(_config, _CONFIG_SECTION, 'workdir', '', **kwargs)
         fileobj_dir = _fileobj_dir(fileobj)
@@ -133,7 +133,8 @@ class PreServiceConfigOpts(object):
             return _abspath(cfg, fileobj_dir)
 
         def _get_list(name):
-            return parse_comma_delim_list(_cfgget(_config, _CONFIG_SECTION, name, ''))
+            return parse_comma_delim_list(_cfgget(_config, _CONFIG_SECTION,
+                name, '', **kwargs))
 
         self.modules = _get_list('modules')
         self.master_env = _get_list('master_env')
