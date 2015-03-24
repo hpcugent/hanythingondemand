@@ -34,7 +34,7 @@ import pwd
 import socket
 import string
 
-import hod.node as node
+import hod.node.node as node
 
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)

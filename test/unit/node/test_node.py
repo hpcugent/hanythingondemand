@@ -28,7 +28,7 @@
 import unittest
 from mock import patch
 import socket
-import hod.node as hn
+import hod.node.node as hn
 
 class HodNodeTestCase(unittest.TestCase):
     '''Test Node functions'''
@@ -113,7 +113,7 @@ class HodNodeTestCase(unittest.TestCase):
                 '10.143.13.2': 'wibble01.wibble.data',
                 '172.24.13.2': 'wibble.sitename.nat'
             }[x]
-        from hod.node import get_networks
+        from hod.node.node import get_networks
         with patch('netifaces.interfaces', side_effect=_interfaces):
             with patch('netifaces.ifaddresses', side_effect=_ifaddresses):
                 with patch('socket.getfqdn', side_effect=_hostname):
@@ -156,6 +156,7 @@ class HodNodeTestCase(unittest.TestCase):
         '''test node go'''
         n = hn.Node()
         desc = n.go()
+        self.assertTrue(desc is not None)
 
     def test_node_sorted_network_simple(self):
         '''test node order network'''
@@ -164,9 +165,10 @@ class HodNodeTestCase(unittest.TestCase):
 
 
     def test_node_sorted_network_complex(self):
+        '''test sorted_network puts IB before loopback'''
         nw = [hn.NetworkInterface('localhost', '127.0.0.1', 'lo', 8),
               hn.NetworkInterface('localhost', '127.0.0.1', 'ib3', 8)]
-        self.assertEqual([nw[1],nw[0]], hn.sorted_network(nw))
+        self.assertEqual([nw[1], nw[0]], hn.sorted_network(nw))
 
     def test_node_get_memory(self):
         '''test node get memory'''

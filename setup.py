@@ -95,6 +95,7 @@ PACKAGE = {
         'hod.config',
         'hod.config.writer',
         'hod.rmscheduler',
+        'hod.node',
     ],
     'data_files': find_files('etc'),
     'scripts': ['bin/hod_main.py', 'bin/hod_pbs.py'],
