@@ -115,9 +115,17 @@ def resolve_config_str(s, **template_kwargs):
     '''
     Given a string, resolve the templates based on template_dict and
     template_kwargs.
+
+    If a non string is provided, the original value is returned.
     '''
+    if not isinstance(s, basestring):
+        return s
     template = string.Template(s)
-    return template.substitute(template_kwargs)
+    try:
+        retval = template.substitute(template_kwargs)
+    except TypeError, e:
+        raise TypeError('Error processing "%s": %s' % (str(s), e.message))
+    return retval
 
 class TemplateResolver(object):
     '''

@@ -25,27 +25,18 @@
 """
 @author: Ewan Higgs (University of Ghent)
 """
+from common import XML_PREAMBLE, HADOOP_STYLESHEET, kv2xml
 
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
-_XML_PREAMBLE = """<?xml version="1.0" encoding="utf-8"?>
-"""
-
-_HADOOP_STYLESHEET = """<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-"""
-
 def _write_xml(outfile, options, template_resolver):
-    output = _XML_PREAMBLE + _HADOOP_STYLESHEET + "<configuration>\n"
+    output = XML_PREAMBLE + HADOOP_STYLESHEET + "<configuration>\n"
 
     for k, v in sorted(options.items()):
         name = template_resolver(k)
         value = template_resolver(v)
-        output += """<property>
-    <name>%s</name>
-    <value>%s</value>
-</property>
-""" % (name, value)
+        output += kv2xml(name, value)
     output += "</configuration>"
     return output
 

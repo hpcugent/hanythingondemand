@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# #
-# Copyright 2009-2013 Ghent University
+##
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -22,29 +21,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-# #
+##
 """
-Generate a PBS job script using pbs_python. Will use mympirun to get the all started
+Nothing here for now.
 
-@author: Stijn De Weirdt (Universiteit Gent)
-@author: Ewan Higgs (Universiteit Gent)
+@author: Ewan Higgs (Ghent University)
 """
 
-import sys
-from hod.rmscheduler.hodjob import PbsEBMMHod, MympirunHodOption
 
-from vsc.utils import fancylogger
-_log = fancylogger.getLogger(fname=False)
-
-def main(args):
-    try:
-        options = MympirunHodOption(go_args=args)
-        j = PbsEBMMHod(options)
-        j.run()
-    except StandardError, e:
-        fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
-        fancylogger.logToScreen(enable=True)
-        _log.raiseException(e.message)
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))

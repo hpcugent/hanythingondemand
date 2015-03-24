@@ -111,6 +111,7 @@ class ConfiguredMaster(MpiService):
         resolver = _setup_template_resolver(m_config, master_template_args)
         _setup_config_paths(m_config, resolver)
 
+
         master_env = dict([(v, os.getenv(v)) for v in m_config.master_env])
         self.log.debug('MasterEnv is: %s', env2str(master_env))
 

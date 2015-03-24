@@ -61,7 +61,8 @@ class CoverageCommand(BaseCommand):
 
     def run(self):
         setup_openmpi_libpath()
-        ret = subprocess.call(["coverage", "run", "-m", "unittest", "discover", "-v", "-b", "-s", "test/unit/"])
+        ret = subprocess.call(["coverage", "run", "--omit", "*/.virtualenvs/*", 
+            "-m", "unittest", "discover", "-v", "-b", "-s", "test/unit/"])
         if not ret:
             ret = subprocess.call(["coverage", "report"])
         sys.exit(ret)
@@ -94,6 +95,7 @@ PACKAGE = {
         'hod.commands',
         'hod.config',
         'hod.config.writer',
+        'hod.config.autogen',
         'hod.rmscheduler',
         'hod.node',
     ],
