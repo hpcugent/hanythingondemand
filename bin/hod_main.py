@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # ##
-# Copyright 2009-2013 Ghent University
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -30,13 +30,14 @@ Main hanythingondemand script, should be invoked in a job
 """
 import sys
 
+from vsc.utils import fancylogger
+_log = fancylogger.getLogger(fname=False)
+
 from hod.config.hodoption import HodOption
 from hod.hodproc import ConfiguredSlave, ConfiguredMaster
 from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
-from mpi4py import MPI
 
-from vsc.utils import fancylogger
-_log = fancylogger.getLogger(fname=False)
+from mpi4py import MPI
 
 def main(args):
     options = HodOption(go_args=args)
@@ -52,7 +53,7 @@ def main(args):
         svc.stop_service()
     except Exception, e:
         _log.error(str(e))
-        svc.log.exception("Main HanythingOnDemand failed")
+        _log.exception("Main HanythingOnDemand failed")
         return 1
 
 if __name__ == '__main__':

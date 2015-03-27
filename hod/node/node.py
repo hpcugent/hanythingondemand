@@ -37,7 +37,7 @@ from hod.commands.command import ULimit
 
 from vsc.utils.affinity import sched_getaffinity
 
-from vsc import fancylogger
+from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
 NetworkInterface = namedtuple('NetworkInterface', 'hostname,addr,device,mask_bits')

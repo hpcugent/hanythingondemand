@@ -31,7 +31,6 @@ from collections import Mapping
 from copy import deepcopy
 from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
-from vsc import fancylogger
 
 from hod.node.node import Node
 from hod.config.template import mklocalworkdir

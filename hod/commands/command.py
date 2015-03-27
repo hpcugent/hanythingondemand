@@ -39,7 +39,7 @@ import pty
 import signal
 import time
 
-from vsc import fancylogger
+from vsc.utils import fancylogger
 
 
 COMMAND_TIMEOUT = 120  # timeout
