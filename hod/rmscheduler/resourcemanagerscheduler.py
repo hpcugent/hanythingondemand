@@ -27,7 +27,7 @@ This module specifies the interface to implement for a ResourceNamagerScheduler
 
 @author: Stijn De Weirdt (University of Ghent)
 """
-from vsc import fancylogger
+from vsc.utils import fancylogger
 
 
 class ResourceManagerScheduler(object):
