@@ -107,10 +107,10 @@ class ConfiguredMaster(MpiService):
         self.tasks = []
         m_config = _load_manifest_config(self.options.options.config_config,
                 self.options.options.config_workdir)
+        m_config.autogen_configs()
 
         resolver = _setup_template_resolver(m_config, master_template_args)
         _setup_config_paths(m_config, resolver)
-
 
         master_env = dict([(v, os.getenv(v)) for v in m_config.master_env])
         self.log.debug('MasterEnv is: %s', env2str(master_env))
@@ -142,4 +142,6 @@ class ConfiguredSlave(MpiService):
         """
         m_config = _load_manifest_config(self.options.options.config_config,
                 self.options.options.config_workdir)
-        _setup_template_resolver(m_config, master_template_args)
+        m_config.autogen_configs()
+        resolver = _setup_template_resolver(m_config, master_template_args)
+        _setup_config_paths(m_config, resolver)
