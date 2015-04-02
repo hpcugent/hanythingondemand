@@ -26,21 +26,13 @@
 '''
 
 import unittest
-from mock import sentinel, patch
+from mock import patch, Mock
 from cStringIO import StringIO
-from optparse import OptionParser
 from hod.config.hodoption import HodOption
 import hod.hodproc as hh
 from hod.config.template import TemplateResolver
 
-class TestHodProcConfiguredMaster(unittest.TestCase):
-    def test_configured_master_init(self):
-        opts = HodOption(go_args=['progname'])
-        self.assertTrue(hasattr(opts.options, 'config_config'))
-        cm = hh.ConfiguredMaster(opts)
-
-    def test_configured_master_distribution(self):
-        manifest_config = """
+manifest_config = """
 [Meta]
 version = 1
 [Config]
@@ -50,8 +42,8 @@ modules=
 services=svc.conf
 config_writer=some.module.function
 directories=
-        """
-        service_config = """
+"""
+service_config = """
 [Unit]
 Name=wibble
 RunsOn = master
@@ -59,15 +51,42 @@ RunsOn = master
 ExecStart=service start postgres
 ExecStop=service stop postgres
 [Environment]
-        """
-        def _mock_open(name, *args):
-            if name == 'hod.conf':
-                return StringIO(manifest_config)
-            else: 
-                return StringIO(service_config)
+"""
+
+def _mock_open(name, *args):
+    if name == 'hod.conf':
+        return StringIO(manifest_config)
+    else:
+        return StringIO(service_config)
+
+class TestHodProcConfiguredMaster(unittest.TestCase):
+    def test_configured_master_init(self):
+        opts = HodOption(go_args=['progname'])
+        self.assertTrue(hasattr(opts.options, 'config_config'))
+        cm = hh.ConfiguredMaster(opts)
+        self.assertEqual(cm.options, opts)
+
+    def test_configured_master_distribution(self):
         opts = HodOption(go_args=['progname', '--config-config', 'hod.conf'])
+        autogen_config = Mock()
         cm = hh.ConfiguredMaster(opts)
         with patch('hod.hodproc._setup_config_paths', side_effect=lambda *args: None):
-            with patch('__builtin__.open', side_effect=_mock_open):
-                cm.distribution()
+            with patch('hod.config.config.PreServiceConfigOpts.autogen_configs',
+                    side_effect=autogen_config):
+                with patch('__builtin__.open', side_effect=_mock_open):
+                    cm.distribution()
         self.assertEqual(len(cm.tasks), 1)
+        self.assertTrue(autogen_config.called)
+        self.assertEqual(autogen_config.call_count, 1)
+    def test_configured_slave_distribution(self):
+        opts = HodOption(go_args=['progname', '--config-config', 'hod.conf'])
+        autogen_config = Mock()
+        cm = hh.ConfiguredSlave(opts)
+        with patch('hod.hodproc._setup_config_paths', side_effect=lambda *args: None):
+            with patch('hod.config.config.PreServiceConfigOpts.autogen_configs',
+                    side_effect=autogen_config):
+                with patch('__builtin__.open', side_effect=_mock_open):
+                    cm.distribution()
+        self.assertTrue(cm.tasks is None) # slaves don't collect tasks.
+        self.assertTrue(autogen_config.called)
+        self.assertEqual(autogen_config.call_count, 1)
