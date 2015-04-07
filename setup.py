@@ -77,7 +77,7 @@ def find_files(*dirs):
 
 PACKAGE = {
     'name': 'hanythingondemand',
-    'version': '2.2.0',
+    'version': '2.2.1',
     'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'license': "GPL v2",

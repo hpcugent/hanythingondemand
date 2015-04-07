@@ -32,7 +32,6 @@ from hod.config.template import (ConfigTemplate, TemplateRegistry,
         TemplateResolver, register_templates)
 from hod.config.config import ConfigOpts
 from mpi4py import MPI
-from vsc import fancylogger
 
 import socket
 import time
@@ -175,13 +174,13 @@ def run_tasks(svc):
         svc.tempcomm.append(newcomm)
         cfg = _mkconfigopts(wrk.config_opts)
         work = wrk.type(cfg, wrk.master_env)
-        svc.log.debug("work %s begin", wrk.type.__name__)
+        _log.debug("work %s begin", wrk.type.__name__)
         work.prepare_work_cfg()
         # adding started work
         active_work.append(work)
 
     for act_work in active_work:
-        svc.log.debug("work %s start", act_work.__class__.__name__)
+        _log.debug("work %s start", act_work.__class__.__name__)
         act_work.do_work_start()
 
     # all work is started now
