@@ -108,6 +108,43 @@ autogen=hadoop
         self.assertTrue('core-site.xml' in precfg.service_configs)
         self.assertTrue('mapred-site.xml' in precfg.service_configs)
         self.assertTrue('yarn-site.xml' in precfg.service_configs)
+        self.assertTrue('yarn.nodemanager.hostname' in precfg.service_configs['yarn-site.xml'])
+
+
+    def test_PreServiceConfigOpts_autogen_hadoop_override(self):
+        config = StringIO("""
+[Meta]
+version=1
+
+[Config]
+master_env=TMPDIR
+modules=powerlevel/9001,scouter/1.0
+services=scouter.conf
+workdir=/tmp
+config_writer=hod.config.writer.scouter_yaml
+directories=/dfs/name,/dfs/data
+autogen=hadoop
+
+[yarn-site.xml]
+yarn.nodemanager.hostname = 192.167.0.1
+        """)
+        precfg = hcc.PreServiceConfigOpts(config)
+        self.assertEqual(len(precfg.service_configs), 1)
+        node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
+                cores=24, totalcores=24, usablecores=range(24), topology=[0],
+                memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
+        with patch('hod.node.node.Node.go', return_value=node):
+            precfg.autogen_configs()
+        self.assertEqual(len(precfg.service_configs), 4)
+        self.assertTrue('core-site.xml' in precfg.service_configs)
+        self.assertTrue('mapred-site.xml' in precfg.service_configs)
+        self.assertTrue('yarn-site.xml' in precfg.service_configs)
+        yarncfg = precfg.service_configs['yarn-site.xml']
+        self.assertTrue('yarn.nodemanager.hostname' in yarncfg)
+        self.assertEqual(yarncfg['yarn.nodemanager.hostname'], '192.167.0.1')
+        self.assertTrue('yarn.resourcemanager.hostname' in yarncfg)
+        self.assertEqual(yarncfg['yarn.resourcemanager.hostname'], '$masterdataname')
+
 
     def test_PreServiceConfigOpts_merge(self):
         config1 = StringIO("""
