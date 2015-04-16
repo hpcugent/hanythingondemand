@@ -132,6 +132,7 @@ def yarn_site_xml_defaults(workdir, node_info):
         'yarn.nodemanager.resource.memory-mb': max_alloc,
         'yarn.nodemanager.vmem-check-enabled':'false',
         'yarn.nodemanager.vmem-pmem-ratio': 2.1,
+        'yarn.nodemanager.hostname': '$dataname',
         'yarn.resourcemanager.hostname': '$masterdataname',
         'yarn.resourcemanager.scheduler.class':'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler',
         'yarn.scheduler.capacity.allocation.file': 'capacity-scheduler.xml',

@@ -173,7 +173,9 @@ class PreServiceConfigOpts(object):
         for autocfg in self.autogen:
             fn = autogen_fn(autocfg)
             new_configs = fn(self.workdir, node_info)
-            new_configs.update(self.service_configs)
+            for cfgname in new_configs.keys():
+                if cfgname in self.service_configs:
+                    new_configs[cfgname].update(self.service_configs[cfgname])
             self.service_configs = new_configs
 
     def __str__(self):
