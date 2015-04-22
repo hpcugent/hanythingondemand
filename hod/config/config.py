@@ -115,6 +115,18 @@ def parse_comma_delim_list(s):
     '''
     return [x.strip() for x in filter(lambda x: x.strip(), s.split(','))]
 
+def _extend_list(lst, other):
+    '''Extend the list so 
+    _extend_list([1,2,3], 4) -> [1,2,3,4]
+    _extend_list([1,2,3], [4, 5]) -> [1,2,3,4, 5]
+    '''
+    if isinstance(other, list):
+        lst += other
+    else:
+        lst.append(other)
+    return lst
+
+
 class PreServiceConfigOpts(object):
     r"""
     Manifest file for the group of services responsible for defining service
@@ -137,8 +149,14 @@ class PreServiceConfigOpts(object):
             return _abspath(cfg, fileobj_dir)
 
         def _get_list(name):
-            return parse_comma_delim_list(_cfgget(_config, _CONFIG_SECTION,
-                name, '', **kwargs))
+            '''
+            With lists, we don't want to overwrite the value with kwargs.
+            Mergely append.
+            '''
+            lst = parse_comma_delim_list(_cfgget(_config, _CONFIG_SECTION, name, ''))
+            if name in kwargs and kwargs[name] is not None:
+                _extend_list(lst, parse_comma_delim_list(kwargs[name]))
+            return lst
 
         self.modules = _get_list('modules')
         self.master_env = _get_list('master_env')

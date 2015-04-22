@@ -62,6 +62,33 @@ wibble.class=super
         self.assertEqual(precfg.directories, ['/dfs/name', '/dfs/data'])
         self.assertEqual(hcc.invalid_fields(precfg), [])
 
+    def test_PreServiceConfigOpts_kwargs(self):
+        config = StringIO("""
+[Meta]
+version=1
+
+[Config]
+master_env=TMPDIR
+modules=powerlevel/9001,scouter/1.0
+services=scouter.conf
+config_writer=hod.config.writer.scouter_yaml
+directories=/dfs/name,/dfs/data
+
+[scouter.yaml]
+wibble=abc
+wibble.class=super
+        """)
+        precfg = hcc.PreServiceConfigOpts(config, workdir='dbz-quotes',
+                modules='dbz/episode-28')
+        self.assertEqual(precfg.modules, ['powerlevel/9001', 'scouter/1.0',
+            'dbz/episode-28'])
+        for x in precfg.service_files:
+            self.assertTrue(basename(x) in ['scouter.conf'])
+        self.assertTrue('scouter.yaml' in precfg.service_configs.keys())
+        self.assertEqual(precfg.directories, ['/dfs/name', '/dfs/data'])
+        self.assertEqual(hcc.invalid_fields(precfg), [])
+        self.assertEqual(precfg.workdir, 'dbz-quotes')
+
     def test_PreServiceConfigOpts_invalid(self):
         config = StringIO("""
 [Meta]

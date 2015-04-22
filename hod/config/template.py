@@ -72,10 +72,19 @@ class TemplateRegistry(object):
         return kwargs
 
 
-def register_templates(template_registry, workdir):
+def register_templates(template_registry, config_opts):
     '''
     Register the common templates.
+    Params
+    ------
+    template_registry : `TemplateRegistry`
+        Registry to update.
+
+    config_opts : `hod.mpiservice.ConfigOptsParams`
+        Configuration structure holding our config options.
     '''
+    workdir = config_opts.workdir
+    modules = config_opts.modules
     local_data_network = node.sorted_network(node.get_networks())[0]
     templates = [
         _config_template_stub('masterhostname', 'Hostname bound to the Fully Qualified Domain Name (FQDN) of the master node.'),
@@ -88,6 +97,7 @@ def register_templates(template_registry, workdir):
         ConfigTemplate('localworkdir', lambda: mklocalworkdir(workdir), 'Subdirectory of workdir with user, host, and pid in the name to make it distinct from other workdirs for use on shared file systems'),
         ConfigTemplate('user', _current_user, 'Current user'),
         ConfigTemplate('pid', os.getpid, 'PID for the current process'),
+        ConfigTemplate('modules', lambda: ' '.join(modules), 'Modules listed in the hod.conf'),
         ]
 
     for ct in templates:

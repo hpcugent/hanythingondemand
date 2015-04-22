@@ -69,6 +69,7 @@ class HodOption(GeneralOption):
 a comma separated list of config files with the later files taking
 precendence.""", "string", "store", ''),
                 'workdir': ("""Working directory""", "string", "store", None),
+                'modules': ("""Extra modules to load in each service environment""", "string", "store", None),
                 }
         descr = ["Config", "Configuration files options"]
 

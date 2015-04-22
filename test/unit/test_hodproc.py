@@ -67,7 +67,8 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
         self.assertEqual(cm.options, opts)
 
     def test_configured_master_distribution(self):
-        opts = HodOption(go_args=['progname', '--config-config', 'hod.conf'])
+        opts = HodOption(go_args=['progname', '--config-config', 'hod.conf',
+        '--config-modules', 'Python-2.7.9-intel-2015a,Spark/1.3.0'])
         autogen_config = Mock()
         cm = hh.ConfiguredMaster(opts)
         with patch('hod.hodproc._setup_config_paths', side_effect=lambda *args: None):
@@ -78,8 +79,12 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
         self.assertEqual(len(cm.tasks), 1)
         self.assertTrue(autogen_config.called)
         self.assertEqual(autogen_config.call_count, 1)
+        self.assertTrue('Python-2.7.9-intel-2015a' in cm.tasks[0].config_opts.modules)
+        self.assertTrue('Spark/1.3.0' in cm.tasks[0].config_opts.modules)
+
     def test_configured_slave_distribution(self):
-        opts = HodOption(go_args=['progname', '--config-config', 'hod.conf'])
+        opts = HodOption(go_args=['progname', '--config-config', 'hod.conf',
+        '--config-modules', 'Python-2.7.9-intel-2015a,Spark/1.3.0'])
         autogen_config = Mock()
         cm = hh.ConfiguredSlave(opts)
         with patch('hod.hodproc._setup_config_paths', side_effect=lambda *args: None):
