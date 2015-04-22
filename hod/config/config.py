@@ -98,7 +98,7 @@ def _cfgget(config, section, item, dflt=None, **kwargs):
     Get a value from a ConfigParser object or a default if it's not there.
     Options in kwargs override the config.
     '''
-    if item in kwargs and kwargs[item] is not None:
+    if kwargs.get(item, None) is not None:
         return kwargs[item]
     if dflt is None:
         return config.get(section, item)
@@ -154,7 +154,7 @@ class PreServiceConfigOpts(object):
             Mergely append.
             '''
             lst = parse_comma_delim_list(_cfgget(_config, _CONFIG_SECTION, name, ''))
-            if name in kwargs and kwargs[name] is not None:
+            if kwargs.get(name, None) is not None:
                 _extend_list(lst, parse_comma_delim_list(kwargs[name]))
             return lst
 
