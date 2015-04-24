@@ -70,7 +70,7 @@ class TestConfigAutogenHadoopOnLustre(unittest.TestCase):
         self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], 9216)
         self.assertEqual(d['yarn.scheduler.minimum-allocation-mb'], 1024)
         self.assertEqual(d['yarn.scheduler.maximum-allocation-mb'], 9216)
-        self.assertEqual(d['yarn.nodemanager.local-dirs'], '$workdir/$hostname')
+        self.assertEqual(d['yarn.nodemanager.local-dirs'], '$workdir/$dataname')
 
     def test_autogen_config(self):
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
