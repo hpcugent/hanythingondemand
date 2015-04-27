@@ -29,6 +29,7 @@ Nothing here for now.
 """
 
 import unittest
+from os.path import basename
 from mock import patch, MagicMock
 
 import hod.config.autogen.common as hcc
@@ -71,6 +72,7 @@ class TestConfigAutogenHadoopOnLustre(unittest.TestCase):
         self.assertEqual(d['yarn.scheduler.minimum-allocation-mb'], 1024)
         self.assertEqual(d['yarn.scheduler.maximum-allocation-mb'], 9216)
         self.assertEqual(d['yarn.nodemanager.local-dirs'], '$workdir/$dataname')
+        self.assertEqual(basename(d['yarn.nodemanager.local-dirs']), d['yarn.nodemanager.hostname'])
 
     def test_autogen_config(self):
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,

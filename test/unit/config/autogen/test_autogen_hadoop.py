@@ -72,6 +72,7 @@ class TestConfigAutogenHadoop(unittest.TestCase):
         d = hca.yarn_site_xml_defaults('/', node)
         self.assertEqual(len(d), 10)
         self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], hcc.round_mb(hcc.parse_memory('56G')))
+        self.assertEqual(d['yarn.nodemanager.hostname'], '$dataname')
         self.assertEqual(d['yarn.scheduler.minimum-allocation-mb'], hcc.round_mb(hcc.parse_memory('2G')))
         self.assertEqual(d['yarn.scheduler.maximum-allocation-mb'], hcc.round_mb(hcc.parse_memory('56G')))
 
