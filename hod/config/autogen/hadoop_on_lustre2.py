@@ -52,7 +52,9 @@ def mapred_site_xml_defaults(workdir, node_info):
 
 def yarn_site_xml_defaults(workdir, node_info):
     dflts = {
-        'yarn.nodemanager.local-dirs': '$workdir/$hostname',
+        # Hadoop-on-lustre2 wants to find dirs with
+        # $workdir/$(nodemanager-hostname) which in our case is 'dataname'
+        'yarn.nodemanager.local-dirs': '$workdir/$dataname',
     }
     base_hadoop_dflts = hcah.yarn_site_xml_defaults(workdir, node_info)
     base_hadoop_dflts.update(dflts)

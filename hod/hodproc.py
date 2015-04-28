@@ -73,14 +73,14 @@ def _setup_config_paths(precfg, resolver):
         dest_path = mkpath(precfg.configdir, dest_file)
         write_service_config(dest_path, cfg, config_writer, resolver)
 
-def _load_manifest_config(filenames, workdir):
+def _load_manifest_config(filenames, workdir, modules):
     '''
     Load the manifest config (hod.conf) files.
     '''
     m_config_filenames = parse_comma_delim_list(filenames)
     _log.info('Loading "%s" manifest config', m_config_filenames)
     m_config = preserviceconfigopts_from_file_list(m_config_filenames,
-            workdir=workdir)
+            workdir=workdir, modules=modules)
     _log.debug('Loaded manifest config: %s', str(m_config))
     return m_config
 
@@ -89,7 +89,7 @@ def _setup_template_resolver(m_config, master_template_args):
     Build a template resovler using the template args from the master node.
     '''
     reg = TemplateRegistry()
-    register_templates(reg, m_config.workdir)
+    register_templates(reg, m_config)
     for ct in master_template_args:
         reg.register(ct)
     return TemplateResolver(**reg.to_kwargs())
@@ -106,7 +106,8 @@ class ConfiguredMaster(MpiService):
         """Master makes the distribution"""
         self.tasks = []
         m_config = _load_manifest_config(self.options.options.config_config,
-                self.options.options.config_workdir)
+                self.options.options.config_workdir, 
+                self.options.options.config_modules)
         m_config.autogen_configs()
 
         resolver = _setup_template_resolver(m_config, master_template_args)
@@ -123,7 +124,7 @@ class ConfiguredMaster(MpiService):
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
             self.log.debug('Adding ConfiguredService Task to work with config: %s',
                     str(config))
-            cfg_opts = ConfigOptsParams(config_filename, m_config.workdir, master_template_args)
+            cfg_opts = ConfigOptsParams(config_filename, m_config.workdir, m_config.modules, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
 
 class ConfiguredSlave(MpiService):
@@ -141,7 +142,8 @@ class ConfiguredSlave(MpiService):
         This only needs to run if there are more than 1 node (self.size>1)
         """
         m_config = _load_manifest_config(self.options.options.config_config,
-                self.options.options.config_workdir)
+                self.options.options.config_workdir,
+                self.options.options.config_modules)
         m_config.autogen_configs()
         resolver = _setup_template_resolver(m_config, master_template_args)
         _setup_config_paths(m_config, resolver)

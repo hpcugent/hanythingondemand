@@ -48,7 +48,8 @@ MASTERRANK = 0
 
 # Parameters to send over the network to allow slaves to construct hod.config.ConfigOpts
 # objects
-ConfigOptsParams = namedtuple('ConfigOptsParams', ['filename', 'workdir', 'master_template_kwargs'])
+
+ConfigOptsParams = namedtuple('ConfigOptsParams', ['filename', 'workdir', 'modules', 'master_template_kwargs'])
 Task = namedtuple('Task', ['type', 'name', 'ranks', 'config_opts', 'master_env'])
 
 def _who_is_out_there(comm, rank):
@@ -148,7 +149,7 @@ def setup_tasks(svc):
 
 def _mkconfigopts(cfg_opts):
     reg = TemplateRegistry()
-    register_templates(reg, cfg_opts.workdir)
+    register_templates(reg, cfg_opts)
     for ct  in cfg_opts.master_template_kwargs:
         reg.register(ct)
 

@@ -26,7 +26,7 @@
 '''
 
 import unittest
-from mock import patch 
+from mock import patch, Mock
 from os.path import basename
 from cStringIO import StringIO
 from cPickle import dumps, loads
@@ -36,9 +36,28 @@ import hod.config.template as hct
 class TestConfigTemplate(unittest.TestCase):
     def test_register_templates(self):
         reg = hct.TemplateRegistry()
-        hct.register_templates(reg, 'workdir')
+        cfg = Mock(workdir='workdir', modules=['MyModule'])
+        hct.register_templates(reg, cfg)
         self.assertEqual(reg.fields['masterhostname'].name, 'masterhostname')
         self.assertTrue(len(reg.fields['masterhostname'].doc) != 0)
+        self.assertEqual(reg.fields['modules'].name, 'modules')
+        self.assertEqual(reg.fields['modules'].fn(), 'MyModule')
+
+    def test_register_templates_no_modules(self):
+        reg = hct.TemplateRegistry()
+        cfg = Mock(workdir='workdir', modules=[])
+        hct.register_templates(reg, cfg)
+        self.assertEqual(reg.fields['masterhostname'].name, 'masterhostname')
+        self.assertTrue(len(reg.fields['masterhostname'].doc) != 0)
+        self.assertEqual(reg.fields['modules'].fn(), '')
+
+    def test_register_templates_multi_modules(self):
+        reg = hct.TemplateRegistry()
+        cfg = Mock(workdir='workdir', modules=['MyModule', 'MyOtherModule'])
+        hct.register_templates(reg, cfg)
+        self.assertEqual(reg.fields['masterhostname'].name, 'masterhostname')
+        self.assertTrue(len(reg.fields['masterhostname'].doc) != 0)
+        self.assertEqual(reg.fields['modules'].fn(), 'MyModule MyOtherModule')
 
     def test_TemplateRegistry(self):
         reg = hct.TemplateRegistry()
