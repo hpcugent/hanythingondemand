@@ -134,7 +134,9 @@ def yarn_site_xml_defaults(workdir, node_info):
         'yarn.nodemanager.vmem-pmem-ratio': 2.1,
         'yarn.nodemanager.hostname': '$dataname',
         'yarn.resourcemanager.hostname': '$masterdataname',
-        'yarn.resourcemanager.scheduler.class':'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler',
+        'yarn.resourcemanager.webapp.address': '$masterhostname:8088',
+        'yarn.resourcemanager.webapp.https.address': '$masterhostname:8090',
+        'yarn.resourcemanager.scheduler.class': 'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler',
         'yarn.scheduler.capacity.allocation.file': 'capacity-scheduler.xml',
     }
     return dflts
@@ -144,6 +146,7 @@ def capacity_scheduler_xml_defaults(workdir, node_info):
         'yarn.scheduler.capacity.root.queues': 'default',
         'yarn.scheduler.capacity.root.default.capacity': 100,
         'yarn.scheduler.capacity.root.default.minimum-user-limit-percent': 100,
+        'yarn.scheduler.capacity.resource-calculator': 'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator'
     }
     return dflts
 
