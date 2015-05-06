@@ -70,9 +70,12 @@ class TestConfigAutogenHadoop(unittest.TestCase):
                 cores=24, totalcores=24, usablecores=range(24), topology=[0],
                 memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         d = hca.yarn_site_xml_defaults('/', node)
-        self.assertEqual(len(d), 10)
+        self.assertEqual(len(d), 13)
         self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], hcc.round_mb(hcc.parse_memory('56G')))
+        self.assertEqual(d['yarn.resourcemanager.webapp.address'], '$masterhostname:8088')
+        self.assertEqual(d['yarn.resourcemanager.webapp.https.address'], '$masterhostname:8090')
         self.assertEqual(d['yarn.nodemanager.hostname'], '$dataname')
+        self.assertEqual(d['yarn.nodemanager.webapp.address'], '$hostname:8042')
         self.assertEqual(d['yarn.scheduler.minimum-allocation-mb'], hcc.round_mb(hcc.parse_memory('2G')))
         self.assertEqual(d['yarn.scheduler.maximum-allocation-mb'], hcc.round_mb(hcc.parse_memory('56G')))
 
@@ -81,11 +84,12 @@ class TestConfigAutogenHadoop(unittest.TestCase):
                 cores=24, totalcores=24, usablecores=range(24), topology=[0],
                 memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         d = hca.capacity_scheduler_xml_defaults('/', node)
-        self.assertEqual(len(d), 3)
+        self.assertEqual(len(d), 4)
         self.assertEqual(d['yarn.scheduler.capacity.root.queues'], 'default')
         self.assertEqual(d['yarn.scheduler.capacity.root.default.capacity'], 100)
         self.assertEqual(d['yarn.scheduler.capacity.root.default.minimum-user-limit-percent'], 100)
-
+        self.assertEqual(d['yarn.scheduler.capacity.resource-calculator'], 
+                'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator')
     def test_autogen_config(self):
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
                 cores=24, totalcores=24, usablecores=range(24), topology=[0],

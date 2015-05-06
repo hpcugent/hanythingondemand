@@ -67,7 +67,7 @@ class TestConfigAutogenHadoopOnLustre(unittest.TestCase):
                 cores=4, totalcores=24, usablecores=[0, 1, 2, 3], topology=[0],
                 memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         d = hca.yarn_site_xml_defaults('/', node)
-        self.assertEqual(len(d), 11)
+        self.assertEqual(len(d), 14)
         self.assertEqual(d['yarn.nodemanager.resource.memory-mb'], 9216)
         self.assertEqual(d['yarn.scheduler.minimum-allocation-mb'], 1024)
         self.assertEqual(d['yarn.scheduler.maximum-allocation-mb'], 9216)
