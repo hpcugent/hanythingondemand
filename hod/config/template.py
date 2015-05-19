@@ -88,7 +88,9 @@ def register_templates(template_registry, config_opts):
     local_data_network = node.sorted_network(node.get_networks())[0]
     templates = [
         _config_template_stub('masterhostname', 'Hostname bound to the Fully Qualified Domain Name (FQDN) of the master node.'),
-        _config_template_stub('masterdataname', 'Hostname bound to the Infiniband adaptor on the master node if available'),
+        _config_template_stub('masterhostaddress', 'Address bound to the default interface.'),
+        _config_template_stub('masterdataname', 'Hostname bound to the Infiniband adapter on the master node if available.'),
+        _config_template_stub('masterdataaddress', 'Address bound to the Infiniband adapter on the master node if available.'),
         ConfigTemplate('hostname', socket.getfqdn, 'Fully Qualified Domain Name (FQDN)'),
         ConfigTemplate('hostaddress', lambda: socket.gethostbyname(socket.getfqdn()), 'IP address registered as the FQDN'),
         ConfigTemplate('dataname', local_data_network.hostname, 'Infiniband hostname if available'),
