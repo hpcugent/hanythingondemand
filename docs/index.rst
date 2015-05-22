@@ -22,4 +22,4 @@ Introductory topics
     :glob:
     :maxdepth: 3
 
-    What_is_hanythingondemand
+    What_is_HOD
