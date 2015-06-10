@@ -23,3 +23,8 @@ Introductory topics
     :maxdepth: 3
 
     What_is_HOD
+    Administration
+    Configuration
+    Logging_and_Configuration
+    Web_Services
+    Spark
