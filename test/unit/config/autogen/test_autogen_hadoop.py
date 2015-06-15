@@ -84,12 +84,14 @@ class TestConfigAutogenHadoop(unittest.TestCase):
                 cores=24, totalcores=24, usablecores=range(24), topology=[0],
                 memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         d = hca.capacity_scheduler_xml_defaults('/', node)
-        self.assertEqual(len(d), 4)
+        self.assertEqual(len(d), 6)
         self.assertEqual(d['yarn.scheduler.capacity.root.queues'], 'default')
         self.assertEqual(d['yarn.scheduler.capacity.root.default.capacity'], 100)
         self.assertEqual(d['yarn.scheduler.capacity.root.default.minimum-user-limit-percent'], 100)
         self.assertEqual(d['yarn.scheduler.capacity.resource-calculator'], 
                 'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator')
+        self.assertEqual(d['yarn.scheduler.capacity.root.default.acl_submit_applications'], '$user')
+        self.assertEqual(d['yarn.scheduler.capacity.root.default.acl_administer_queue'], '$user')
     def test_autogen_config(self):
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
                 cores=24, totalcores=24, usablecores=range(24), topology=[0],
