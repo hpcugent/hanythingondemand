@@ -133,10 +133,10 @@ def yarn_site_xml_defaults(workdir, node_info):
         'yarn.nodemanager.vmem-check-enabled':'false',
         'yarn.nodemanager.vmem-pmem-ratio': 2.1,
         'yarn.nodemanager.hostname': '$dataname',
-        'yarn.nodemanager.webapp.address': '$hostname:8042',
+        'yarn.nodemanager.webapp.address': '$hostaddress:8042',
         'yarn.resourcemanager.hostname': '$masterdataname',
-        'yarn.resourcemanager.webapp.address': '$masterhostname:8088',
-        'yarn.resourcemanager.webapp.https.address': '$masterhostname:8090',
+        'yarn.resourcemanager.webapp.address': '$masterhostaddress:8088',
+        'yarn.resourcemanager.webapp.https.address': '$masterhostaddress:8090',
         'yarn.resourcemanager.scheduler.class': 'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler',
         'yarn.scheduler.capacity.allocation.file': 'capacity-scheduler.xml',
     }
