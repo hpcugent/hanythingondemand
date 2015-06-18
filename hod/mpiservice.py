@@ -128,10 +128,15 @@ def setup_tasks(svc):
 
     # Configure
     if svc.rank == MASTERRANK:
-        master_dataname = node.sorted_network(node.get_networks())[0].hostname
+        data_interface = node.sorted_network(node.get_networks())[0]
+        master_dataname = data_interface.hostname
+        master_dataaddress = data_interface.addr
+        fqdn = socket.getfqdn()
         master_template_kwargs = [
-                ConfigTemplate('masterhostname',socket.getfqdn(),''),
-                ConfigTemplate('masterdataname', master_dataname, '')
+                ConfigTemplate('masterhostname', fqdn,''),
+                ConfigTemplate('masterhostaddress', socket.gethostbyname(fqdn),''),
+                ConfigTemplate('masterdataname', master_dataname, ''),
+                ConfigTemplate('masterdataaddress', master_dataaddress, '')
                 ]
         _master_spread(svc.comm, master_template_kwargs)
     else:
