@@ -25,6 +25,6 @@ Introductory topics
     What_is_HOD
     Administration
     Configuration
-    Logging_and_Configuration
+    Logging
     Web_Services
     Spark

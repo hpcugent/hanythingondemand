@@ -46,36 +46,39 @@ EasyBuild scripts for mpi4py are available `here <https://github.com/hpcugent/ea
 --------
 vsc-base
 --------
-EasyBuild scripts for mpi4py are available `here <https://github.com/hpcugent/easybuild-easyconfigs/tree/master/easybuild/easyconfigs/v/vsc-base>`_
+EasyBuild scripts for vsc-base are available `here <https://github.com/hpcugent/easybuild-easyconfigs/tree/master/easybuild/easyconfigs/v/vsc-base>`_
 
 ------------
 vsc-mympirun
 ------------
-EasyBuild scripts for mpi4py are available `here <https://github.com/hpcugent/easybuild-easyconfigs/tree/master/easybuild/easyconfigs/v/vsc-mympirun>`_
+EasyBuild scripts for vsc-mympirun are available `here <https://github.com/hpcugent/easybuild-easyconfigs/tree/master/easybuild/easyconfigs/v/vsc-mympirun>`_
 
 ---------
 netifaces
 ---------
 
-EasyBuild scripts for mpi4py are available `here <https://github.com/hpcugent/easybuild-easyconfigs/tree/master/easybuild/easyconfigs/n/netifaces>`_
+EasyBuild scripts for netifaces are available `here <https://github.com/hpcugent/easybuild-easyconfigs/tree/master/easybuild/easyconfigs/n/netifaces>`_
 
 -------
 netaddr
 -------
-EasyBuild scripts for mpi4py are available `here <https://github.com/hpcugent/easybuild-easyconfigs/tree/master/easybuild/easyconfigs/n/netaddr>`_
+EasyBuild scripts for netaddr are available `here <https://github.com/hpcugent/easybuild-easyconfigs/tree/master/easybuild/easyconfigs/n/netaddr>`_
 
 ----------
 pbs_python
 ----------
-EasyBuild scripts for mpi4py are available `here <https://github.com/hpcugent/easybuild-easyconfigs/tree/master/easybuild/easyconfigs/p/pbs_python>`_
+EasyBuild scripts for pbs_python are available `here <https://github.com/hpcugent/easybuild-easyconfigs/tree/master/easybuild/easyconfigs/p/pbs_python>`_
 
 -----
 Java
 -----
 We use the Oracle JVM which isn't directly installable from EasyBuild since you need to register on the website to get the files.
 
+.. note:: You'll need to manually download the `JDK tarballs <http://www.oracle.com/technetwork/java/javase/archive-139210.html>`_ (requires registration) and seed them to EasyBuild.
+
 ------
 Hadoop
 ------
-We use Cloudera's Hadoop distribution and have tested with chd4.4.0.
+We use `Cloudera's Hadoop distribution and have tested with chd5.3.1
+<https://github.com/hpcugent/easybuild-easyconfigs/blob/master/easybuild/easyconfigs/h/Hadoop/Hadoop-2.5.0-cdh5.3.1-native.eb>`_.
 
