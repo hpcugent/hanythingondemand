@@ -133,8 +133,8 @@ def setup_tasks(svc):
         master_dataaddress = data_interface.addr
         fqdn = socket.getfqdn()
         master_template_kwargs = [
-                ConfigTemplate('masterhostname',fqdn,''),
-                ConfigTemplate('masterhostaddress',socket.gethostbyname(fqdn),''),
+                ConfigTemplate('masterhostname', fqdn,''),
+                ConfigTemplate('masterhostaddress', socket.gethostbyname(fqdn),''),
                 ConfigTemplate('masterdataname', master_dataname, ''),
                 ConfigTemplate('masterdataaddress', master_dataaddress, '')
                 ]
