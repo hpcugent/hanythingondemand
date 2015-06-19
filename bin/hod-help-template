@@ -35,24 +35,32 @@ import sys
 from hod.mpiservice import ConfigOptsParams, master_template_opts
 import hod.node.node as node
 
-def main(args):
-
+def mk_registry():
+    """Make a TemplateRegistry and register basic items"""
     config_opts = ConfigOptsParams(filename='hod.conf', workdir='WORKDIR',
-            modules=['MODULES'], master_template_kwargs=[])
-
+        modules=['MODULES'], master_template_kwargs=[])
     reg = hct.TemplateRegistry()
     hct.register_templates(reg, config_opts)
     master_template_kwargs = master_template_opts(reg.fields.values())
     for ct in master_template_kwargs:
         reg.register(ct)
-    resolver = hct.TemplateResolver(**reg.to_kwargs())
-    print 'Hanythingondemand template parameters'
-    longest_name = max(reg.fields.values(), key=lambda x: len(x.name)).name
+    return reg
+
+def mk_fmt_str(fields, resolver):
+    """Calculate the format string for printing the template parameters."""
+    longest_name = max(fields.values(), key=lambda x: len(x.name)).name
     max_name_len = len(longest_name)
-    value_names = map(resolver, ['$%s'% v.name for v in reg.fields.values()])
+    value_names = map(resolver, ['$%s'% v.name for v in fields.values()])
     longest_value = max(value_names, key=len)
     max_val_len = len(longest_value)
-    fmt_str = '%%-%ds:\t%%-%ds\t%%s' % (max_name_len, max_val_len)
+    return '%%-%ds:\t%%-%ds\t%%s' % (max_name_len, max_val_len)
+
+
+def main(args):
+    reg = mk_registry()
+    resolver = hct.TemplateResolver(**reg.to_kwargs())
+    print 'Hanythingondemand template parameters'
+    fmt_str = mk_fmt_str(reg.fields, resolver)
     print fmt_str % ('Parameter name', 'Value', 'Documentation')
     for v in sorted(reg.fields.values(), key=lambda x: x.name):
         print fmt_str % (v.name, resolver('$%s' % v.name), v.doc)
