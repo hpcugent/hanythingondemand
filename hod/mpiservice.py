@@ -137,11 +137,11 @@ def master_template_opts(stub_config_opts=None):
     if stub_config_opts is not None:
         docs = dict([(opt.name, opt.doc) for opt in stub_config_opts])
     return [
-            ConfigTemplate('masterhostname', fqdn, docs.get('masterhostname', '')),
-            ConfigTemplate('masterhostaddress', socket.gethostbyname(fqdn), docs.get('masterhostaddress', '')),
-            ConfigTemplate('masterdataname', master_dataname, docs.get('masterdataname', '')),
-            ConfigTemplate('masterdataaddress', master_dataaddress, docs.get('masterdataaddress', '')),
-            ]
+        ConfigTemplate('masterhostname', fqdn, docs.get('masterhostname', '')),
+        ConfigTemplate('masterhostaddress', socket.gethostbyname(fqdn), docs.get('masterhostaddress', '')),
+        ConfigTemplate('masterdataname', master_dataname, docs.get('masterdataname', '')),
+        ConfigTemplate('masterdataaddress', master_dataaddress, docs.get('masterdataaddress', '')),
+        ]
  
 def setup_tasks(svc):
     """Setup the per node services and spread the tasks out."""
