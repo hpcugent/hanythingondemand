@@ -80,7 +80,7 @@ class MPIServiceTestCase(unittest.TestCase):
         ms = hm.MpiService()
         ms.distribution() # TODO:  Does nothing. If it's an interface, make abstract.
 
-    def test_master_template_opts(self):
+    def test_master_template_opts_default(self):
         opts = hm.master_template_opts()
         self.assertTrue(len(opts) == 4)
         self.assertEqual(opts[0].name, 'masterhostname')
@@ -92,7 +92,7 @@ class MPIServiceTestCase(unittest.TestCase):
         self.assertEqual(opts[3].name, 'masterdataaddress')
         self.assertEqual(opts[3].doc, '')
 
-    def test_master_template_opts(self):
+    def test_master_template_opts_enriched(self):
         docs = sentinel 
         stub_docs = [
             ConfigTemplate('masterhostname', None, docs.masterhostname),
