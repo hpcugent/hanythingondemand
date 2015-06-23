@@ -37,11 +37,11 @@ class HodRMSchedulerResourceManagerSchedulerTestCase(unittest.TestCase):
         self.assertTrue('cwd' in o.vars)
         self.assertTrue('jobid' in o.vars)
 
-    @unittest.expectedFailure
-    def test_resourcemanagerscheduler_submit(self):
-        '''test ResourceManagerScheduler submit'''
-        o = hrr.ResourceManagerScheduler(None)
-        o.submit() # TODO: Remove.
+    #@unittest.expectedFailure
+    #def test_resourcemanagerscheduler_submit(self):
+    #    '''test ResourceManagerScheduler submit'''
+    #    o = hrr.ResourceManagerScheduler(None)
+    #    o.submit() # TODO: Remove.
 
     def test_resourcemanagerscheduler_state(self):
         '''test ResourceManagerScheduler state'''

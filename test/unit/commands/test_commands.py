@@ -31,11 +31,11 @@ import hod.commands.command as hcc
 class HodCommandsCommandTestCase(unittest.TestCase):
     '''Test Command functions'''
 
-    @unittest.expectedFailure
-    def test_command_breathing(self):
-        '''test command can actually be created.'''
-        c = hcc.Command()
-        self.assertEqual(str(c), '')
+    #@unittest.expectedFailure
+    #def test_command_breathing(self):
+    #    '''test command can actually be created.'''
+    #    c = hcc.Command()
+    #    self.assertEqual(str(c), '')
 
     def test_command_empty_run(self):
         '''test command empty run'''

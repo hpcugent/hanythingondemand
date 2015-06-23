@@ -35,11 +35,11 @@ class HodRMSchedulerRMPBSTestCase(unittest.TestCase):
         '''test Pbs init function'''
         o = hrr.Pbs(None)
 
-    @unittest.expectedFailure
-    def test_pbs_submit(self):
-        '''test Pbs submit'''
-        o = hrr.Pbs(None)
-        o.submit()
+    #@unittest.expectedFailure
+    #def test_pbs_submit(self):
+    #    '''test Pbs submit'''
+    #    o = hrr.Pbs(None)
+    #    o.submit()
 
     # this dumps core on localhost.
     #@unittest.expectedFailure
@@ -62,15 +62,15 @@ class HodRMSchedulerRMPBSTestCase(unittest.TestCase):
         o = hrr.Pbs(None)
         o.remove()
 
-    @unittest.expectedFailure
-    def test_pbs_header(self):
-        '''test Pbs header'''
-        o = hrr.Pbs(None)
-        hdr = o.header()
-        print hdr
+    #@unittest.expectedFailure
+    #def test_pbs_header(self):
+    #    '''test Pbs header'''
+    #    o = hrr.Pbs(None)
+    #    hdr = o.header()
+    #    print hdr
 
-    @unittest.expectedFailure
-    def test_pbs_get_ppn(self):
-        '''test Pbs get_ppn'''
-        o = hrr.Pbs(None)
-        o.get_ppn()
+    #@unittest.expectedFailure
+    #def test_pbs_get_ppn(self):
+    #    '''test Pbs get_ppn'''
+    #    o = hrr.Pbs(None)
+    #    o.get_ppn()

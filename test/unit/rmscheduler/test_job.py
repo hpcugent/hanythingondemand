@@ -33,17 +33,17 @@ class HodRMSchedulerJobTestCase(unittest.TestCase):
     def test_job_init(self):
         j = hrj.Job(None)
 
-    @unittest.expectedFailure
-    def test_job_submit(self):
-        '''test Job submit.'''
-        j = hrj.Job(None)
-        j.submit()
+    #@unittest.expectedFailure
+    #def test_job_submit(self):
+    #    '''test Job submit.'''
+    #    j = hrj.Job(None)
+    #    j.submit()
 
-    @unittest.expectedFailure
-    def test_job_generate_script(self):
-        '''test Job generate_script.'''
-        j = hrj.Job(None)
-        j.generate_script()
+    #@unittest.expectedFailure
+    #def test_job_generate_script(self):
+    #    '''test Job generate_script.'''
+    #    j = hrj.Job(None)
+    #    j.generate_script()
 
     def test_job_generate_environment(self):
         '''test Job generate_environment.'''
