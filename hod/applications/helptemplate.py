@@ -28,12 +28,11 @@ Print out template parameters used by hod.
 @author: Ewan Higgs (Ghent University)
 """
 
-import hod.config.template as hct
-import socket
-import sys
+from textwrap import dedent
 
+from hod.applications.application import Application
 from hod.mpiservice import ConfigOptsParams, master_template_opts
-import hod.node.node as node
+import hod.config.template as hct
 
 def mk_registry():
     """Make a TemplateRegistry and register basic items"""
@@ -55,15 +54,20 @@ def mk_fmt_str(fields, resolver):
     max_val_len = len(longest_value)
     return '%%-%ds:\t%%-%ds\t%%s' % (max_name_len, max_val_len)
 
+class HelpTemplateApplication(Application):
+    def usage(self):
+        s ="""\
+        hod help-template - Print the values of the configuration templates
+            based on the current machine.
+        hod help-template --config-config=<hod.conf file> --config-workdir=<working directory>
+        """
+        return dedent(s)
 
-def main(args):
-    reg = mk_registry()
-    resolver = hct.TemplateResolver(**reg.to_kwargs())
-    print 'Hanythingondemand template parameters'
-    fmt_str = mk_fmt_str(reg.fields, resolver)
-    print fmt_str % ('Parameter name', 'Value', 'Documentation')
-    for v in sorted(reg.fields.values(), key=lambda x: x.name):
-        print fmt_str % (v.name, resolver('$%s' % v.name), v.doc)
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    def run(self, args):
+        reg = mk_registry()
+        resolver = hct.TemplateResolver(**reg.to_kwargs())
+        print 'Hanythingondemand template parameters'
+        fmt_str = mk_fmt_str(reg.fields, resolver)
+        print fmt_str % ('Parameter name', 'Value', 'Documentation')
+        for v in sorted(reg.fields.values(), key=lambda x: x.name):
+            print fmt_str % (v.name, resolver('$%s' % v.name), v.doc)

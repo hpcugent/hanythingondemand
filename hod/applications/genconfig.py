@@ -29,7 +29,9 @@ directory.
 @author: Ewan Higgs (Ghent University)
 """
 
-import sys
+from textwrap import dedent
+
+from hod.applications.application import Application
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
@@ -37,15 +39,20 @@ from hod.config.hodoption import HodOption
 from hod.hodproc import ConfiguredMaster
 from hod.mpiservice import setup_tasks
 
-def main(args):
-    options = HodOption(go_args=args)
-    svc = ConfiguredMaster(options)
-    try:
-        setup_tasks(svc)
-    except Exception as e:
-        _log.error("Failed to setup hod tasks: %s", str(e))
-        _log.exception("hod-genconfig failed")
-        sys.exit(1)
+class GenConfigApplication(Application):
+    def usage(self):
+        s ="""\
+        hod genconfig - Write hod configs to a directory for diagnostic purposes.
+        hod genconfig --config-config=<hod.conf file> --config-workdir=<working directory>
+        """
+        return dedent(s)
 
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+
+    def run(self, args):
+        options = HodOption(go_args=args)
+        svc = ConfiguredMaster(options)
+        try:
+            setup_tasks(svc)
+        except Exception as e:
+            _log.error("Failed to setup hod tasks: %s", str(e))
+            _log.exception("hod-genconfig failed")

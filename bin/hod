@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+import sys
+
+from hod.applications import pbs, helptemplate, genconfig
+
+def usage():
+    print 'hod: hanythingondemand - Run services within a torque cluster ' 
+    print 'usage: hod [--version] [--help] <command> <command-args>'
+    print 'The most commonly used commands are:'
+    print '    create           Creates a cluster.'
+    print '    help-templmate   Print template names and values for diagnostic purposes.'
+    print '    genconfig        Generate configuration files for a config.'
+    return 1
+
+cmds = {'create': pbs.PbsApplication,
+        'help-template': helptemplate.HelpTemplateApplication,
+        'genconfig': genconfig.GenConfigApplication,
+       }
+
+def main(args):
+    if len(args) == 1:
+        sys.exit(usage())
+    if args[1] not in cmds:
+        sys.exit(usage())
+
+    cmd = cmds[args[1]]()
+    cmd.run(args[1:])
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))

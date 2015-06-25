@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# ##
+# #
 # Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,39 +22,35 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+# #
 """
-Main hanythingondemand script, should be invoked in a job
+Generate a PBS job script using pbs_python. Will use mympirun to get the all started
 
 @author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
-import sys
+
+from hod.applications.application import Application
+from hod.rmscheduler.hodjob import PbsEBMMHod, MympirunHodOption
+from textwrap import dedent
 
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
-from hod.config.hodoption import HodOption
-from hod.hodproc import ConfiguredSlave, ConfiguredMaster
-from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
+class PbsApplication(Application):
+    def usage(self):
+        s ="""\
+        hod pbs - Submit a job to spawn a cluster on a PBS job controller.
+        hod pbs --config-config=<hod.conf file> --config-workdir=<working directory>
+        """
+        return dedent(s)
 
-from mpi4py import MPI
-
-def main(args):
-    options = HodOption(go_args=args)
-
-    if MPI.COMM_WORLD.rank == MASTERRANK:
-        svc = ConfiguredMaster(options)
-    else:
-        svc = ConfiguredSlave(options)
-    try:
-        setup_tasks(svc)
-        run_tasks(svc)
-
-        svc.stop_service()
-    except Exception, e:
-        _log.error(str(e))
-        _log.exception("Main HanythingOnDemand failed")
-        return 1
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    def run(self, args):
+        try:
+            options = MympirunHodOption(go_args=args)
+            j = PbsEBMMHod(options)
+            j.run()
+        except StandardError, e:
+            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
+            fancylogger.logToScreen(enable=True)
+            _log.raiseException(e.message)
