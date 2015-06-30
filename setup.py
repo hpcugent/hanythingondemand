@@ -101,7 +101,7 @@ PACKAGE = {
         'hod.work',
     ],
     'data_files': find_files('etc'),
-    'scripts': ['bin/hod_main.py', 'bin/hod_pbs.py'],
+    'scripts': ['bin/hod'],
     'cmdclass' : {'test': TestCommand, 'cov': CoverageCommand},
     'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
 }

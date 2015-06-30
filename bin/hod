@@ -2,18 +2,27 @@
 
 import sys
 
-from hod.applications import pbs, helptemplate, genconfig
+try:
+    from mpi4py import MPI
+except ImportError, e:
+    print 'Error: Could not import mpi4py. Is the MPI environment module loaded?'
+    print 'Undelying error is: "%s"' % e
+    sys.exit(1)
+
+from hod.applications import pbs, query, helptemplate, genconfig
 
 def usage():
     print 'hod: hanythingondemand - Run services within a torque cluster ' 
     print 'usage: hod [--version] [--help] <command> <command-args>'
     print 'The most commonly used commands are:'
     print '    create           Creates a cluster.'
-    print '    help-templmate   Print template names and values for diagnostic purposes.'
+    print '    list             List running clusters.'
+    print '    help-template    Print template names and values for diagnostic purposes.'
     print '    genconfig        Generate configuration files for a config.'
     return 1
 
 cmds = {'create': pbs.PbsApplication,
+        'list': query.QueryApplication,
         'help-template': helptemplate.HelpTemplateApplication,
         'genconfig': genconfig.GenConfigApplication,
        }
