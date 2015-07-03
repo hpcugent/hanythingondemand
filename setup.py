@@ -50,7 +50,7 @@ class TestCommand(BaseCommand):
     def run(self):
         # Cheeky cheeky LD_LIBRARY_PATH hack for Fedora
         setup_openmpi_libpath()
-        ret = subprocess.call(["coverage", "run",  "-m", "pytest", "--cov=hod", "--cov-config=.coveragerc"])
+        ret = subprocess.call(["coverage", "run",  "-m", "pytest", "--cov-config=.coveragerc"])
         sys.exit(ret)
 
 def find_files(*dirs):
@@ -66,6 +66,9 @@ PACKAGE = {
     'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'license': "GPL v2",
+    'classifiers' : [
+        'Programming Language :: Python :: 2'
+    ],
     'install_requires': [
         'vsc-base >= 1.7.3',
         'mpi4py',
