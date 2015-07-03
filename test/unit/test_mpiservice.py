@@ -25,6 +25,7 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
+import pytest
 import unittest
 import hod.mpiservice as hm
 
@@ -88,9 +89,9 @@ class MPIServiceTestCase(unittest.TestCase):
         tasks = hm._slave_spread(ms.comm)
         self.assertEqual(tasks, None)
 
-    #@unittest.expectedFailure
-    #def test_mpiservice_run_dist(self):
-    #    '''test mpiservice run dist'''
-    #    ms = hm.MpiService()
-    #    ms.distribution()
-    #    ms. run_dist()
+    @pytest.mark.xfail
+    def test_mpiservice_run_dist(self):
+        '''test mpiservice run dist'''
+        ms = hm.MpiService()
+        ms.distribution()
+        ms. run_dist()
