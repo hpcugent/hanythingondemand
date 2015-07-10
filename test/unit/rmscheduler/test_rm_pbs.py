@@ -25,6 +25,7 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
+import pytest
 import unittest
 import hod.rmscheduler.rm_pbs as hrr
 
@@ -35,17 +36,16 @@ class HodRMSchedulerRMPBSTestCase(unittest.TestCase):
         '''test Pbs init function'''
         o = hrr.Pbs(None)
 
-    @unittest.expectedFailure
+    @pytest.mark.xfail
     def test_pbs_submit(self):
         '''test Pbs submit'''
         o = hrr.Pbs(None)
         o.submit()
 
     # this dumps core on localhost.
-    #@unittest.expectedFailure
-    #def test_pbs_state(self):
-    #    o = hrr.Pbs(None)
-    #    o.state()
+    def test_pbs_state(self):
+        o = hrr.Pbs(None)
+        o.state()
 
     def test_pbs_info(self):
         '''test Pbs info -- though it doesn't do it yet.'''
@@ -62,14 +62,13 @@ class HodRMSchedulerRMPBSTestCase(unittest.TestCase):
         o = hrr.Pbs(None)
         o.remove()
 
-    @unittest.expectedFailure
+    @pytest.mark.xfail
     def test_pbs_header(self):
         '''test Pbs header'''
         o = hrr.Pbs(None)
         hdr = o.header()
-        print hdr
 
-    @unittest.expectedFailure
+    @pytest.mark.xfail
     def test_pbs_get_ppn(self):
         '''test Pbs get_ppn'''
         o = hrr.Pbs(None)
