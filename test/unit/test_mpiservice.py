@@ -29,6 +29,9 @@ import pytest
 import unittest
 import hod.mpiservice as hm
 
+from mock import sentinel
+from hod.config.template import ConfigTemplate
+
 class MPIServiceTestCase(unittest.TestCase):
     '''Test MpiService functions'''
 
@@ -77,6 +80,38 @@ class MPIServiceTestCase(unittest.TestCase):
         '''test mpiservice distribution'''
         ms = hm.MpiService()
         ms.distribution() # TODO:  Does nothing. If it's an interface, make abstract.
+
+    def test_master_template_opts_default(self):
+        opts = hm.master_template_opts()
+        self.assertTrue(len(opts) == 4)
+        self.assertEqual(opts[0].name, 'masterhostname')
+        self.assertEqual(opts[0].doc, '')
+        self.assertEqual(opts[1].name, 'masterhostaddress')
+        self.assertEqual(opts[1].doc, '')
+        self.assertEqual(opts[2].name, 'masterdataname')
+        self.assertEqual(opts[2].doc, '')
+        self.assertEqual(opts[3].name, 'masterdataaddress')
+        self.assertEqual(opts[3].doc, '')
+
+    def test_master_template_opts_enriched(self):
+        docs = sentinel 
+        stub_docs = [
+            ConfigTemplate('masterhostname', None, docs.masterhostname),
+            ConfigTemplate('masterhostaddress', None, docs.masterhostaddress),
+            ConfigTemplate('masterdataname', None, docs.masterdataname),
+            ConfigTemplate('masterdataaddress', None, docs.masterdataaddress)
+            ]
+        opts = hm.master_template_opts(stub_docs)
+        self.assertTrue(len(opts) == 4)
+        self.assertEqual(opts[0].name, 'masterhostname')
+        self.assertEqual(opts[0].doc, docs.masterhostname)
+        self.assertEqual(opts[1].name, 'masterhostaddress')
+        self.assertEqual(opts[1].doc, docs.masterhostaddress)
+        self.assertEqual(opts[2].name, 'masterdataname')
+        self.assertEqual(opts[2].doc, docs.masterdataname)
+        self.assertEqual(opts[3].name, 'masterdataaddress')
+        self.assertEqual(opts[3].doc, docs.masterdataaddress)
+
 
     def test_master_spread(self):
         '''test master spread'''

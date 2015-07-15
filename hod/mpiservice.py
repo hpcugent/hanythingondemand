@@ -122,22 +122,34 @@ def _slave_spread(comm):
     _log.debug("Received '%s' from masterrank %s", tasks, MASTERRANK)
     return tasks
 
+def master_template_opts(stub_config_opts=None):
+    '''
+    Generate template options for the master node.
+
+    If stub_config_opts is given, this function pulls the doctrings from the existing
+    configuration
+    '''
+    data_interface = node.sorted_network(node.get_networks())[0]
+    master_dataname = data_interface.hostname
+    master_dataaddress = data_interface.addr
+    fqdn = socket.getfqdn()
+    docs = dict()
+    if stub_config_opts is not None:
+        docs = dict([(opt.name, opt.doc) for opt in stub_config_opts])
+    return [
+        ConfigTemplate('masterhostname', fqdn, docs.get('masterhostname', '')),
+        ConfigTemplate('masterhostaddress', socket.gethostbyname(fqdn), docs.get('masterhostaddress', '')),
+        ConfigTemplate('masterdataname', master_dataname, docs.get('masterdataname', '')),
+        ConfigTemplate('masterdataaddress', master_dataaddress, docs.get('masterdataaddress', '')),
+        ]
+ 
 def setup_tasks(svc):
     """Setup the per node services and spread the tasks out."""
     _log.debug("No tasks found. Running distribution and spread.")
 
     # Configure
     if svc.rank == MASTERRANK:
-        data_interface = node.sorted_network(node.get_networks())[0]
-        master_dataname = data_interface.hostname
-        master_dataaddress = data_interface.addr
-        fqdn = socket.getfqdn()
-        master_template_kwargs = [
-                ConfigTemplate('masterhostname', fqdn,''),
-                ConfigTemplate('masterhostaddress', socket.gethostbyname(fqdn),''),
-                ConfigTemplate('masterdataname', master_dataname, ''),
-                ConfigTemplate('masterdataaddress', master_dataaddress, '')
-                ]
+        master_template_kwargs = master_template_opts()
         _master_spread(svc.comm, master_template_kwargs)
     else:
         master_template_kwargs = _slave_spread(svc.comm)
