@@ -1,5 +1,5 @@
 # #
-# Copyright 2009-2013 Ghent University
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -49,20 +49,6 @@ class HodOption(GeneralOption):
                 prefix, descr, opts)
         self.add_group_parser(opts, descr, prefix=prefix)
 
-    def action_options(self):
-        """Make the action related options"""
-        opts = {"create": ("Create and submit new HOD job", None, "store_true", False, 'C'),
-                "showall": ("Show info on all found HOD jobs (this is the default action)", None, "store_true", True),
-                # "showjob":("Show info for HOD job JOBID", "string", "store", ''),
-                # "removejob":("Remove HOD job JOBID", "string", "store", ''),
-                }
-        descr = ["Action", "What action to take"]
-
-        prefix = 'action'
-        self.log.debug("Add action option parser prefix %s descr %s opts %s",
-                prefix, descr, opts)
-        self.add_group_parser(opts, descr, prefix=prefix)
-
     def config_options(self):
         """Make the action related options"""
         opts = {'config': ("""Top level configuration file. This can be
@@ -78,21 +64,7 @@ precendence.""", "string", "store", ''),
                 prefix, descr, opts)
         self.add_group_parser(opts, descr, prefix=prefix)
 
-    def help_options(self):
-        """Make the action related options"""
-        opts = {'templates': ("Print documentation regarding template strings.", None, "store_true", False),
-                }
-        descr = ["Help", "Help options"]
-
-        prefix = 'help'
-        self.log.debug("Add help option parser prefix %s descr %s opts %s",
-                prefix, descr, opts)
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-
     def make_init(self):
         """Trigger all inits"""
         self.rm_options()
         self.config_options()
-        self.action_options()
-        self.help_options()

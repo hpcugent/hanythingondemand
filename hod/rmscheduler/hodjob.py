@@ -110,24 +110,9 @@ class HodJob(Job):
 
     def run(self):
         """Do stuff based upon options"""
-        options_dict = self.options.dict_by_prefix()
-        actions = options_dict['action']
-        self.log.debug("Found actions %s", actions)
-        if actions.get('create', False):
-            self.submit()
-            msg = self.type.state()
-            print msg
-        elif actions.get('remove', None):
-            self.type.remove()
-        elif actions.get('show', None):
-            msg = self.type.state()
-            print msg
-        elif actions.get('showall', False):  # should be True
-            msg = self.type.state()
-            print msg
-        else:
-            self.log.error("Unknown action in actions %s", actions)
-
+        self.submit()
+        msg = self.type.state()
+        print msg
 
 class MympirunHodOption(HodOption):
     """Extended option class for mympirun usage"""
@@ -173,21 +158,12 @@ class MympirunHod(HodJob):
         return [" ".join(exe)]
 
 
-class EasybuildMMHod(MympirunHod):
-    """MympirunHod type job for easybuild infrastructure
+class PbsHodJob(MympirunHod):
+    """PbsHodJob type job for easybuild infrastructure
         - easybuild module names
     """
     def __init__(self, options=None):
-        super(EasybuildMMHod, self).__init__(options)
-
-        if self.options.options.help_templates:
-            reg = hct.TemplateRegistry()
-            hct.register_templates(reg, 'workdir')
-            print 'Hanythingondemand template parameters:\n'
-            for v in sorted(reg.fields.values(), key=lambda x: x.name):
-                print '%-16s:\t%s' % (v.name, v.doc)
-            sys.exit(1)
-
+        super(PbsHodJob, self).__init__(options)
         self.modules = []
 
         modname = 'hanythingondemand'
@@ -205,7 +181,7 @@ class EasybuildMMHod(MympirunHod):
                 ebmodname = candidates[-1]
                 self.log.debug("Using guessed modulename %s", ebmodname)
             else:
-                self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.',
+                self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.' %
                         ebmodname_envvar)
 
         self.modules.append(ebmodname)
@@ -219,11 +195,6 @@ class EasybuildMMHod(MympirunHod):
             for module in precfg.modules:
                 self.log.debug("Adding '%s' module to startup script.", module)
                 self.modules.append(module)
-
-class PbsEBMMHod(EasybuildMMHod):
-    """MympirunHod type job for easybuild infrastructure
-        - type PBS
-    """
 
     def set_type_class(self):
         """Set the typeclass"""

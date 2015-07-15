@@ -33,9 +33,6 @@ import sys
 import subprocess
 from setuptools import setup, Command
 
-if sys.version_info[:2] < (2, 7):
-    raise RuntimeError("Python version 2.7 required.")
-
 def setup_openmpi_libpath():
     libpath = os.getenv('LD_LIBRARY_PATH')
     os.environ['LD_LIBRARY_PATH'] = '/usr/lib64/openmpi/lib:%s' % libpath
@@ -77,7 +74,7 @@ def find_files(*dirs):
 
 PACKAGE = {
     'name': 'hanythingondemand',
-    'version': '2.2.4',
+    'version': '2.3.0',
     'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'license': "GPL v2",
@@ -101,7 +98,7 @@ PACKAGE = {
         'hod.work',
     ],
     'data_files': find_files('etc'),
-    'scripts': ['bin/hod'],
+    'scripts': ['bin/hod', 'bin/hod-local'],
     'cmdclass' : {'test': TestCommand, 'cov': CoverageCommand},
     'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
 }

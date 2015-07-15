@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# ##
+# #
 # Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,40 +22,34 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+# #
 """
-hod-genconfig - parse a hod configuration file and output the resulting config
-directory.
+List the running applications.
 
-@author: Ewan Higgs (Ghent University)
+@author: Ewan Higgs (Universiteit Gent)
 """
-import sys
-
-from textwrap import dedent
 
 from hod.applications.application import Application
+from hod.rmscheduler.hodjob import MympirunHodOption
+from hod.rmscheduler.rm_pbs import Pbs
+from textwrap import dedent
+
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
-from hod.config.hodoption import HodOption
-from hod.hodproc import ConfiguredMaster
-from hod.mpiservice import setup_tasks
-
-class GenConfigApplication(Application):
+class QueryApplication(Application):
     def usage(self):
         s ="""\
-        hod genconfig - Write hod configs to a directory for diagnostic purposes.
-        hod genconfig --config-config=<hod.conf file> --config-workdir=<working directory>
+        hod list
         """
         return dedent(s)
 
     def run(self, args):
-        options = HodOption(go_args=args)
-        if not options.options.config_config or not options.options.config_workdir:
-            print self.usage()
-            return
-        svc = ConfiguredMaster(options)
         try:
-            setup_tasks(svc)
-        except Exception as e:
-            _log.error("Failed to setup hod tasks: %s", str(e))
-            _log.exception("hod-genconfig failed")
+            options = MympirunHodOption(go_args=args)
+            pbs = Pbs(options)
+            print pbs.state()
+        except StandardError, e:
+            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
+            fancylogger.logToScreen(enable=True)
+            _log.raiseException(e.message)

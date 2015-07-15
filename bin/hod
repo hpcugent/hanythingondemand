@@ -21,7 +21,7 @@ def usage():
     print '    genconfig        Generate configuration files for a config.'
     return 1
 
-cmds = {'create': pbs.PbsApplication,
+cmds = {'create': pbs.CreatePbsApplication,
         'list': query.QueryApplication,
         'help-template': helptemplate.HelpTemplateApplication,
         'genconfig': genconfig.GenConfigApplication,

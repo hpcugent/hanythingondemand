@@ -67,3 +67,4 @@ class ResourceManagerScheduler(object):
         walltime = time in hours (can be float)
         """
         self.log.error("header not implemented")
+        return ""

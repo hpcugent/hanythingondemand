@@ -86,23 +86,17 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
         /usr/bin/python /apps/gent/SL6/sandybridge/software/vsc-mympirun/3.2.3/bin/mympirun --output=/vscmnt/gent_vulpix/_/user/home/gent/vsc410/vsc41041/jobs/hadoop/hod.output.12191.master16.delcatty.gent.vsc --hybrid=1 --variablesprefix=HADOOP,JAVA,HOD,MAPRED,HDFS,HDFS,MAPRED python /apps/gent/SL6/sandybridge/software/hanythingondemand/2.1.1-ictce-5.5.0-Python-2.7.6/bin/hod_main --hod-script=/user/home/gent/vsc410/vsc41041/jobs/hadoop/run_job.sh --hod-envclass=PbsEBMMHod
         """
 
-    def test_easybuildmmhod_init(self):
-        '''test EasybuildMMHod init function'''
+    def test_pbshodjob_init(self):
+        '''test pbshodjob init function'''
         os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
 
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
-            o = hrh.EasybuildMMHod(self.opt)
+            o = hrh.PbsHodJob(self.opt)
 
-    def test_pbsebmmhod_init(self):
-        '''test PbsEBMMHod init function'''
-        os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
-        with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
-            o = hrh.PbsEBMMHod(self.mpiopt)
-
-    def test_pbsebmmhod_set_type_class(self):
-        '''test PbsEBMMHod set_type_class'''
+    def test_pbshodjob_set_type_class(self):
+        '''test PbsHodJob set_type_class'''
         # should look into using mock or something here
         os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
-        o = hrh.PbsEBMMHod(self.mpiopt)
+        o = hrh.PbsHodJob(self.mpiopt)
         o.set_type_class()
         self.assertEqual(o.type_class, Pbs)
