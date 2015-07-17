@@ -365,3 +365,10 @@ SOME_ENV=123""")
         self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon', 'default', daemon='override'), 'override')
         self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon2', 'notfound'), 'notfound')
         self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon2', 'notfound', daemon2='override'), 'override')
+
+
+    def test_resolve_dist_path(self):
+        with patch('sys.argv', [ '/path/to/python/pkgs/bin/hod', '--dist=Program-1.2.3']):
+            import sys
+            print sys.argv[0]
+            self.assertEqual(hcc.resolve_dist_path('Program-1.2.3'), '/path/to/python/pkgs/etc/hod/Program-1.2.3/hod.conf')

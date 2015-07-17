@@ -37,15 +37,26 @@ from mock import patch
 class TestCreatePbsApplication(unittest.TestCase):
     @pytest.mark.xfail("Requires easybuild environment")
     def test_run_no_args(self):
-        app = hap.CreatePbsApplication()
         with patch('hod.applications.pbs.PbsHodJob'):
-            app.run([])
+            app = hap.CreatePbsApplication()
+            self.assertRaises(ValueError, app.run, [])
 
     @pytest.mark.xfail("Requires easybuild environment")
     def test_run_with_args(self):
-        app = hap.CreatePbsApplication()
         with patch('hod.applications.pbs.PbsHodJob'):
-            app.run(['--config-config=hod.conf', '--config-workdir=workdir'])
+            app = hap.CreatePbsApplication()
+            app.run(['--config=hod.conf', '--workdir=workdir'])
+
+    def test_run_with_dist_arg(self):
+        with patch('hod.applications.pbs.PbsHodJob'):
+            app = hap.CreatePbsApplication()
+            app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir'])
+
+    def test_run_fails_with_config_and_dist_arg(self):
+        with patch('hod.applications.pbs.PbsHodJob'):
+            app = hap.CreatePbsApplication()
+            self.assertRaises(ValueError, app.run, 
+                    ['--config=hod.conf', '--dist=Hadoop-2.3.0', '--workdir=workdir'])
 
     def test_usage(self):
         app = hap.CreatePbsApplication()

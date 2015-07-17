@@ -59,7 +59,7 @@ class HelpTemplateApplication(Application):
         s ="""\
         hod help-template - Print the values of the configuration templates
             based on the current machine.
-        hod help-template --config-config=<hod.conf file> --config-workdir=<working directory>
+        hod help-template --config=<hod.conf file> --workdir=<working directory>
         """
         return dedent(s)
 

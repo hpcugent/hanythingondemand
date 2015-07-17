@@ -31,6 +31,7 @@ Generate a PBS job script using pbs_python. Will use mympirun to get the all sta
 """
 
 from hod.applications.application import Application
+from hod.config.hodoption import HodOption
 from hod.rmscheduler.hodjob import PbsHodJob
 from vsc.utils.generaloption import GeneralOption
 from textwrap import dedent
@@ -38,74 +39,37 @@ from textwrap import dedent
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
+def _validate_pbs_option(options):
+    """pbs options require a config and a workdir"""
+    if not options.options.config and not options.options.dist:
+        _log.error('Either --config or --dist must be set')
+        return False
+    if options.options.config and options.options.dist:
+        _log.error('Only one of --config or --dist can be set')
+        return False
+    if not options.options.workdir:
+        _log.error('No workdir ("--workdir") provided')
+        return False
+    return True
+
+
 class CreatePbsApplication(Application):
     def usage(self):
         s ="""\
         hod pbs - Submit a job to spawn a cluster on a PBS job controller.
-        hod pbs --config-config=<hod.conf file> --config-workdir=<working directory>
+        hod pbs --config=<hod.conf file> --workdir=<working directory>
         """
         return dedent(s)
 
     def run(self, args):
+        options = HodOption(go_args=args)
+        if not _validate_pbs_option(options):
+            raise ValueError('Missing config options')
+
         try:
-            options = CreatePbsOption(go_args=args)
             j = PbsHodJob(options)
             j.run()
-        except StandardError, e:
+        except StandardError as e:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
             _log.raiseException(e.message)
-
-
-class CreatePbsOption(GeneralOption):
-    '''
-    Command line options for hod_pbs.
-    '''
-    def rm_options(self):
-        """Make the rm related options"""
-        opts = {"walltime": ("Job walltime in hours", 'float', 'store', 48, 'l'),
-                "nodes": ("Full nodes for the job", "int", "store", 5, "n"),
-                "ppn": ("Processors per node (-1=full node)", "int", "store", -1),
-                "mail": ("When to send mail (b=begin, e=end, a=abort)", "string", "extend", [], "m"),
-                "mailothers": ("Other email adresses to send mail to", "string", "extend", [], "M"),
-                "name": ("Job name", "string", "store", "HanythingOnDemand_job", "N"),
-                "queue": ("Queue name (empty string is default queue)", "string", "store", "", "q"),
-                }
-        descr = ["Resource manager / Scheduler", "Provide resource manager/scheduler related options (eg number of nodes)"]
-
-        prefix = 'rm'
-        self.log.debug("Add resourcemanager option parser prefix %s descr %s opts %s", 
-                prefix, descr, opts)
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-    def config_options(self):
-        """Make the action related options"""
-        opts = {'config': ("""Top level configuration file. This can be
-a comma separated list of config files with the later files taking
-precendence.""", "string", "store", ''),
-                'workdir': ("""Working directory""", "string", "store", None),
-                'modules': ("""Extra modules to load in each service environment""", "string", "store", None),
-                }
-        descr = ["Config", "Configuration files options"]
-
-        prefix = 'config'
-        self.log.debug("Add config option parser prefix %s descr %s opts %s",
-                prefix, descr, opts)
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-    def mympirun_options(self):
-        """Some mympiprun options"""
-        opts = {'debug': ("Run mympirun in debug mode", None, "store_true", False)}
-        descr = ['mympirun', 'Provide mympirun related options']
-        prefix = 'mympirun'
-
-        self.log.debug("Add mympirun option parser prefix %s descr %s opts %s",
-                prefix, descr, opts)
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-
-    def make_init(self):
-        """Trigger all inits"""
-        self.rm_options()
-        self.config_options()
-        self.mympirun_options()

@@ -44,13 +44,13 @@ class GenConfigApplication(Application):
     def usage(self):
         s ="""\
         hod genconfig - Write hod configs to a directory for diagnostic purposes.
-        hod genconfig --config-config=<hod.conf file> --config-workdir=<working directory>
+        hod genconfig --config=<hod.conf file> --workdir=<working directory>
         """
         return dedent(s)
 
     def run(self, args):
         options = HodOption(go_args=args)
-        if not options.options.config_config or not options.options.config_workdir:
+        if not options.options.config or not options.options.workdir:
             print self.usage()
             return
         svc = ConfiguredMaster(options)

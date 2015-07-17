@@ -187,14 +187,18 @@ class PbsHodJob(MympirunHod):
         self.modules.append(ebmodname)
 
         # Add modules from hod.conf
-        config_filename = options.options.config_config
-        if config_filename:
-            config_filenames = parse_comma_delim_list(config_filename)
+        if options.options.config:
+            config_filenames = parse_comma_delim_list(options.options.config)
             self.log.info('Loading "%s" manifest config', config_filenames)
-            precfg = preserviceconfigopts_from_file_list(config_filenames, workdir=options.options.config_workdir)
+            precfg = preserviceconfigopts_from_file_list(config_filenames, workdir=options.options.workdir)
             for module in precfg.modules:
                 self.log.debug("Adding '%s' module to startup script.", module)
                 self.modules.append(module)
+        elif options.options.dist:
+            pass
+        else: 
+            # Should not happen
+            raise RuntimeError('PbsHodJob created without config or dist options set')
 
     def set_type_class(self):
         """Set the typeclass"""

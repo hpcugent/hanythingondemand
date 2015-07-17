@@ -26,6 +26,8 @@
 @author: Ewan Higgs (Ghent University)
 """
 
+import sys
+
 from ConfigParser import NoOptionError, NoSectionError, SafeConfigParser
 from collections import Mapping
 from copy import deepcopy
@@ -385,3 +387,13 @@ def write_service_config(outfile, data_dict, config_writer, template_resolver):
     """Write service config files to disk."""
     with open(outfile, 'w') as f:
         f.write(config_writer(outfile, data_dict, template_resolver))
+
+def resolve_dist_path(dist):
+    """
+    Given a distribution name like Hadoop-2.3.0-cdh5.0.0, return the path to the
+    relevant hod.conf
+    """
+    binpath = realpath(dirname(sys.argv[0]))
+    etcpath = realpath(mkpath(binpath, '..', 'etc'))
+    distpath = mkpath(etcpath, 'hod', dist, 'hod.conf')
+    return distpath

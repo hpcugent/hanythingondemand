@@ -51,18 +51,18 @@ class HodOption(GeneralOption):
 
     def config_options(self):
         """Make the action related options"""
-        opts = {'config': ("""Top level configuration file. This can be
-a comma separated list of config files with the later files taking
-precendence.""", "string", "store", ''),
+        opts = {'config': ("Top level configuration file. This can be "
+                           "a comma separated list of config files with the later files taking "
+                           "precendence.", "string", "store", ''),
+                'dist': ("Prepackaged Hadoop distribution (e.g.  Hadoop/2.5.0-cdh5.3.1-native). "
+                         "This cannot be set if config is set", "string", "store", ''),
                 'workdir': ("""Working directory""", "string", "store", None),
                 'modules': ("""Extra modules to load in each service environment""", "string", "store", None),
                 }
         descr = ["Config", "Configuration files options"]
 
-        prefix = 'config'
-        self.log.debug("Add config option parser prefix %s descr %s opts %s",
-                prefix, descr, opts)
-        self.add_group_parser(opts, descr, prefix=prefix)
+        self.log.debug("Add config option parser descr %s opts %s", descr, opts)
+        self.add_group_parser(opts, descr)
 
     def make_init(self):
         """Trigger all inits"""
