@@ -32,7 +32,8 @@ import sys
 
 from hod.rmscheduler.job import Job
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
-from hod.config.config import parse_comma_delim_list, preserviceconfigopts_from_file_list
+from hod.config.config import (parse_comma_delim_list,
+        preserviceconfigopts_from_file_list, resolve_config_paths)
 
 from hod.config.hodoption import HodOption
 
@@ -186,19 +187,16 @@ class PbsHodJob(MympirunHod):
 
         self.modules.append(ebmodname)
 
-        # Add modules from hod.conf
-        if options.options.config:
-            config_filenames = parse_comma_delim_list(options.options.config)
-            self.log.info('Loading "%s" manifest config', config_filenames)
-            precfg = preserviceconfigopts_from_file_list(config_filenames, workdir=options.options.workdir)
-            for module in precfg.modules:
-                self.log.debug("Adding '%s' module to startup script.", module)
-                self.modules.append(module)
-        elif options.options.dist:
-            pass
-        else: 
-            # Should not happen
-            raise RuntimeError('PbsHodJob created without config or dist options set')
+        config_filenames = resolve_config_paths(options.options.config, options.options.dist)
+        self.log.debug('Manifest config paths resolved to: %s', config_filenames)
+        config_filenames = parse_comma_delim_list(config_filenames)
+        self.log.info('Loading "%s" manifest config', config_filenames)
+        # If the user mistypes the --dist argument (e.g. Haddoop-...) then this will
+        # raise; TODO: cleanup the error reporting. 
+        precfg = preserviceconfigopts_from_file_list(config_filenames, workdir=options.options.workdir)
+        for module in precfg.modules:
+            self.log.debug("Adding '%s' module to startup script.", module)
+            self.modules.append(module)
 
     def set_type_class(self):
         """Set the typeclass"""

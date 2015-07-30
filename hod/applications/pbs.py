@@ -32,7 +32,7 @@ Generate a PBS job script using pbs_python. Will use mympirun to get the all sta
 
 from hod.applications.application import Application
 from hod.config.hodoption import HodOption
-from hod.rmscheduler.hodjob import PbsHodJob
+from hod.rmscheduler.hodjob import MympirunHodOption, PbsHodJob
 from vsc.utils.generaloption import GeneralOption
 from textwrap import dedent
 
@@ -62,7 +62,7 @@ class CreatePbsApplication(Application):
         return dedent(s)
 
     def run(self, args):
-        options = HodOption(go_args=args)
+        options = MympirunHodOption(go_args=args)
         if not _validate_pbs_option(options):
             raise ValueError('Missing config options')
 

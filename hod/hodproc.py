@@ -32,7 +32,8 @@ from os.path import join as mkpath
 from hod.mpiservice import MpiService, Task, MASTERRANK, ConfigOptsParams
 from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
         env2str, service_config_fn, write_service_config,
-        preserviceconfigopts_from_file_list, parse_comma_delim_list)
+        preserviceconfigopts_from_file_list, parse_comma_delim_list,
+        resolve_config_paths)
 from hod.config.template import (TemplateRegistry, TemplateResolver,
         register_templates)
 from hod.work.config_service import ConfiguredService
@@ -105,9 +106,9 @@ class ConfiguredMaster(MpiService):
     def distribution(self, *master_template_args, **kwargs):
         """Master makes the distribution"""
         self.tasks = []
-        m_config = _load_manifest_config(self.options.options.config,
-                self.options.options.workdir, 
-                self.options.options.modules)
+        options = self.options.options
+        config_path = resolve_config_paths(options.config, options.dist)
+        m_config = _load_manifest_config(config_path, options.workdir, options.modules)
         m_config.autogen_configs()
 
         resolver = _setup_template_resolver(m_config, master_template_args)
@@ -141,9 +142,9 @@ class ConfiguredSlave(MpiService):
 
         This only needs to run if there are more than 1 node (self.size>1)
         """
-        m_config = _load_manifest_config(self.options.options.config,
-                self.options.options.workdir,
-                self.options.options.modules)
+        options = self.options.options
+        config_path = resolve_config_paths(options.config, options.dist)
+        m_config = _load_manifest_config(config_path, options.workdir, options.modules)
         m_config.autogen_configs()
         resolver = _setup_template_resolver(m_config, master_template_args)
         _setup_config_paths(m_config, resolver)

@@ -397,3 +397,16 @@ def resolve_dist_path(dist):
     etcpath = realpath(mkpath(binpath, '..', 'etc'))
     distpath = mkpath(etcpath, 'hod', dist, 'hod.conf')
     return distpath
+
+def resolve_config_paths(config, dist):
+    '''
+    Take two strings and return:
+    1. config if it's defined.
+    2. The expanded dist path if config is not defined.
+    '''
+    if config:
+        return config
+    elif dist:
+        return resolve_dist_path(dist)
+    else:
+        raise RuntimeError('A config or a dist must be provided')

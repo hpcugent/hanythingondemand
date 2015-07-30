@@ -142,7 +142,7 @@ class Pbs(ResourceManagerScheduler):
 
         jstate = [x.get('job_state', None) for x in state]
 
-        def get_uniq_hosts(txt, num=-1):
+        def get_uniq_hosts(txt, num=1):
             """txt host1/cpuid+host2/cpuid
                 - num: number of nodes to return
             """
