@@ -35,13 +35,13 @@ import hod.applications.pbs as hap
 from mock import patch
 
 class TestCreatePbsApplication(unittest.TestCase):
-    @pytest.mark.xfail("Requires easybuild environment")
+    @pytest.mark.xfail(reason="Requires easybuild environment")
     def test_run_no_args(self):
         with patch('hod.applications.pbs.PbsHodJob'):
             app = hap.CreatePbsApplication()
             self.assertRaises(ValueError, app.run, [])
 
-    @pytest.mark.xfail("Requires easybuild environment")
+    @pytest.mark.xfail(reason="Requires easybuild environment")
     def test_run_with_args(self):
         with patch('hod.applications.pbs.PbsHodJob'):
             app = hap.CreatePbsApplication()
