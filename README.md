@@ -1,5 +1,8 @@
 # hanythingondemand  (HOD for short)
 
+[![Build
+Status](https://jenkins1.ugent.be/job/hanythingondemand/badge/icon)](https://jenkins1.ugent.be/job/hanythingondemand/)
+
 ## Goal
 hanythingondemand is a set of scripts to start a Hadoop cluster from within
 another resource management system (i.e. Torque/PBS). It allows traditional
