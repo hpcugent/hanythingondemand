@@ -42,32 +42,34 @@ _log = fancylogger.getLogger('create', fname=False)
 class CreateOptions(GeneralOption):
     """Option parser for 'create' subcommand."""
     def resource_manager_options(self):
-        """Make the rm related options"""
-        opts = {"walltime": ("Job walltime in hours", 'float', 'store', 48, 'l'),
-                "nodes": ("Full nodes for the job", "int", "store", 5, "n"),
-                "ppn": ("Processors per node (-1=full node)", "int", "store", -1),
-                "mail": ("When to send mail (b=begin, e=end, a=abort)", "string", "extend", [], "m"),
-                "mailothers": ("Other email adresses to send mail to", "string", "extend", [], "M"),
-                "name": ("Job name", "string", "store", "HanythingOnDemand_job", "N"),
-                "queue": ("Queue name (empty string is default queue)", "string", "store", "", "q"),
-                }
-        descr = ["Resource manager / Scheduler", "Provide resource manager/scheduler related options (eg number of nodes)"]
+        """Add configuration options for job being submitted."""
+        opts = {
+            'walltime': ("Job walltime in hours", 'float', 'store', 48, 'l'),
+            'nodes': ("Full nodes for the job", "int", "store", 5, "n"),
+            'ppn': ("Processors per node (-1=full node)", "int", "store", -1),
+            'mail': ("When to send mail (b=begin, e=end, a=abort)", "string", "extend", [], "m"),
+            'mailothers': ("Other email adresses to send mail to", "string", "extend", [], "M"),
+            'name': ("Job name", "string", "store", "HanythingOnDemand_job", "N"),
+            'queue': ("Queue name (empty string is default queue)", "string", "store", "", "q"),
+        }
+        descr = ["Resource manager / Scheduler",
+                 "Provide resource manager/scheduler related options (eg number of nodes)"]
+        prefix = 'job'
 
-        prefix = 'rm'
-        self.log.debug("Add resourcemanager option parser prefix %s descr %s opts %s", 
-                prefix, descr, opts)
+        self.log.debug("Add resourcemanager option parser prefix %s descr %s opts %s", prefix, descr, opts)
         self.add_group_parser(opts, descr, prefix=prefix)
 
     def config_options(self):
-        """Make the action related options"""
-        opts = {'config': ("Top level configuration file. This can be "
-                           "a comma separated list of config files with the later files taking "
-                           "precendence.", "string", "store", ''),
-                'dist': ("Prepackaged Hadoop distribution (e.g.  Hadoop/2.5.0-cdh5.3.1-native). "
-                         "This cannot be set if config is set", "string", "store", ''),
-                'workdir': ("""Working directory""", "string", "store", None),
-                'modules': ("""Extra modules to load in each service environment""", "string", "store", None),
-                }
+        """Add general configuration options."""
+        opts = {
+            'config': ("Top level configuration file. This can be "
+                    "a comma separated list of config files with the later files taking "
+                    "precendence.", "string", "store", ''),
+            'dist': ("Prepackaged Hadoop distribution (e.g.  Hadoop/2.5.0-cdh5.3.1-native). "
+                    "This cannot be set if config is set", "string", "store", ''),
+            'workdir': ("Working directory", "string", "store", None),
+            'modules': ("Extra modules to load in each service environment", "string", "store", None),
+        }
         descr = ["Config", "Configuration files options"]
 
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)

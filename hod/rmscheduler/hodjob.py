@@ -35,15 +35,11 @@ from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 from hod.config.config import (parse_comma_delim_list,
         preserviceconfigopts_from_file_list, resolve_config_paths)
 
-from hod.config.hodoption import HodOption
-
-import hod.config.template as hct
-
 
 class HodJob(Job):
     """Hanything on demand job"""
 
-    OPTION_IGNORE_PREFIX = ['rm', 'action']
+    OPTION_IGNORE_PREFIX = ['job', 'action']
 
     def __init__(self, options):
         super(HodJob, self).__init__(options)
@@ -61,9 +57,9 @@ class HodJob(Job):
 
         self.name_suffix = 'HOD'  # suffixed name, to lookup later
         options_dict = self.options.dict_by_prefix()
-        options_dict['rm']['name'] = "%s_%s" % (options_dict['rm']['name'],
+        options_dict['job']['name'] = "%s_%s" % (options_dict['job']['name'],
                                                 self.name_suffix)
-        self.type = self.type_class(options_dict['rm'])
+        self.type = self.type_class(options_dict['job'])
 
         # all jobqueries are filtered on this suffix
         self.type.job_filter = {'Job_Name': '%s$' % self.name_suffix}
@@ -114,7 +110,8 @@ class HodJob(Job):
 
 class MympirunHod(HodJob):
     """Hod type job using mympirun cmd style."""
-    OPTION_IGNORE_PREFIX = ['rm', 'action', 'mympirun']
+    OPTION_CLASS = MympirunHodOption
+    OPTION_IGNORE_PREFIX = ['job', 'action', 'mympirun']
 
     def generate_exe(self):
         """Mympirun executable"""

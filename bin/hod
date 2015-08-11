@@ -26,8 +26,8 @@ CMDS = dict([(sc.CMD, sc) for sc in SUBCOMMANDS])
 def usage():
     """Print the usage information for 'hod'."""
     print 'hod: hanythingondemand - Run services within a torque cluster ' 
-    print 'usage: hod [--version] [--help] <command> <command-args>'
-    print 'The most commonly used commands are:'
+    print 'usage: hod [--version] [--help] <subcommand> <subcommand-args>'
+    print 'Available subcommands:'
     for sc in SUBCOMMANDS:
         print '    {0:16}{1}'.format(sc.CMD, sc.HELP)
 
