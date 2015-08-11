@@ -23,25 +23,29 @@ SUBCOMMANDS = [
 CMDS = dict([(sc.CMD, sc) for sc in SUBCOMMANDS])
 
 
-def usage():
+def usage(fh=None):
     """Print the usage information for 'hod'."""
-    print 'hod: hanythingondemand - Run services within a torque cluster ' 
-    print 'usage: hod [--version] [--help] <subcommand> <subcommand-args>'
-    print 'Available subcommands:'
+    if fh is None:
+        fh = sys.stdout
+
+    fh.write("hod: hanythingondemand - Run services within a torque cluster\n")
+    fh.write("usage: hod [--version] [--help] <subcommand> <subcommand-args>\n")
+    fh.write("Available subcommands:\n")
     for sc in SUBCOMMANDS:
-        print '    {0:16}{1}'.format(sc.CMD, sc.HELP)
+        fh.write('    {0:16}{1}\n'.format(sc.CMD, sc.HELP))
 
 def main(args):
     if len(args) == 1:
         sys.exit(usage())
-    elif args[1] == ['--version', '-V']:
+    elif args[1] in ['--version', '-V']:
         print VERSION
         sys.exit(0)
     elif args[1] in ['--help', '-h', '-H']:
         usage()
         sys.exit(0)
     if args[1] not in CMDS:
-        usage()
+        sys.stderr.write("ERROR: Unknown subcommand '%s'\n")
+        usage(fh=sys.stderr)
         sys.exit(1)
 
     cmd = CMDS[args[1]]()
