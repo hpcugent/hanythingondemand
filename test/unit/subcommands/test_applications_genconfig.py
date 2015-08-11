@@ -28,16 +28,14 @@
 """
 
 import unittest
-import pytest
-import hod.applications.helptemplate as hah
+from hod.subcommands.genconfig import GenConfigApplication
 
-class TestHelpTemplateApplication(unittest.TestCase):
+class TestGenconfigApplication(unittest.TestCase):
     def test_run(self):
-        app = hah.HelpTemplateApplication()
+        app = GenConfigApplication()
         app.run([])
 
     def test_usage(self):
-        app = hah.HelpTemplateApplication()
+        app = GenConfigApplication()
         usage = app.usage()
         self.assertTrue(isinstance(usage, basestring))
-

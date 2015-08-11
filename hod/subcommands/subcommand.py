@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# ##
+# #
 # Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,46 +22,24 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+# #
 """
-Main hanythingondemand script, should be invoked in a job
+Base class for SubCommand commands.
 
 @author: Ewan Higgs (Universiteit Gent)
 """
 
-from textwrap import dedent
+from abc import abstractmethod
 
-from hod.applications.application import Application
+class SubCommand(object):
+    '''Base class for application commands.'''
 
-from vsc.utils import fancylogger
-_log = fancylogger.getLogger(fname=False)
-
-from hod.config.hodoption import HodOption
-from hod.hodproc import ConfiguredSlave, ConfiguredMaster
-from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
-
-from mpi4py import MPI
-
-class LocalApplication(Application):
-    '''Run hod cluster locally.'''
+    @abstractmethod
     def usage(self):
-        s = """\
-        Run the hod program locally. Generally not run from the command line.
-        """
-        return dedent(s)
+        '''Return the usage information as a string'''
+        pass
 
+    @abstractmethod
     def run(self, args):
-        options = HodOption(go_args=args)
-
-        if MPI.COMM_WORLD.rank == MASTERRANK:
-            svc = ConfiguredMaster(options)
-        else:
-            svc = ConfiguredSlave(options)
-        try:
-            setup_tasks(svc)
-            run_tasks(svc)
-            svc.stop_service()
-        except Exception, e:
-            _log.error(str(e))
-            _log.exception("HanythingOnDemand failed")
-            return 1
-
+        '''Run the command'''
+        pass

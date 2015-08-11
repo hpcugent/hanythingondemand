@@ -23,39 +23,47 @@
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 """
-hod-genconfig - parse a hod configuration file and output the resulting config
-directory.
+Main hanythingondemand script, should be invoked in a job
 
-@author: Ewan Higgs (Ghent University)
+@author: Ewan Higgs (Universiteit Gent)
 """
-import sys
 
 from textwrap import dedent
 
-from hod.applications.application import Application
+from hod.subcommands.subcommand import SubCommand
+
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
 from hod.config.hodoption import HodOption
-from hod.hodproc import ConfiguredMaster
-from hod.mpiservice import setup_tasks
+from hod.hodproc import ConfiguredSlave, ConfiguredMaster
+from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
 
-class GenConfigApplication(Application):
+from mpi4py import MPI
+
+class LocalApplication(SubCommand):
+    '''Run hod cluster locally.'''
     def usage(self):
-        s ="""\
-        hod genconfig - Write hod configs to a directory for diagnostic purposes.
-        hod genconfig --config=<hod.conf file> --workdir=<working directory>
+        s = """\
+        Run the hod program locally. Generally not run from the command line.
         """
         return dedent(s)
 
     def run(self, args):
         options = HodOption(go_args=args)
-        if not options.options.config or not options.options.workdir:
-            print self.usage()
-            return
-        svc = ConfiguredMaster(options)
+
+        if MPI.COMM_WORLD.rank == MASTERRANK:
+            _log.debug('Starting master process')
+            svc = ConfiguredMaster(options)
+        else:
+            _log.debug('Starting slave process')
+            svc = ConfiguredSlave(options)
         try:
             setup_tasks(svc)
-        except Exception as e:
-            _log.error("Failed to setup hod tasks: %s", str(e))
-            _log.exception("hod-genconfig failed")
+            run_tasks(svc)
+            svc.stop_service()
+        except Exception, e:
+            _log.error(str(e))
+            _log.exception("HanythingOnDemand failed")
+            return 1
+

@@ -24,20 +24,32 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
+List the running applications.
+
 @author: Ewan Higgs (Universiteit Gent)
 """
 
-import unittest
-import pytest
-import hod.applications.query as haq
+from hod.subcommands.subcommand import SubCommand
+from hod.rmscheduler.hodjob import MympirunHodOption
+from hod.rmscheduler.rm_pbs import Pbs
+from textwrap import dedent
 
-class TestQueryApplication(unittest.TestCase):
-    def test_run(self):
-        app = haq.QueryApplication()
-        app.run([])
+from vsc.utils import fancylogger
+_log = fancylogger.getLogger(fname=False)
 
-    def test_usage(self):
-        app = haq.QueryApplication()
-        usage = app.usage()
-        self.assertTrue(isinstance(usage, basestring))
+class QueryApplication(SubCommand):
+    def usage(self):
+        s ="""\
+        hod list
+        """
+        return dedent(s)
 
+    def run(self, args):
+        try:
+            options = MympirunHodOption(go_args=args)
+            pbs = Pbs(options)
+            print pbs.state()
+        except StandardError, e:
+            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
+            fancylogger.logToScreen(enable=True)
+            _log.raiseException(e.message)

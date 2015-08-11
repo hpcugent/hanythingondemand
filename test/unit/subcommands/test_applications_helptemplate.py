@@ -29,36 +29,15 @@
 
 import unittest
 import pytest
+from hod.subcommands.helptemplate import HelpTemplateApplication
 
-import hod.applications.pbs as hap
-
-from mock import patch
-
-class TestCreatePbsApplication(unittest.TestCase):
-    @pytest.mark.xfail(reason="Requires easybuild environment")
-    def test_run_no_args(self):
-        with patch('hod.applications.pbs.PbsHodJob'):
-            app = hap.CreatePbsApplication()
-            self.assertRaises(ValueError, app.run, [])
-
-    @pytest.mark.xfail(reason="Requires easybuild environment")
-    def test_run_with_args(self):
-        with patch('hod.applications.pbs.PbsHodJob'):
-            app = hap.CreatePbsApplication()
-            app.run(['--config=hod.conf', '--workdir=workdir'])
-
-    def test_run_with_dist_arg(self):
-        with patch('hod.applications.pbs.PbsHodJob'):
-            app = hap.CreatePbsApplication()
-            app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir'])
-
-    def test_run_fails_with_config_and_dist_arg(self):
-        with patch('hod.applications.pbs.PbsHodJob'):
-            app = hap.CreatePbsApplication()
-            self.assertRaises(ValueError, app.run, 
-                    ['--config=hod.conf', '--dist=Hadoop-2.3.0', '--workdir=workdir'])
+class TestHelpTemplateApplication(unittest.TestCase):
+    def test_run(self):
+        app = HelpTemplateApplication()
+        app.run([])
 
     def test_usage(self):
-        app = hap.CreatePbsApplication()
+        app = HelpTemplateApplication()
         usage = app.usage()
         self.assertTrue(isinstance(usage, basestring))
+

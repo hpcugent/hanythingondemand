@@ -30,7 +30,7 @@ Generate a PBS job script using pbs_python. Will use mympirun to get the all sta
 @author: Ewan Higgs (Universiteit Gent)
 """
 
-from hod.applications.application import Application
+from hod.subcommands.subcommand import SubCommand
 from hod.config.hodoption import HodOption
 from hod.rmscheduler.hodjob import MympirunHodOption, PbsHodJob
 from vsc.utils.generaloption import GeneralOption
@@ -53,7 +53,7 @@ def _validate_pbs_option(options):
     return True
 
 
-class CreatePbsApplication(Application):
+class CreatePbsApplication(SubCommand):
     def usage(self):
         s ="""\
         hod pbs - Submit a job to spawn a cluster on a PBS job controller.

@@ -6,10 +6,10 @@ try:
     from mpi4py import MPI
 except ImportError, e:
     print 'Error: Could not import mpi4py. Is the MPI environment module loaded?'
-    print 'Undelying error is: "%s"' % e
+    print 'Underlying error is: "%s"' % e
     sys.exit(1)
 
-from hod.applications import pbs, query, helptemplate, genconfig
+from hod.subcommands import pbs, query, helptemplate, genconfig
 
 def usage():
     print 'hod: hanythingondemand - Run services within a torque cluster ' 

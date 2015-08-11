@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# #
+# ##
 # Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,15 +22,40 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-# #
 """
-Base class for application commands.
+hod genconfig - parse a hod configuration file and output the resulting config
+directory.
 
-@author: Ewan Higgs (Universiteit Gent)
+@author: Ewan Higgs (Ghent University)
 """
+import sys
 
+from textwrap import dedent
 
-class Application(object):
-    '''Base class for application commands.'''
-    pass
+from hod.subcommands.subcommand import SubCommand
+from vsc.utils import fancylogger
+_log = fancylogger.getLogger(fname=False)
 
+from hod.config.hodoption import HodOption
+from hod.hodproc import ConfiguredMaster
+from hod.mpiservice import setup_tasks
+
+class GenConfigApplication(SubCommand):
+    def usage(self):
+        s ="""\
+        hod genconfig - Write hod configs to a directory for diagnostic purposes.
+        hod genconfig --config=<hod.conf file> --workdir=<working directory>
+        """
+        return dedent(s)
+
+    def run(self, args):
+        options = HodOption(go_args=args)
+        if not options.options.config or not options.options.workdir:
+            print self.usage()
+            return
+        svc = ConfiguredMaster(options)
+        try:
+            setup_tasks(svc)
+        except Exception as e:
+            _log.error("Failed to setup hod tasks: %s", str(e))
+            _log.exception("hod-genconfig failed")

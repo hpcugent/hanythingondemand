@@ -62,7 +62,7 @@ def find_files(*dirs):
 
 PACKAGE = {
     'name': 'hanythingondemand',
-    'version': '2.3.0',
+    'version': '3.0.0',
     'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'license': "GPL v2",
@@ -79,13 +79,13 @@ PACKAGE = {
     'tests_require': ['tox', 'pytest', 'pytest-cover', 'coverage', 'mock'],
     'packages': [
         'hod',
-        'hod.applications',
         'hod.commands',
         'hod.config',
         'hod.config.autogen',
         'hod.config.writer',
         'hod.node',
         'hod.rmscheduler',
+        'hod.subcommands',
         'hod.work',
     ],
     'data_files': find_files('etc'),

@@ -30,7 +30,7 @@ Print out template parameters used by hod.
 
 from textwrap import dedent
 
-from hod.applications.application import Application
+from hod.subcommands.subcommand import SubCommand
 from hod.mpiservice import ConfigOptsParams, master_template_opts
 import hod.config.template as hct
 
@@ -54,7 +54,7 @@ def mk_fmt_str(fields, resolver):
     max_val_len = len(longest_value)
     return '%%-%ds:\t%%-%ds\t%%s' % (max_name_len, max_val_len)
 
-class HelpTemplateApplication(Application):
+class HelpTemplateApplication(SubCommand):
     def usage(self):
         s ="""\
         hod help-template - Print the values of the configuration templates

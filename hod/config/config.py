@@ -171,7 +171,7 @@ class PreServiceConfigOpts(object):
         Lazily generate the missing configurations as a convenience to
         users.
         This should only be run when processing the config file while the job is
-        being run (e.g. from hod.applications.local.LocalApplication). e.g. If
+        being run (e.g. from hod.subcommands.local.LocalApplication). e.g. If
         workdir is a directory on a file system that is not accessible from the
         login node then we can't process this information from the login node.
         '''
