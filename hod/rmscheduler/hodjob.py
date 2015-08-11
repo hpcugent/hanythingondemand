@@ -110,7 +110,6 @@ class HodJob(Job):
 
 class MympirunHod(HodJob):
     """Hod type job using mympirun cmd style."""
-    OPTION_CLASS = MympirunHodOption
     OPTION_IGNORE_PREFIX = ['job', 'action', 'mympirun']
 
     def generate_exe(self):
