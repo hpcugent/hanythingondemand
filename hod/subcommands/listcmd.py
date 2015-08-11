@@ -1,5 +1,6 @@
-##
-# Copyright 2009-2013 Ghent University
+#!/usr/bin/env python
+# #
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -21,11 +22,40 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
-Nothing here for now.
+List the running applications.
 
-@author: Stijn De Weirdt (Ghent University)
-@author: Ewan Higgs (Ghent University)
+@author: Ewan Higgs (Universiteit Gent)
 """
-VERSION = '3.0.0'
+from vsc.utils import fancylogger
+from vsc.utils.generaloption import GeneralOption
+
+from hod.subcommands.subcommand import SubCommand
+from hod.rmscheduler.rm_pbs import Pbs
+
+
+_log = fancylogger.getLogger(fname=False)
+
+
+class ListOptions(GeneralOption):
+    """Option parser for 'list' subcommand."""
+    # no options (yet)
+    pass
+
+
+class ListSubCommand(SubCommand):
+    """Implementation of HOD 'list' subcommand."""
+    CMD = 'list'
+    HELP = "List submitted/running clusters"
+
+    def run(self, args):
+        """Run 'list' subcommand."""
+        optparser = ListOptions(go_args=args)
+        try:
+            pbs = Pbs(optparser)
+            print pbs.state()
+        except StandardError as err:
+            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
+            fancylogger.logToScreen(enable=True)
+            _log.raiseException(err.message)

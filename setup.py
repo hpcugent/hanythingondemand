@@ -28,10 +28,13 @@
 Setup for Hanything on Demand
 """
 import os
-from os.path import join as mkpath
 import sys
 import subprocess
+from os.path import join as mkpath
 from setuptools import setup, Command
+
+import hod
+
 
 def setup_openmpi_libpath():
     libpath = os.getenv('LD_LIBRARY_PATH')
@@ -62,7 +65,7 @@ def find_files(*dirs):
 
 PACKAGE = {
     'name': 'hanythingondemand',
-    'version': '3.0.0',
+    'version': hod.VERSION,
     'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'license': "GPL v2",

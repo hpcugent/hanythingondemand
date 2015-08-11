@@ -34,10 +34,20 @@ from abc import abstractmethod
 class SubCommand(object):
     '''Base class for application commands.'''
 
-    @abstractmethod
+    CMD = None
+    EXAMPLE = None
+    HELP = None
+
+    def __init__(self, *args, **kwargs):
+        """Class constructor."""
+        self.envvar_prefix = 'HOD_%s' % self.CMD.upper().replace('-', '_')
+
     def usage(self):
-        '''Return the usage information as a string'''
-        pass
+        """Return usage of this subcommand."""
+        usage = "hod %s - %s\n" % (self.CMD, self.HELP)
+        if self.EXAMPLE:
+            usage += "hod %s %s\n" % (self.CMD, self.EXAMPLE)
+        return usage
 
     @abstractmethod
     def run(self, args):

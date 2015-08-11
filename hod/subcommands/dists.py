@@ -24,32 +24,29 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-List the running applications.
+List available distributions known to hanythingondemand.
 
-@author: Ewan Higgs (Universiteit Gent)
+@author: Ewan Higgs (Ghent University)
+@author: Kenneth Hoste (Ghent University)
 """
+from vsc.utils.generaloption import GeneralOption
 
+from hod.config.config import avail_dists
 from hod.subcommands.subcommand import SubCommand
-from hod.rmscheduler.hodjob import MympirunHodOption
-from hod.rmscheduler.rm_pbs import Pbs
-from textwrap import dedent
 
-from vsc.utils import fancylogger
-_log = fancylogger.getLogger(fname=False)
 
-class QueryApplication(SubCommand):
-    def usage(self):
-        s ="""\
-        hod list
-        """
-        return dedent(s)
+class DistsOptions(GeneralOption):
+    """Option parser for 'dists' subcommand."""
+    # no options (yet)
+    pass
+
+
+class DistsSubCommand(SubCommand):
+    """Implementation of HOD 'dists' subcommand."""
+    CMD = 'dists'
+    HELP = "List the available distributions"
 
     def run(self, args):
-        try:
-            options = MympirunHodOption(go_args=args)
-            pbs = Pbs(options)
-            print pbs.state()
-        except StandardError, e:
-            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
-            fancylogger.logToScreen(enable=True)
-            _log.raiseException(e.message)
+        """Run 'dists' subcommand."""
+        optparser = DistsOptions(go_args=args)
+        print '\n'.join(avail_dists())

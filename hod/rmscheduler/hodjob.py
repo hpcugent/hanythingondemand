@@ -35,21 +35,13 @@ from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 from hod.config.config import (parse_comma_delim_list,
         preserviceconfigopts_from_file_list, resolve_config_paths)
 
-from hod.config.hodoption import HodOption
-
-import hod.config.template as hct
-
 
 class HodJob(Job):
     """Hanything on demand job"""
 
-    OPTION_CLASS = HodOption
-    OPTION_IGNORE_PREFIX = ['rm', 'action']
+    OPTION_IGNORE_PREFIX = ['job', 'action']
 
-    def __init__(self, options=None):
-        if options is None:
-            options = self.OPTION_CLASS()
-
+    def __init__(self, options):
         super(HodJob, self).__init__(options)
 
         self.exeout = None
@@ -65,9 +57,9 @@ class HodJob(Job):
 
         self.name_suffix = 'HOD'  # suffixed name, to lookup later
         options_dict = self.options.dict_by_prefix()
-        options_dict['rm']['name'] = "%s_%s" % (options_dict['rm']['name'],
+        options_dict['job']['name'] = "%s_%s" % (options_dict['job']['name'],
                                                 self.name_suffix)
-        self.type = self.type_class(options_dict['rm'])
+        self.type = self.type_class(options_dict['job'])
 
         # all jobqueries are filtered on this suffix
         self.type.job_filter = {'Job_Name': '%s$' % self.name_suffix}
@@ -115,28 +107,10 @@ class HodJob(Job):
         msg = self.type.state()
         print msg
 
-class MympirunHodOption(HodOption):
-    """Extended option class for mympirun usage"""
-
-    def mympirun_options(self):
-        """Some mympiprun options"""
-        opts = {'debug': ("Run mympirun in debug mode", None, "store_true", False)}
-        descr = ['mympirun', 'Provide mympirun related options']
-        prefix = 'mympirun'
-
-        self.log.debug("Add mympirun option parser prefix %s descr %s opts %s",
-                prefix, descr, opts)
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-    def make_init(self):
-        super(MympirunHodOption, self).make_init()
-        self.mympirun_options()
-
 
 class MympirunHod(HodJob):
     """Hod type job using mympirun cmd style."""
-    OPTION_CLASS = MympirunHodOption
-    OPTION_IGNORE_PREFIX = ['rm', 'action', 'mympirun']
+    OPTION_IGNORE_PREFIX = ['job', 'action', 'mympirun']
 
     def generate_exe(self):
         """Mympirun executable"""
@@ -163,7 +137,7 @@ class PbsHodJob(MympirunHod):
     """PbsHodJob type job for easybuild infrastructure
         - easybuild module names
     """
-    def __init__(self, options=None):
+    def __init__(self, options):
         super(PbsHodJob, self).__init__(options)
         self.modules = []
 
@@ -185,6 +159,7 @@ class PbsHodJob(MympirunHod):
                 self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.' %
                         ebmodname_envvar)
 
+        # FIXME
         self.modules.append(ebmodname)
 
         config_filenames = resolve_config_paths(options.options.config, options.options.dist)
