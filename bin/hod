@@ -9,31 +9,42 @@ except ImportError, e:
     sys.stderr.write('Underlying error is: "%s"\n' % e)
     sys.exit(1)
 
-from hod.subcommands import pbs, query, helptemplate, genconfig
+from hod import VERSION
+from hod.subcommands import create, listcmd, genconfig, helptemplate, dists
+
+SUBCOMMANDS = [
+    create.CreateSubCommand,
+    listcmd.ListSubCommand,
+    dists.DistsSubCommand,
+    helptemplate.HelpTemplateSubCommand,
+    genconfig.GenConfigSubCommand,
+]
+
+CMDS = dict([(sc.CMD, sc) for sc in SUBCOMMANDS])
+
 
 def usage():
+    """Print the usage information for 'hod'."""
     print 'hod: hanythingondemand - Run services within a torque cluster ' 
     print 'usage: hod [--version] [--help] <command> <command-args>'
     print 'The most commonly used commands are:'
-    print '    create           Creates a cluster.'
-    print '    list             List running clusters.'
-    print '    help-template    Print template names and values for diagnostic purposes.'
-    print '    genconfig        Generate configuration files for a config.'
-    return 1
-
-cmds = {'create': pbs.CreatePbsApplication,
-        'list': query.QueryApplication,
-        'help-template': helptemplate.HelpTemplateApplication,
-        'genconfig': genconfig.GenConfigApplication,
-       }
+    for sc in SUBCOMMANDS:
+        print '    {0:16}{1}'.format(sc.CMD, sc.HELP)
 
 def main(args):
     if len(args) == 1:
         sys.exit(usage())
-    if args[1] not in cmds:
-        sys.exit(usage())
+    elif args[1] == ['--version', '-V']:
+        print VERSION
+        sys.exit(0)
+    elif args[1] in ['--help', '-h', '-H']:
+        usage()
+        sys.exit(0)
+    if args[1] not in CMDS:
+        usage()
+        sys.exit(1)
 
-    cmd = cmds[args[1]]()
+    cmd = CMDS[args[1]]()
     cmd.run(args[1:])
 
 if __name__ == '__main__':

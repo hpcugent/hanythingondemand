@@ -24,28 +24,38 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-Base class for SubCommand commands.
+List the running applications.
 
 @author: Ewan Higgs (Universiteit Gent)
 """
+from vsc.utils import fancylogger
+from vsc.utils.generaloption import GeneralOption
 
-from abc import abstractmethod
+from hod.subcommands.subcommand import SubCommand
+from hod.rmscheduler.rm_pbs import Pbs
 
-class SubCommand(object):
-    '''Base class for application commands.'''
 
-    CMD = None
-    EXAMPLE = None
-    HELP = None
+_log = fancylogger.getLogger(fname=False)
 
-    def usage(self):
-        """Return usage of this subcommand."""
-        usage = "hod %s - %s\n" % (self.CMD, self.HELP)
-        if self.EXAMPLE:
-            usage += "hod %s %s\n" % (self.CMD, self.EXAMPLE)
-        return usage
 
-    @abstractmethod
+class ListOptions(GeneralOption):
+    """Option parser for 'list' subcommand."""
+    # no options (yet)
+    pass
+
+
+class ListSubCommand(SubCommand):
+    """Implementation of HOD 'list' subcommand."""
+    CMD = 'list'
+    HELP = "List submitted/running clusters"
+
     def run(self, args):
-        '''Run the command'''
-        pass
+        """Run 'list' subcommand."""
+        optparser = ListOptions(go_args=args)
+        try:
+            pbs = Pbs(optparser)
+            print pbs.state()
+        except StandardError as err:
+            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
+            fancylogger.logToScreen(enable=True)
+            _log.raiseException(err.message)

@@ -28,31 +28,30 @@ directory.
 
 @author: Ewan Higgs (Ghent University)
 """
-import sys
-
-from textwrap import dedent
-
-from hod.subcommands.subcommand import SubCommand
 from vsc.utils import fancylogger
-_log = fancylogger.getLogger(fname=False)
 
-from hod.config.hodoption import HodOption
 from hod.hodproc import ConfiguredMaster
 from hod.mpiservice import setup_tasks
+from hod.subcommands.create import CreateOptions, validate_pbs_option
+from hod.subcommands.subcommand import SubCommand
 
-class GenConfigApplication(SubCommand):
-    def usage(self):
-        s ="""\
-        hod genconfig - Write hod configs to a directory for diagnostic purposes.
-        hod genconfig --config=<hod.conf file> --workdir=<working directory>
-        """
-        return dedent(s)
+
+_log = fancylogger.getLogger('genconfig', fname=False)
+
+
+class GenConfigSubCommand(SubCommand):
+    """Implementation of 'genconfig' subcommand."""
+
+    CMD = 'genconfig'
+    EXAMPLE = "--config=<hod.conf file> --workdir=<working directory>"
+    HELP = "Write hod configs to a directory for diagnostic purposes"
 
     def run(self, args):
-        options = HodOption(go_args=args)
-        if not options.options.config or not options.options.workdir:
-            print self.usage()
-            return
+        """Run 'genconfig' subcommand."""
+        options = CreateOptions(go_args=args)
+        if not validate_pbs_option(options):
+            raise ValueError('Missing config options')
+
         svc = ConfiguredMaster(options)
         try:
             setup_tasks(svc)

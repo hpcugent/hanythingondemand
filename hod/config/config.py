@@ -26,6 +26,7 @@
 @author: Ewan Higgs (Ghent University)
 """
 
+import os
 import sys
 
 from ConfigParser import NoOptionError, NoSectionError, SafeConfigParser
@@ -388,15 +389,24 @@ def write_service_config(outfile, data_dict, config_writer, template_resolver):
     with open(outfile, 'w') as f:
         f.write(config_writer(outfile, data_dict, template_resolver))
 
+def resolve_dists_dir():
+    """Resolve path to distributions."""
+    binpath = realpath(dirname(sys.argv[0]))
+    distspath = realpath(mkpath(binpath, '..', 'etc', 'hod'))
+    return distspath
+
 def resolve_dist_path(dist):
     """
     Given a distribution name like Hadoop-2.3.0-cdh5.0.0, return the path to the
     relevant hod.conf
     """
-    binpath = realpath(dirname(sys.argv[0]))
-    etcpath = realpath(mkpath(binpath, '..', 'etc'))
-    distpath = mkpath(etcpath, 'hod', dist, 'hod.conf')
+    distspath = resolve_dists_dir()
+    distpath = mkpath(distspath, dist, 'hod.conf')
     return distpath
+
+def avail_dists():
+    """Return a list of available distributions"""
+    return os.listdir(resolve_dists_dir())
 
 def resolve_config_paths(config, dist):
     '''

@@ -115,23 +115,6 @@ class HodJob(Job):
         msg = self.type.state()
         print msg
 
-class MympirunHodOption(HodOption):
-    """Extended option class for mympirun usage"""
-
-    def mympirun_options(self):
-        """Some mympiprun options"""
-        opts = {'debug': ("Run mympirun in debug mode", None, "store_true", False)}
-        descr = ['mympirun', 'Provide mympirun related options']
-        prefix = 'mympirun'
-
-        self.log.debug("Add mympirun option parser prefix %s descr %s opts %s",
-                prefix, descr, opts)
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-    def make_init(self):
-        super(MympirunHodOption, self).make_init()
-        self.mympirun_options()
-
 
 class MympirunHod(HodJob):
     """Hod type job using mympirun cmd style."""

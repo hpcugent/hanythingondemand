@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # #
 # Copyright 2009-2015 Ghent University
 #
@@ -23,16 +24,24 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-@author: Stijn De Weirdt (Ghent University)
-"""
+Generate a PBS job script using pbs_python. Will use mympirun to get the all started
 
+@author: Stijn De Weirdt (Universiteit Gent)
+@author: Ewan Higgs (Universiteit Gent)
+"""
+from vsc.utils import fancylogger
+
+from hod.subcommands.subcommand import SubCommand
+from hod.rmscheduler.hodjob import PbsHodJob
 from vsc.utils.generaloption import GeneralOption
 
-class HodOption(GeneralOption):
-    '''
-    Command line options for hod_pbs.
-    '''
-    def rm_options(self):
+
+_log = fancylogger.getLogger('create', fname=False)
+
+
+class CreateOptions(GeneralOption):
+    """Option parser for 'create' subcommand."""
+    def resource_manager_options(self):
         """Make the rm related options"""
         opts = {"walltime": ("Job walltime in hours", 'float', 'store', 48, 'l'),
                 "nodes": ("Full nodes for the job", "int", "store", 5, "n"),
@@ -64,7 +73,36 @@ class HodOption(GeneralOption):
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)
         self.add_group_parser(opts, descr)
 
-    def make_init(self):
-        """Trigger all inits"""
-        self.rm_options()
-        self.config_options()
+
+def validate_pbs_option(options):
+    """pbs options require a config and a workdir"""
+    if not options.options.config and not options.options.dist:
+        _log.error('Either --config or --dist must be set')
+        return False
+    if options.options.config and options.options.dist:
+        _log.error('Only one of --config or --dist can be set')
+        return False
+    if not options.options.workdir:
+        _log.error('No workdir ("--workdir") provided')
+        return False
+    return True
+
+
+class CreateSubCommand(SubCommand):
+    """Implementation of 'create' subcommand."""
+    CMD = 'create'
+    EXAMPLE = "--config=<hod.conf file> --workdir=<working directory>"
+    HELP = "Submit a job to spawn a cluster on a PBS job controller"
+
+    def run(self, args):
+        options = CreateOptions(go_args=args)
+        if not validate_pbs_option(options):
+            raise ValueError('Missing config options')
+
+        try:
+            j = PbsHodJob(options)
+            j.run()
+        except StandardError as e:
+            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
+            fancylogger.logToScreen(enable=True)
+            _log.raiseException(e.message)

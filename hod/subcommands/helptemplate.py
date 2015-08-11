@@ -27,12 +27,10 @@ Print out template parameters used by hod.
 
 @author: Ewan Higgs (Ghent University)
 """
-
-from textwrap import dedent
-
+import hod.config.template as hct
 from hod.subcommands.subcommand import SubCommand
 from hod.mpiservice import ConfigOptsParams, master_template_opts
-import hod.config.template as hct
+
 
 def mk_registry():
     """Make a TemplateRegistry and register basic items"""
@@ -45,6 +43,7 @@ def mk_registry():
         reg.register(ct)
     return reg
 
+
 def mk_fmt_str(fields, resolver):
     """Calculate the format string for printing the template parameters."""
     longest_name = max(fields.values(), key=lambda x: len(x.name)).name
@@ -54,14 +53,12 @@ def mk_fmt_str(fields, resolver):
     max_val_len = len(longest_value)
     return '%%-%ds:\t%%-%ds\t%%s' % (max_name_len, max_val_len)
 
-class HelpTemplateApplication(SubCommand):
-    def usage(self):
-        s ="""\
-        hod help-template - Print the values of the configuration templates
-            based on the current machine.
-        hod help-template --config=<hod.conf file> --workdir=<working directory>
-        """
-        return dedent(s)
+
+class HelpTemplateSubCommand(SubCommand):
+    """Implementation of 'help-template' subcommand."""
+    CMD = 'help-template'
+    EXAMPLE = "--config=<hod.conf file> --workdir=<working directory>"
+    HELP = "Print the values of the configuration templates based on the current machine."
 
     def run(self, args):
         reg = mk_registry()
