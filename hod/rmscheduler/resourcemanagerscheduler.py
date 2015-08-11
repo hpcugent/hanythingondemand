@@ -66,5 +66,5 @@ class ResourceManagerScheduler(object):
         ppn = ppn (-1 = full node)
         walltime = time in hours (can be float)
         """
-        self.log.error("header not implemented")
+        self.log.info("Using empty header (default implementation).")
         return ""
