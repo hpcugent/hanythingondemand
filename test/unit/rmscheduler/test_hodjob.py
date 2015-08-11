@@ -32,7 +32,6 @@ import os
 from optparse import OptionParser, Values
 
 import hod.rmscheduler.hodjob as hrh
-import hod.config.hodoption as hch
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 from hod.subcommands.create import CreateOptions
 from hod.rmscheduler.rm_pbs import Pbs

@@ -35,7 +35,7 @@ from hod.subcommands.subcommand import SubCommand
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
-from hod.config.hodoption import HodOption
+from hod.subcommands.create import CreateOptions
 from hod.hodproc import ConfiguredSlave, ConfiguredMaster
 from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
 
@@ -50,7 +50,7 @@ class LocalApplication(SubCommand):
         return dedent(s)
 
     def run(self, args):
-        options = HodOption(go_args=args)
+        options = CreateOptions(go_args=args)
 
         if MPI.COMM_WORLD.rank == MASTERRANK:
             _log.debug('Starting master process')
