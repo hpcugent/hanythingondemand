@@ -43,13 +43,9 @@ import hod.config.template as hct
 class HodJob(Job):
     """Hanything on demand job"""
 
-    OPTION_CLASS = HodOption
     OPTION_IGNORE_PREFIX = ['rm', 'action']
 
-    def __init__(self, options=None):
-        if options is None:
-            options = self.OPTION_CLASS()
-
+    def __init__(self, options):
         super(HodJob, self).__init__(options)
 
         self.exeout = None
@@ -118,7 +114,6 @@ class HodJob(Job):
 
 class MympirunHod(HodJob):
     """Hod type job using mympirun cmd style."""
-    OPTION_CLASS = MympirunHodOption
     OPTION_IGNORE_PREFIX = ['rm', 'action', 'mympirun']
 
     def generate_exe(self):
