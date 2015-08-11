@@ -38,6 +38,10 @@ class SubCommand(object):
     EXAMPLE = None
     HELP = None
 
+    def __init__(self, *args, **kwargs):
+        """Class constructor."""
+        self.envvar_prefix = 'HOD_%s' % self.CMD.upper().replace('-', '_')
+
     def usage(self):
         """Return usage of this subcommand."""
         usage = "hod %s - %s\n" % (self.CMD, self.HELP)
