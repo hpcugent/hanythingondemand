@@ -137,7 +137,7 @@ class PbsHodJob(MympirunHod):
     """PbsHodJob type job for easybuild infrastructure
         - easybuild module names
     """
-    def __init__(self, options=None):
+    def __init__(self, options):
         super(PbsHodJob, self).__init__(options)
         self.modules = []
 
@@ -159,6 +159,7 @@ class PbsHodJob(MympirunHod):
                 self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.' %
                         ebmodname_envvar)
 
+        # FIXME
         self.modules.append(ebmodname)
 
         config_filenames = resolve_config_paths(options.options.config, options.options.dist)

@@ -48,5 +48,5 @@ class DistsSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'dists' subcommand."""
-        optparser = DistsOptions(args)
+        optparser = DistsOptions(go_args=args)
         print '\n'.join(avail_dists())
