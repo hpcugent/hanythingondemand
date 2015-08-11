@@ -34,7 +34,7 @@ from optparse import OptionParser, Values
 import hod.rmscheduler.hodjob as hrh
 import hod.config.hodoption as hch
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
-from hod.rmscheduler.hodjob import MympirunHodOption
+from hod.subcommands.create import CreateOptions
 from hod.rmscheduler.rm_pbs import Pbs
 
 manifest_config = """
@@ -72,8 +72,8 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
 
     def setUp(self):
         '''setUp'''
-        self.opt = hch.HodOption(go_args=['progname', '--config=hod.conf'])
-        self.mpiopt = MympirunHodOption(go_args=['progname', '--config=hod.conf'])
+        self.opt = CreateOptions(go_args=['progname', '--config=hod.conf'])
+        self.mpiopt = CreateOptions(go_args=['progname', '--config=hod.conf'])
 
     def test_hodjob_init(self):
         '''test HodJob init function'''

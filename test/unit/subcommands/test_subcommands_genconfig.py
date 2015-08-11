@@ -28,16 +28,14 @@
 """
 
 import unittest
-import pytest
-from hod.subcommands.query import QueryApplication
+from hod.subcommands.genconfig import GenConfigSubCommand
 
-class TestQueryApplication(unittest.TestCase):
+class TestGenconfigSubCommand(unittest.TestCase):
     def test_run(self):
-        app = QueryApplication()
+        app = GenConfigSubCommand()
         app.run([])
 
     def test_usage(self):
-        app = QueryApplication()
+        app = GenConfigSubCommand()
         usage = app.usage()
         self.assertTrue(isinstance(usage, basestring))
-

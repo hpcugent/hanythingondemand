@@ -28,14 +28,36 @@
 """
 
 import unittest
-from hod.subcommands.genconfig import GenConfigApplication
+import pytest
 
-class TestGenconfigApplication(unittest.TestCase):
-    def test_run(self):
-        app = GenConfigApplication()
-        app.run([])
+from hod.subcommands.create import CreateSubCommand
+
+from mock import patch
+
+class TestCreateSubCommand(unittest.TestCase):
+    @pytest.mark.xfail(reason="Requires easybuild environment")
+    def test_run_no_args(self):
+        with patch('hod.subcommands.create.PbsHodJob'):
+            app = CreateSubCommand()
+            self.assertRaises(ValueError, app.run, [])
+
+    @pytest.mark.xfail(reason="Requires easybuild environment")
+    def test_run_with_args(self):
+        with patch('hod.subcommands.create.PbsHodJob'):
+            app = CreateSubCommand()
+            app.run(['--config=hod.conf', '--workdir=workdir'])
+
+    def test_run_with_dist_arg(self):
+        with patch('hod.subcommands.create.PbsHodJob'):
+            app = CreateSubCommand()
+            app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir'])
+
+    def test_run_fails_with_config_and_dist_arg(self):
+        with patch('hod.subcommands.create.PbsHodJob'):
+            app = CreateSubCommand()
+            self.assertEqual(app.run(['--config=hod.conf', '--dist=Hadoop-2.3.0', '--workdir=workdir']), 1)
 
     def test_usage(self):
-        app = GenConfigApplication()
+        app = CreateSubCommand()
         usage = app.usage()
         self.assertTrue(isinstance(usage, basestring))

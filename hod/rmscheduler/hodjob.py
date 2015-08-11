@@ -116,8 +116,6 @@ class MympirunHod(HodJob):
         """Mympirun executable"""
 
         exe = ["mympirun"]
-        if self.options.options.mympirun_debug:
-            exe.append('--debug')
         if self.exeout:
             exe.append("--output=%s" % self.exeout)
         exe.append("--hybrid=1")

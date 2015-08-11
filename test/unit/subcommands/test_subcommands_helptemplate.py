@@ -29,15 +29,15 @@
 
 import unittest
 import pytest
-from hod.subcommands.helptemplate import HelpTemplateApplication
+from hod.subcommands.helptemplate import HelpTemplateSubCommand
 
 class TestHelpTemplateApplication(unittest.TestCase):
     def test_run(self):
-        app = HelpTemplateApplication()
+        app = HelpTemplateSubCommand()
         app.run([])
 
     def test_usage(self):
-        app = HelpTemplateApplication()
+        app = HelpTemplateSubCommand()
         usage = app.usage()
         self.assertTrue(isinstance(usage, basestring))
 

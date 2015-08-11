@@ -32,7 +32,7 @@ from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
 from hod.subcommands.subcommand import SubCommand
-from hod.rmscheduler.rm_pbs import Pbs
+import hod.rmscheduler.rm_pbs as rm_pbs
 
 
 _log = fancylogger.getLogger(fname=False)
@@ -53,7 +53,7 @@ class ListSubCommand(SubCommand):
         """Run 'list' subcommand."""
         optparser = ListOptions(go_args=args)
         try:
-            pbs = Pbs(optparser)
+            pbs = rm_pbs.Pbs(optparser)
             print pbs.state()
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)

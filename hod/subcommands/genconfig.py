@@ -53,7 +53,7 @@ class GenConfigSubCommand(SubCommand):
         options = CreateOptions(go_args=args)
         if not validate_pbs_option(options):
             sys.stderr.write('Missing config options. Exiting.\n')
-            sys.exit(1)
+            return 1
 
         svc = ConfiguredMaster(options)
         try:

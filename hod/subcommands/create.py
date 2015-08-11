@@ -102,7 +102,7 @@ class CreateSubCommand(SubCommand):
         options = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix)
         if not validate_pbs_option(options):
             sys.stderr.write('Missing config options. Exiting.\n')
-            sys.exit(1)
+            return 1
 
         try:
             j = PbsHodJob(options)
