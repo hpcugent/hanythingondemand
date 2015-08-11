@@ -5,8 +5,8 @@ import sys
 try:
     from mpi4py import MPI
 except ImportError, e:
-    sys.stderr.write('Error: Could not import mpi4py. Is the an environment module providing MPI support loaded?')
-    sys.stderr.write('Underlying error is: "%s"' % e)
+    sys.stderr.write('Error: Could not import mpi4py. Is there an environment module providing MPI support loaded?\n')
+    sys.stderr.write('Underlying error is: "%s"\n' % e)
     sys.exit(1)
 
 from hod.subcommands import pbs, query, helptemplate, genconfig
