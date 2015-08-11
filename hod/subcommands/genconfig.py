@@ -28,6 +28,8 @@ directory.
 
 @author: Ewan Higgs (Ghent University)
 """
+import sys
+
 from vsc.utils import fancylogger
 
 from hod.hodproc import ConfiguredMaster
@@ -50,7 +52,8 @@ class GenConfigSubCommand(SubCommand):
         """Run 'genconfig' subcommand."""
         options = CreateOptions(go_args=args)
         if not validate_pbs_option(options):
-            raise ValueError('Missing config options')
+            sys.stderr.write('Missing config options. Exiting.\n')
+            sys.exit(1)
 
         svc = ConfiguredMaster(options)
         try:

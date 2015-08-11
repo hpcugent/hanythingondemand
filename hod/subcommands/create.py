@@ -29,6 +29,8 @@ Generate a PBS job script using pbs_python. Will use mympirun to get the all sta
 @author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
+import sys
+
 from vsc.utils import fancylogger
 
 from hod.subcommands.subcommand import SubCommand
@@ -99,7 +101,8 @@ class CreateSubCommand(SubCommand):
     def run(self, args):
         options = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix)
         if not validate_pbs_option(options):
-            raise ValueError('Missing config options')
+            sys.stderr.write('Missing config options. Exiting.\n')
+            sys.exit(1)
 
         try:
             j = PbsHodJob(options)
