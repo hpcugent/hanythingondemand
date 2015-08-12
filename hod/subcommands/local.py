@@ -41,13 +41,10 @@ from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
 
 from mpi4py import MPI
 
-class LocalApplication(SubCommand):
+class LocalSubCommand(SubCommand):
     '''Run hod cluster locally.'''
-    def usage(self):
-        s = """\
-        Run the hod program locally. Generally not run from the command line.
-        """
-        return dedent(s)
+    CMD = "local"
+    HELP = "Run the hod program locally. Generally not run from the command line"
 
     def run(self, args):
         options = CreateOptions(go_args=args)

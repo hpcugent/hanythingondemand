@@ -9,10 +9,10 @@ except ImportError, e:
     print 'Undelying error is: "%s"' % e
     sys.exit(1)
 
-from hod.applications import local
+from hod.subcommands import local
 
 def main(args):
-    app = local.LocalApplication()
+    app = local.LocalSubCommand()
     app.run(args[1:])
 
 if __name__ == '__main__':
