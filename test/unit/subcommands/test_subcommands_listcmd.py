@@ -1,5 +1,6 @@
-##
-# Copyright 2009-2013 Ghent University
+#!/usr/bin/env python
+# #
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -21,11 +22,30 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
-Nothing here for now.
+@author: Ewan Higgs (Universiteit Gent)
+"""
 
-@author: Stijn De Weirdt (Ghent University)
-@author: Ewan Higgs (Ghent University)
-"""
-VERSION = '3.0.0dev'
+import unittest
+import pytest
+from mock import patch, Mock
+from ..util import capture
+from hod.subcommands.listcmd import ListSubCommand
+
+class TestListSubCommand(unittest.TestCase):
+    def test_run(self):
+        app = ListSubCommand()
+        app.run([])
+
+    def test_run_good(self):
+        with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: 'good')):
+            app = ListSubCommand()
+            with capture(app.run, []) as output:
+                self.assertEqual(output, 'good\n')
+
+    def test_usage(self):
+        app = ListSubCommand()
+        usage = app.usage()
+        self.assertTrue(isinstance(usage, basestring))
+

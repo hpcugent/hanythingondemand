@@ -28,10 +28,13 @@
 Setup for Hanything on Demand
 """
 import os
-from os.path import join as mkpath
 import sys
 import subprocess
+from os.path import join as mkpath
 from setuptools import setup, Command
+
+import hod
+
 
 def setup_openmpi_libpath():
     libpath = os.getenv('LD_LIBRARY_PATH')
@@ -62,7 +65,7 @@ def find_files(*dirs):
 
 PACKAGE = {
     'name': 'hanythingondemand',
-    'version': '2.2.4',
+    'version': hod.VERSION,
     'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'license': "GPL v2",
@@ -79,16 +82,17 @@ PACKAGE = {
     'tests_require': ['tox', 'pytest', 'pytest-cover', 'coverage', 'mock'],
     'packages': [
         'hod',
-        'hod.work',
         'hod.commands',
         'hod.config',
-        'hod.config.writer',
         'hod.config.autogen',
-        'hod.rmscheduler',
+        'hod.config.writer',
         'hod.node',
+        'hod.rmscheduler',
+        'hod.subcommands',
+        'hod.work',
     ],
     'data_files': find_files('etc'),
-    'scripts': ['bin/hod_main.py', 'bin/hod_pbs.py'],
+    'scripts': ['bin/hod', 'bin/hod-local'],
     'cmdclass' : {'test': TestCommand},
     'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
 }

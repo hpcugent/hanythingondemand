@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# ##
+# #
 # Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,39 +22,20 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+# #
 """
-Main hanythingondemand script, should be invoked in a job
-
-@author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
-import sys
 
-from vsc.utils import fancylogger
-_log = fancylogger.getLogger(fname=False)
+import unittest
+from hod.subcommands.genconfig import GenConfigSubCommand
 
-from hod.config.hodoption import HodOption
-from hod.hodproc import ConfiguredSlave, ConfiguredMaster
-from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
+class TestGenconfigSubCommand(unittest.TestCase):
+    def test_run(self):
+        app = GenConfigSubCommand()
+        app.run([])
 
-from mpi4py import MPI
-
-def main(args):
-    options = HodOption(go_args=args)
-
-    if MPI.COMM_WORLD.rank == MASTERRANK:
-        svc = ConfiguredMaster(options)
-    else:
-        svc = ConfiguredSlave(options)
-    try:
-        setup_tasks(svc)
-        run_tasks(svc)
-
-        svc.stop_service()
-    except Exception, e:
-        _log.error(str(e))
-        _log.exception("Main HanythingOnDemand failed")
-        return 1
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    def test_usage(self):
+        app = GenConfigSubCommand()
+        usage = app.usage()
+        self.assertTrue(isinstance(usage, basestring))

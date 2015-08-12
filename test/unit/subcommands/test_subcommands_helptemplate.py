@@ -1,5 +1,6 @@
-##
-# Copyright 2009-2013 Ghent University
+#!/usr/bin/env python
+# #
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -21,11 +22,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
-Nothing here for now.
+@author: Ewan Higgs (Universiteit Gent)
+"""
 
-@author: Stijn De Weirdt (Ghent University)
-@author: Ewan Higgs (Ghent University)
-"""
-VERSION = '3.0.0dev'
+import unittest
+import pytest
+from hod.subcommands.helptemplate import HelpTemplateSubCommand
+
+class TestHelpTemplateApplication(unittest.TestCase):
+    def test_run(self):
+        app = HelpTemplateSubCommand()
+        app.run([])
+
+    def test_usage(self):
+        app = HelpTemplateSubCommand()
+        usage = app.usage()
+        self.assertTrue(isinstance(usage, basestring))
+

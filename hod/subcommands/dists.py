@@ -1,5 +1,6 @@
-##
-# Copyright 2009-2013 Ghent University
+#!/usr/bin/env python
+# #
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -21,11 +22,31 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
-Nothing here for now.
+List available distributions known to hanythingondemand.
 
-@author: Stijn De Weirdt (Ghent University)
 @author: Ewan Higgs (Ghent University)
+@author: Kenneth Hoste (Ghent University)
 """
-VERSION = '3.0.0dev'
+from vsc.utils.generaloption import GeneralOption
+
+from hod.config.config import avail_dists
+from hod.subcommands.subcommand import SubCommand
+
+
+class DistsOptions(GeneralOption):
+    """Option parser for 'dists' subcommand."""
+    # no options (yet)
+    pass
+
+
+class DistsSubCommand(SubCommand):
+    """Implementation of HOD 'dists' subcommand."""
+    CMD = 'dists'
+    HELP = "List the available distributions"
+
+    def run(self, args):
+        """Run 'dists' subcommand."""
+        optparser = DistsOptions(go_args=args)
+        print '\n'.join(avail_dists())

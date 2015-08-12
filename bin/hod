@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+
+import sys
+
+try:
+    from mpi4py import MPI
+except ImportError, e:
+    sys.stderr.write('Error: Could not import mpi4py. Is there an environment module providing MPI support loaded?\n')
+    sys.stderr.write('Underlying error is: "%s"\n' % e)
+    sys.exit(1)
+
+from hod import VERSION
+from hod.subcommands import create, listcmd, genconfig, helptemplate, dists
+
+SUBCOMMANDS = [
+    create.CreateSubCommand,
+    listcmd.ListSubCommand,
+    dists.DistsSubCommand,
+    helptemplate.HelpTemplateSubCommand,
+    genconfig.GenConfigSubCommand,
+]
+
+CMDS = dict([(sc.CMD, sc) for sc in SUBCOMMANDS])
+
+
+def usage(fh=None):
+    """Print the usage information for 'hod'."""
+    if fh is None:
+        fh = sys.stdout
+
+    fh.write("hod: hanythingondemand - Run services within a torque cluster\n")
+    fh.write("usage: hod [--version] [--help] <subcommand> <subcommand-args>\n")
+    fh.write("Available subcommands:\n")
+    for sc in SUBCOMMANDS:
+        fh.write('    {0:16}{1}\n'.format(sc.CMD, sc.HELP))
+
+def main(args):
+    if len(args) == 1:
+        sys.exit(usage())
+    elif args[1] in ['--version', '-V']:
+        print VERSION
+        sys.exit(0)
+    elif args[1] in ['--help', '-h', '-H']:
+        usage()
+        sys.exit(0)
+    if args[1] not in CMDS:
+        sys.stderr.write("ERROR: Unknown subcommand '%s'\n")
+        usage(fh=sys.stderr)
+        sys.exit(1)
+
+    cmd = CMDS[args[1]]()
+    cmd.run(args[1:])
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))

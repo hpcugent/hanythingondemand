@@ -27,14 +27,42 @@
 
 import unittest
 from mock import patch, sentinel
+from cStringIO import StringIO
 import os
 from optparse import OptionParser, Values
 
 import hod.rmscheduler.hodjob as hrh
-import hod.config.hodoption as hch
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
-from hod.rmscheduler.hodjob import MympirunHodOption
+from hod.subcommands.create import CreateOptions
 from hod.rmscheduler.rm_pbs import Pbs
+
+manifest_config = """
+[Meta]
+version = 1
+[Config]
+workdir=/tmp
+master_env= 
+modules=
+services=svc.conf
+config_writer=some.module.function
+directories=
+"""
+
+service_config = """
+[Unit]
+Name=wibble
+RunsOn = master
+[Service]
+ExecStart=service start postgres
+ExecStop=service stop postgres
+[Environment]
+"""
+
+def _mock_open(name, *args):
+    if name == 'hod.conf':
+        return StringIO(manifest_config)
+    else:
+        return StringIO(service_config)
 
 
 class HodRMSchedulerHodjobTestCase(unittest.TestCase):
@@ -43,8 +71,8 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
 
     def setUp(self):
         '''setUp'''
-        self.opt = hch.HodOption(go_args=['progname'])
-        self.mpiopt = MympirunHodOption(go_args=['progname'])
+        self.opt = CreateOptions(go_args=['progname', '--config=hod.conf'])
+        self.mpiopt = CreateOptions(go_args=['progname', '--config=hod.conf'])
 
     def test_hodjob_init(self):
         '''test HodJob init function'''
@@ -81,28 +109,24 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
             o = hrh.MympirunHod(self.mpiopt)
             exe = o.generate_exe()
         # not sure we want SNone/hod.output.SNone or a bunch of these defaults here.
-        self.assertEqual(exe[0], 'mympirun --output=$None/hod.output.$None --hybrid=1 --variablesprefix=HOD python sentinel1')
+        self.assertEqual(exe[0], 'mympirun --output=$None/hod.output.$None --hybrid=1 --variablesprefix=HOD python sentinel1 --config=hod.conf')
         """ From prod:
         /usr/bin/python /apps/gent/SL6/sandybridge/software/vsc-mympirun/3.2.3/bin/mympirun --output=/vscmnt/gent_vulpix/_/user/home/gent/vsc410/vsc41041/jobs/hadoop/hod.output.12191.master16.delcatty.gent.vsc --hybrid=1 --variablesprefix=HADOOP,JAVA,HOD,MAPRED,HDFS,HDFS,MAPRED python /apps/gent/SL6/sandybridge/software/hanythingondemand/2.1.1-ictce-5.5.0-Python-2.7.6/bin/hod_main --hod-script=/user/home/gent/vsc410/vsc41041/jobs/hadoop/run_job.sh --hod-envclass=PbsEBMMHod
         """
 
-    def test_easybuildmmhod_init(self):
-        '''test EasybuildMMHod init function'''
+    def test_pbshodjob_init(self):
+        '''test pbshodjob init function'''
         os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
 
         with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
-            o = hrh.EasybuildMMHod(self.opt)
+            with patch('__builtin__.open', side_effect=_mock_open):
+                o = hrh.PbsHodJob(self.opt)
 
-    def test_pbsebmmhod_init(self):
-        '''test PbsEBMMHod init function'''
-        os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
-        with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
-            o = hrh.PbsEBMMHod(self.mpiopt)
-
-    def test_pbsebmmhod_set_type_class(self):
-        '''test PbsEBMMHod set_type_class'''
+    def test_pbshodjob_set_type_class(self):
+        '''test PbsHodJob set_type_class'''
         # should look into using mock or something here
         os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
-        o = hrh.PbsEBMMHod(self.mpiopt)
+        with patch('__builtin__.open', side_effect=_mock_open):
+            o = hrh.PbsHodJob(self.mpiopt)
         o.set_type_class()
         self.assertEqual(o.type_class, Pbs)

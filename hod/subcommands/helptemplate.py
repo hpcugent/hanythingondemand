@@ -27,13 +27,10 @@ Print out template parameters used by hod.
 
 @author: Ewan Higgs (Ghent University)
 """
-
 import hod.config.template as hct
-import socket
-import sys
-
+from hod.subcommands.subcommand import SubCommand
 from hod.mpiservice import ConfigOptsParams, master_template_opts
-import hod.node.node as node
+
 
 def mk_registry():
     """Make a TemplateRegistry and register basic items"""
@@ -46,6 +43,7 @@ def mk_registry():
         reg.register(ct)
     return reg
 
+
 def mk_fmt_str(fields, resolver):
     """Calculate the format string for printing the template parameters."""
     longest_name = max(fields.values(), key=lambda x: len(x.name)).name
@@ -56,14 +54,18 @@ def mk_fmt_str(fields, resolver):
     return '%%-%ds:\t%%-%ds\t%%s' % (max_name_len, max_val_len)
 
 
-def main(args):
-    reg = mk_registry()
-    resolver = hct.TemplateResolver(**reg.to_kwargs())
-    print 'Hanythingondemand template parameters'
-    fmt_str = mk_fmt_str(reg.fields, resolver)
-    print fmt_str % ('Parameter name', 'Value', 'Documentation')
-    for v in sorted(reg.fields.values(), key=lambda x: x.name):
-        print fmt_str % (v.name, resolver('$%s' % v.name), v.doc)
+class HelpTemplateSubCommand(SubCommand):
+    """Implementation of 'help-template' subcommand."""
+    CMD = 'help-template'
+    EXAMPLE = "--config=<hod.conf file> --workdir=<working directory>"
+    HELP = "Print the values of the configuration templates based on the current machine."
 
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    def run(self, args):
+        """Run 'help-template' subcommand."""
+        reg = mk_registry()
+        resolver = hct.TemplateResolver(**reg.to_kwargs())
+        print 'Hanythingondemand template parameters'
+        fmt_str = mk_fmt_str(reg.fields, resolver)
+        print fmt_str % ('Parameter name', 'Value', 'Documentation')
+        for v in sorted(reg.fields.values(), key=lambda x: x.name):
+            print fmt_str % (v.name, resolver('$%s' % v.name), v.doc)
