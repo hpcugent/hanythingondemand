@@ -28,4 +28,4 @@ Nothing here for now.
 @author: Stijn De Weirdt (Ghent University)
 @author: Ewan Higgs (Ghent University)
 """
-VERSION = '3.0.0'
+VERSION = '3.0.0dev'

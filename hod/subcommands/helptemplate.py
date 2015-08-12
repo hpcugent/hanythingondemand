@@ -61,6 +61,7 @@ class HelpTemplateSubCommand(SubCommand):
     HELP = "Print the values of the configuration templates based on the current machine."
 
     def run(self, args):
+        """Run 'help-template' subcommand."""
         reg = mk_registry()
         resolver = hct.TemplateResolver(**reg.to_kwargs())
         print 'Hanythingondemand template parameters'

@@ -99,6 +99,7 @@ class CreateSubCommand(SubCommand):
     HELP = "Submit a job to spawn a cluster on a PBS job controller"
 
     def run(self, args):
+        """Run 'create' subcommand."""
         options = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix)
         if not validate_pbs_option(options):
             sys.stderr.write('Missing config options. Exiting.\n')

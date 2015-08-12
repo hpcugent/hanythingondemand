@@ -96,7 +96,6 @@ class Job(object):
         """Create the job arguments. Retrun as header (if used)"""
         hdr = self.type.header()
         self.log.debug("Generated header %s", hdr)
-        print 'self.type.header()', hdr
 
         return hdr
 

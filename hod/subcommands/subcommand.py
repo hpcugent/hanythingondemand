@@ -24,7 +24,7 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-Base class for SubCommand commands.
+Abstract base class for subcommand support.
 
 @author: Ewan Higgs (Universiteit Gent)
 """
@@ -32,7 +32,7 @@ Base class for SubCommand commands.
 from abc import abstractmethod
 
 class SubCommand(object):
-    '''Base class for application commands.'''
+    """Abstract base class for subcommand support."""
 
     CMD = None
     EXAMPLE = None
