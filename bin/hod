@@ -29,7 +29,7 @@ def usage(fh=None):
         fh = sys.stdout
 
     fh.write("hod: hanythingondemand - Run services within a torque cluster\n")
-    fh.write("usage: hod [--version] [--help] <subcommand> <subcommand-args>\n")
+    fh.write("usage: hod [--version] [--help] <subcommand> [subcommand options]\n")
     fh.write("Available subcommands:\n")
     for sc in SUBCOMMANDS:
         fh.write('    {0:16}{1}\n'.format(sc.CMD, sc.HELP))
