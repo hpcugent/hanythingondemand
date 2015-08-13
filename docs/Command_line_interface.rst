@@ -107,10 +107,10 @@ Known subcommands:
 
 .. _cmdline_create:
 
-.. TODO label part
-
 ``hod create [cluster label]``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. TODO label part
 
 Create a hanythingondemand cluster, with the specified label and cluster configuration file.
 
@@ -148,10 +148,10 @@ foo
 
 .. _cmdline_list:
 
-.. TODO enhance output?
-
 ``hod list``
 ~~~~~~~~~~~~
+
+.. TODO enhance output?
 
 Print a list of existing clusters, and their state ('``submitted``' or '``active``').
 
