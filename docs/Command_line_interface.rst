@@ -42,10 +42,11 @@ Configuration options for ``hod``
 
 .. _cmdline_hod_help:
 
-``hod --help``
+``hod [subcommand] --help``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Print usage information and supported subcommand, along with a short help message for each of them.
+Print usage information and supported subcommands along with a short help message for each of them, or usage information
+and available options for the specified subcommand.
 
 ``hod --hodconf <path>``
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -76,6 +77,10 @@ Print hanythingondemand version information.
 .. .. note:: For now, only ``PBS`` is supported.
 
 
+.. -----------
+.. SUBCOMMANDS
+.. -----------
+
 .. _cmdline_hod_subcommands:
 
 ``hod`` subcommands
@@ -99,20 +104,6 @@ Known subcommands:
 * :ref:`cmdline_destroy`
 * :ref:`cmdline_disconnect`
 * :ref:`cmdline_status`
-
-.. _cmdline_hod_subcommands_options:
-
-Generic configuration options for subcommands
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. _cmdline_hod_subcommands_options_help:
-
-``hod <subcommand> --help``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. -----------
-.. SUBCOMMANDS
-.. -----------
 
 .. _cmdline_create:
 
