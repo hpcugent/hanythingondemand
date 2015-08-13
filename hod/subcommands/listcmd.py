@@ -29,8 +29,8 @@ List the running applications.
 @author: Ewan Higgs (Universiteit Gent)
 """
 from vsc.utils import fancylogger
-from vsc.utils.generaloption import GeneralOption
 
+from hod.options import HODOptions
 from hod.subcommands.subcommand import SubCommand
 import hod.rmscheduler.rm_pbs as rm_pbs
 
@@ -38,7 +38,7 @@ import hod.rmscheduler.rm_pbs as rm_pbs
 _log = fancylogger.getLogger(fname=False)
 
 
-class ListOptions(GeneralOption):
+class ListOptions(HODOptions):
     """Option parser for 'list' subcommand."""
     # no options (yet)
     pass
@@ -51,7 +51,7 @@ class ListSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'list' subcommand."""
-        optparser = ListOptions(go_args=args)
+        optparser = ListOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
             pbs = rm_pbs.Pbs(optparser)
             print pbs.state()

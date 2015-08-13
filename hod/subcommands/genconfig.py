@@ -34,11 +34,18 @@ from vsc.utils import fancylogger
 
 from hod.hodproc import ConfiguredMaster
 from hod.mpiservice import setup_tasks
+from hod.options import HODOptions
 from hod.subcommands.create import CreateOptions, validate_pbs_option
 from hod.subcommands.subcommand import SubCommand
 
 
 _log = fancylogger.getLogger('genconfig', fname=False)
+
+
+class GenConfigOptions(HODOptions):
+    """Option parser for 'dists' subcommand."""
+    # no options (yet)
+    pass
 
 
 class GenConfigSubCommand(SubCommand):
@@ -50,7 +57,7 @@ class GenConfigSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'genconfig' subcommand."""
-        options = CreateOptions(go_args=args)
+        options = GenConfigOptions(go_args=args, usage=self.usage_txt)
         if not validate_pbs_option(options):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1

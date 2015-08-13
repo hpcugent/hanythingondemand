@@ -33,15 +33,15 @@ import sys
 
 from vsc.utils import fancylogger
 
-from hod.subcommands.subcommand import SubCommand
+from hod.options import HODOptions
 from hod.rmscheduler.hodjob import PbsHodJob
-from vsc.utils.generaloption import GeneralOption
+from hod.subcommands.subcommand import SubCommand
 
 
 _log = fancylogger.getLogger('create', fname=False)
 
 
-class CreateOptions(GeneralOption):
+class CreateOptions(HODOptions):
     """Option parser for 'create' subcommand."""
     def resource_manager_options(self):
         """Add configuration options for job being submitted."""
@@ -61,18 +61,12 @@ class CreateOptions(GeneralOption):
         self.log.debug("Add resourcemanager option parser prefix %s descr %s opts %s", prefix, descr, opts)
         self.add_group_parser(opts, descr, prefix=prefix)
 
-    def config_options(self):
+    def extra_config_options(self):
         """Add general configuration options."""
         opts = {
-            'config': ("Top level configuration file. This can be "
-                    "a comma separated list of config files with the later files taking "
-                    "precendence.", "string", "store", ''),
-            'dist': ("Prepackaged Hadoop distribution (e.g.  Hadoop/2.5.0-cdh5.3.1-native). "
-                    "This cannot be set if config is set", "string", "store", ''),
-            'workdir': ("Working directory", "string", "store", None),
             'modules': ("Extra modules to load in each service environment", "string", "store", None),
         }
-        descr = ["Config", "Configuration files options"]
+        descr = ["Create configuration", "Configuration options specific to the 'create' subcommand"]
 
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)
         self.add_group_parser(opts, descr)
@@ -100,7 +94,7 @@ class CreateSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'create' subcommand."""
-        options = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix)
+        options = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         if not validate_pbs_option(options):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
