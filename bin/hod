@@ -24,9 +24,9 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 
-# Python 2.6 or more recent 2.x required
+# Python 2.7 or more recent 2.x required
 REQ_MAJ_PYVER=2
-REQ_MIN_PYVER=6
+REQ_MIN_PYVER=7
 REQ_PYVER=${REQ_MAJ_PYVER}.${REQ_MIN_PYVER}
 
 # make sure Python version being used is compatible
@@ -36,12 +36,12 @@ pyver_min=`echo $pyver | cut -f2 -d'.'`
 
 if [ $pyver_maj -ne $REQ_MAJ_PYVER ]
 then
-    echo "ERROR: EasyBuild is currently only compatible with Python v${REQ_MAJ_PYVER}.x, found v${pyver}" 1>&2
+    echo "ERROR: hanythingondemand is currently only compatible with Python v${REQ_MAJ_PYVER}.x, found v${pyver}" 1>&2
     exit 1
 fi
 if [ $pyver_min -lt $REQ_MIN_PYVER ]
 then
-    echo "ERROR: EasyBuild requires Python v${REQ_PYVER} or a more recent v${REQ_MAJ_PYVER}.x, found v${pyver}." 1>&2
+    echo "ERROR: hanythingondemand requires Python v${REQ_PYVER} or a more recent v${REQ_MAJ_PYVER}.x, found v${pyver}." 1>&2
     exit 2
 fi
 
