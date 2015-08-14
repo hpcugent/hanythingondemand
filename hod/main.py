@@ -31,6 +31,7 @@ Hanythingondemand main program.
 """
 import sys
 
+from hod import VERSION
 from hod.subcommands import create, listcmd, genconfig, helptemplate, dists
 
 
@@ -47,26 +48,29 @@ SUBCOMMAND_CLASSES = dict([(sc.CMD, sc) for sc in SUBCOMMANDS])
 
 def usage():
     """Print the usage information for 'hod'."""
-    usage = "hod: hanythingondemand - Run services within an HPC cluster\n"
-    usage += "usage: hod [--version] [--help] <subcommand> [subcommand options]\n"
-    usage += "Available subcommands:\n"
+    usage = "hod: hanythingondemand version %s - Run services within an HPC cluster\n" % VERSION
+    usage += "usage: hod <subcommand> [subcommand options]\n"
+    usage += "Available subcommands (one of these must be specified!):\n"
     for sc in SUBCOMMANDS:
         usage += '    {0:16}{1}\n'.format(sc.CMD, sc.HELP)
 
     return usage
 
 
-def main(args):
-    """Parse options and run specified subcommand."""
-    # check if a subcommand is specified
-    subcmd_class = None
+def init_subcmd(args):
+    """Initialize subcommand based on specified arguments; returns None is no subcommand was found."""
     for subcmd in SUBCOMMAND_CLASSES:
         if subcmd in args:
             subcmd_class = SUBCOMMAND_CLASSES[subcmd]
-            break
+            return subcmd_class(), args[1:].remove(subcmd)
+    return None, args
 
-    if subcmd_class:
-        subcmd_class().run(args[1:].remove(subcmd))
+
+def main(args):
+    """Parse options and run specified subcommand."""
+    subcmd, args = init_subcmd(args)
+    if subcmd:
+        subcmd.run(args)
 
     elif len([arg for arg in args if not arg.startswith('-')]) > 1:
         sys.stderr.write("ERROR: No known subcommand specified")
