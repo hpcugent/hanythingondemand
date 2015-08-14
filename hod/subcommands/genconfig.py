@@ -28,31 +28,41 @@ directory.
 
 @author: Ewan Higgs (Ghent University)
 """
+import copy
 import sys
 
 from vsc.utils import fancylogger
+from vsc.utils.generaloption import GeneralOption
 
+
+from hod import VERSION as HOD_VERSION
 from hod.hodproc import ConfiguredMaster
 from hod.mpiservice import setup_tasks
-from hod.options import HODOptions
-from hod.subcommands.create import CreateOptions, validate_pbs_option
+from hod.options import GENERAL_HOD_OPTIONS, validate_pbs_option
 from hod.subcommands.subcommand import SubCommand
 
 
 _log = fancylogger.getLogger('genconfig', fname=False)
 
 
-class GenConfigOptions(HODOptions):
-    """Option parser for 'dists' subcommand."""
-    # no options (yet)
-    pass
+class GenConfigOptions(GeneralOption):
+    """Option parser for 'genconfig' subcommand."""
+    VERSION = HOD_VERSION
+
+    def config_options(self):
+        """Add general configuration options."""
+        opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
+        descr = ["Genconfig configuration", "Configuration options for the 'genconfig' subcommand"]
+
+        self.log.debug("Add config option parser descr %s opts %s", descr, opts)
+        self.add_group_parser(opts, descr)
 
 
 class GenConfigSubCommand(SubCommand):
     """Implementation of 'genconfig' subcommand."""
 
     CMD = 'genconfig'
-    EXAMPLE = "--config=<hod.conf file> --workdir=<working directory>"
+    EXAMPLE = "--hodconf=<hod.conf file> --workdir=<working directory>"
     HELP = "Write hod configs to a directory for diagnostic purposes"
 
     def run(self, args):

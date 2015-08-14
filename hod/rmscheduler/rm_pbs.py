@@ -49,7 +49,7 @@ except ImportError as err:
         """Decorator which raises an ImportError because pbs_python is not available."""
         def fail(*args, **kwargs):
             """Raise ImportError since pbs_python is not available."""
-            raise
+            raise err
 
         return fail
 

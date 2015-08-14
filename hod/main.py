@@ -48,7 +48,7 @@ SUBCOMMAND_CLASSES = dict([(sc.CMD, sc) for sc in SUBCOMMANDS])
 
 def usage():
     """Print the usage information for 'hod'."""
-    usage = "hod: hanythingondemand version %s - Run services within an HPC cluster\n" % VERSION
+    usage = "hanythingondemand version %s - Run services within an HPC cluster\n" % VERSION
     usage += "usage: hod <subcommand> [subcommand options]\n"
     usage += "Available subcommands (one of these must be specified!):\n"
     for sc in SUBCOMMANDS:

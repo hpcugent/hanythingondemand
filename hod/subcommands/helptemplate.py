@@ -57,7 +57,7 @@ def mk_fmt_str(fields, resolver):
 class HelpTemplateSubCommand(SubCommand):
     """Implementation of 'help-template' subcommand."""
     CMD = 'help-template'
-    EXAMPLE = "--config=<hod.conf file> --workdir=<working directory>"
+    EXAMPLE = ''
     HELP = "Print the values of the configuration templates based on the current machine."
 
     def run(self, args):

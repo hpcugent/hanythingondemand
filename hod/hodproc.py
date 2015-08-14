@@ -107,7 +107,7 @@ class ConfiguredMaster(MpiService):
         """Master makes the distribution"""
         self.tasks = []
         options = self.options.options
-        config_path = resolve_config_paths(options.config, options.dist)
+        config_path = resolve_config_paths(options.hodconf, options.dist)
         m_config = _load_manifest_config(config_path, options.workdir, options.modules)
         m_config.autogen_configs()
 
@@ -143,7 +143,7 @@ class ConfiguredSlave(MpiService):
         This only needs to run if there are more than 1 node (self.size>1)
         """
         options = self.options.options
-        config_path = resolve_config_paths(options.config, options.dist)
+        config_path = resolve_config_paths(options.hodconf, options.dist)
         m_config = _load_manifest_config(config_path, options.workdir, options.modules)
         m_config.autogen_configs()
         resolver = _setup_template_resolver(m_config, master_template_args)

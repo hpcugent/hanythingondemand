@@ -162,7 +162,7 @@ class PbsHodJob(MympirunHod):
         # FIXME
         self.modules.append(ebmodname)
 
-        config_filenames = resolve_config_paths(options.options.config, options.options.dist)
+        config_filenames = resolve_config_paths(options.options.hodconf, options.options.dist)
         self.log.debug('Manifest config paths resolved to: %s', config_filenames)
         config_filenames = parse_comma_delim_list(config_filenames)
         self.log.info('Loading "%s" manifest config', config_filenames)

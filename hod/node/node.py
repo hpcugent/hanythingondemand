@@ -51,7 +51,7 @@ except ImportError as err:
         """Decorator which raises an ImportError because netifaces and/or netaddr are not available."""
         def fail(*args, **kwargs):
             """Raise ImportError since netifaces and/or netaddr are not available."""
-            raise
+            raise err
 
         return fail
 

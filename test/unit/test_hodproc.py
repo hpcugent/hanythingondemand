@@ -63,12 +63,12 @@ def _mock_open(name, *args):
 class TestHodProcConfiguredMaster(unittest.TestCase):
     def test_configured_master_init(self):
         opts = CreateOptions(go_args=['progname'])
-        self.assertTrue(hasattr(opts.options, 'config'))
+        self.assertTrue(hasattr(opts.options, 'hodconf'))
         cm = hh.ConfiguredMaster(opts)
         self.assertEqual(cm.options, opts)
 
     def test_configured_master_distribution(self):
-        opts = CreateOptions(go_args=['progname', '--config', 'hod.conf',
+        opts = CreateOptions(go_args=['progname', '--hodconf', 'hod.conf',
         '--modules', 'Python-2.7.9-intel-2015a,Spark/1.3.0'])
         autogen_config = Mock()
         cm = hh.ConfiguredMaster(opts)
@@ -84,7 +84,7 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
         self.assertTrue('Spark/1.3.0' in cm.tasks[0].config_opts.modules)
 
     def test_configured_slave_distribution(self):
-        opts = CreateOptions(go_args=['progname', '--config', 'hod.conf',
+        opts = CreateOptions(go_args=['progname', '--hodconf', 'hod.conf',
         '--modules', 'Python-2.7.9-intel-2015a,Spark/1.3.0'])
         autogen_config = Mock()
         cm = hh.ConfiguredSlave(opts)

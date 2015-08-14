@@ -28,9 +28,12 @@ List the running applications.
 
 @author: Ewan Higgs (Universiteit Gent)
 """
+import copy
 from vsc.utils import fancylogger
+from vsc.utils.generaloption import GeneralOption
 
-from hod.options import HODOptions
+from hod import VERSION as HOD_VERSION
+from hod.options import GENERAL_HOD_OPTIONS
 from hod.subcommands.subcommand import SubCommand
 import hod.rmscheduler.rm_pbs as rm_pbs
 
@@ -38,10 +41,17 @@ import hod.rmscheduler.rm_pbs as rm_pbs
 _log = fancylogger.getLogger(fname=False)
 
 
-class ListOptions(HODOptions):
+class ListOptions(GeneralOption):
     """Option parser for 'list' subcommand."""
-    # no options (yet)
-    pass
+    VERSION = HOD_VERSION
+
+    def config_options(self):
+        """Add general configuration options."""
+        opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
+        descr = ["List configuration", "Configuration options for the 'list' subcommand"]
+
+        self.log.debug("Add config option parser descr %s opts %s", descr, opts)
+        self.add_group_parser(opts, descr)
 
 
 class ListSubCommand(SubCommand):
