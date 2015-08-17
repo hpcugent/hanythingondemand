@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# ##
+# #
 # Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
@@ -26,10 +26,20 @@
 Print out template parameters used by hod.
 
 @author: Ewan Higgs (Ghent University)
+@author: Kenneth Hoste (Ghent University)
 """
+import copy
+from vsc.utils.generaloption import GeneralOption
+
 import hod.config.template as hct
+from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
 from hod.mpiservice import ConfigOptsParams, master_template_opts
+
+
+class HelpTemplateOptions(GeneralOption):
+    """Option parser for 'list' subcommand."""
+    VERSION = HOD_VERSION
 
 
 def mk_registry():
@@ -57,11 +67,12 @@ def mk_fmt_str(fields, resolver):
 class HelpTemplateSubCommand(SubCommand):
     """Implementation of 'help-template' subcommand."""
     CMD = 'help-template'
-    EXAMPLE = ''
+    EXAMPLE = None
     HELP = "Print the values of the configuration templates based on the current machine."
 
     def run(self, args):
         """Run 'help-template' subcommand."""
+        optparser = HelpTemplateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         reg = mk_registry()
         resolver = hct.TemplateResolver(**reg.to_kwargs())
         print 'Hanythingondemand template parameters'
