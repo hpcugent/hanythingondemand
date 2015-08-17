@@ -35,12 +35,6 @@ from hod.config.config import avail_dists
 from hod.subcommands.subcommand import SubCommand
 
 
-class DistsOptions(GeneralOption):
-    """Option parser for 'dists' subcommand."""
-    # no options (yet)
-    pass
-
-
 class DistsSubCommand(SubCommand):
     """Implementation of HOD 'dists' subcommand."""
     CMD = 'dists'
@@ -48,5 +42,4 @@ class DistsSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'dists' subcommand."""
-        optparser = DistsOptions(go_args=args)
         print '\n'.join(avail_dists())

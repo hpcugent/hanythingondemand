@@ -24,39 +24,34 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-List the running applications.
+Hanythingondemand main program.
 
 @author: Ewan Higgs (Universiteit Gent)
+@author: Kenneth Hoste (Universiteit Gent)
 """
-import copy
 from vsc.utils import fancylogger
-from vsc.utils.generaloption import GeneralOption
 
-from hod import VERSION as HOD_VERSION
-from hod.subcommands.subcommand import SubCommand
-import hod.rmscheduler.rm_pbs as rm_pbs
-
-
-_log = fancylogger.getLogger(fname=False)
-
-
-class ListOptions(GeneralOption):
-    """Option parser for 'list' subcommand."""
-    VERSION = HOD_VERSION
+GENERAL_HOD_OPTIONS = {
+    'hodconf': ("Top level configuration file. This can be a comma separated list of config files with "
+                "the later files taking precendence.", 'string', 'store', None),
+    'dist': ("Prepackaged Hadoop distribution (e.g.  Hadoop/2.5.0-cdh5.3.1-native). "
+             "This cannot be set if --hodconf is set", 'string', 'store', None),
+    'workdir': ("Working directory", 'string', 'store', None),
+}
 
 
-class ListSubCommand(SubCommand):
-    """Implementation of HOD 'list' subcommand."""
-    CMD = 'list'
-    HELP = "List submitted/running clusters"
+_log = fancylogger.getLogger('create', fname=False)
 
-    def run(self, args):
-        """Run 'list' subcommand."""
-        optparser = ListOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
-        try:
-            pbs = rm_pbs.Pbs(optparser)
-            print pbs.state()
-        except StandardError as err:
-            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
-            fancylogger.logToScreen(enable=True)
-            _log.raiseException(err.message)
+
+def validate_pbs_option(options):
+    """pbs options require a config and a workdir"""
+    if not options.options.hodconf and not options.options.dist:
+        _log.error('Either --hodconf or --dist must be set')
+        return False
+    if options.options.hodconf and options.options.dist:
+        _log.error('Only one of --hodconf or --dist can be set')
+        return False
+    if not options.options.workdir:
+        _log.error('No workdir ("--workdir") provided')
+        return False
+    return True

@@ -1,5 +1,5 @@
 # #
-# Copyright 2009-2013 Ghent University
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -23,24 +23,28 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
+Network utilities
 
 @author: Stijn De Weirdt (Ghent University)
 @author: Ewan Higgs (Ghent University)
+@author: Kenneth Hoste (Ghent University)
 """
+import netifaces
+import netaddr
 import re
 import os
 import socket
-import netifaces
-import netaddr
 from collections import namedtuple
-from hod.commands.command import ULimit
-
-from vsc.utils.affinity import sched_getaffinity
 
 from vsc.utils import fancylogger
-_log = fancylogger.getLogger(fname=False)
+from vsc.utils.affinity import sched_getaffinity
+
+from hod.commands.command import ULimit
+
 
 NetworkInterface = namedtuple('NetworkInterface', 'hostname,addr,device,mask_bits')
+_log = fancylogger.getLogger(fname=False)
+
 
 def netmask2maskbits(netmask):
     """Find the number of bits in a netmask."""
@@ -80,6 +84,7 @@ def address_in_network(ip, net):
     Network and mask bits as string (e.g. '192.168.0.0/16')
     """
     return netaddr.IPAddress(ip) in netaddr.IPNetwork(net)
+
 
 def ip_interface_to(networks, ip):
     """Which of the detected network interfaces can reach ip
