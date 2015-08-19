@@ -27,19 +27,20 @@ Main hanythingondemand script, should be invoked in a job
 
 @author: Ewan Higgs (Universiteit Gent)
 """
-
-from textwrap import dedent
+import sys
+from mpi4py import MPI
 
 from hod.subcommands.subcommand import SubCommand
 
 from vsc.utils import fancylogger
-_log = fancylogger.getLogger(fname=False)
 
 from hod.subcommands.create import CreateOptions
 from hod.hodproc import ConfiguredSlave, ConfiguredMaster
 from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
 
-from mpi4py import MPI
+
+_log = fancylogger.getLogger(fname=False)
+
 
 class LocalSubCommand(SubCommand):
     '''Run hod cluster locally.'''
@@ -64,3 +65,6 @@ class LocalSubCommand(SubCommand):
             _log.exception("HanythingOnDemand failed")
             return 1
 
+
+if __name__ == '__main__':
+    LocalSubCommand().run(sys.argv[1:])

@@ -48,7 +48,6 @@ class HodJob(Job):
 
         # TODO abs path?
         self.pythonexe = 'python'
-        self.hodexe, self.hodpythonpath = self.get_hod()
         self.hodargs = self.options.generate_cmd_line(ignore='^(%s)_' % '|'.join(self.OPTION_IGNORE_PREFIX))
 
         self.hodenvvarprefix = ['HOD']
@@ -74,33 +73,6 @@ class HodJob(Job):
         self.log.debug("Using default class ResourceManagerScheduler.")
         self.type_class = ResourceManagerScheduler
 
-    def get_hod(self, exe_name='hod-local'):
-        """Get the full path of the exe_name
-             -look in bin or bin / .. / hod /
-        """
-        fullscriptname = os.path.abspath(sys.argv[0])
-
-        bindir = os.path.dirname(fullscriptname)
-        hodpythondir = os.path.abspath("%s/.." % bindir)
-        hoddir = os.path.abspath("%s/../hod" % bindir)
-
-        self.log.debug("Found fullscriptname %s binname %s hoddir %s",
-                       fullscriptname, bindir, hoddir)
-
-        fn = None
-        paths = [bindir, hoddir]
-        for tmpdir in paths:
-            fn = os.path.join(tmpdir, exe_name)
-            if os.path.isfile(fn):
-                self.log.debug("Found exe_name %s location %s", exe_name, fn)
-                break
-            else:
-                fn = None
-        if not fn:
-            self.log.error("No exe_name %s found in paths %s", exe_name, paths)
-
-        return fn, hodpythondir
-
     def run(self):
         """Do stuff based upon options"""
         self.submit()
@@ -124,13 +96,12 @@ class MympirunHod(HodJob):
 
         exe.append('--variablesprefix=%s' % ','.join(self.hodenvvarprefix))
 
-        exe.append(self.pythonexe)
-        exe.append(self.hodexe)
+        exe.append("%s -m hod.subcommands.local" % self.pythonexe)
 
         exe.extend(self.hodargs)
 
         self.log.debug("Generated exe %s", exe)
-        return [" ".join(exe)]
+        return [' '.join(exe)]
 
 
 class PbsHodJob(MympirunHod):
