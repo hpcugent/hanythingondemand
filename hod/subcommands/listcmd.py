@@ -55,7 +55,8 @@ class ListSubCommand(SubCommand):
         optparser = ListOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
             pbs = rm_pbs.Pbs(optparser)
-            print pbs.state()
+            state = rm_pbs.format_state(pbs.state())
+            print state
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)

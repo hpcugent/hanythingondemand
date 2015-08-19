@@ -35,11 +35,12 @@ from contextlib import contextmanager
 
 @contextmanager
 def capture(command, *args, **kwargs):
-    """Capture stdout in a context manager"""
+    """Capture stdout and stderr in a context manager"""
     out, sys.stdout = sys.stdout, StringIO()
+    err, sys.stderr = sys.stderr, StringIO()
     command(*args, **kwargs)
     sys.stdout.seek(0)
-    yield sys.stdout.read()
+    sys.stderr.seek(0)
+    yield sys.stdout.read(), sys.stderr.read()
     sys.stdout = out
-
-
+    sys.stderr = err

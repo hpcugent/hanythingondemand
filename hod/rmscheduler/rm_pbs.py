@@ -36,6 +36,10 @@ from vsc.utils import fancylogger
 
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 
+
+_log = fancylogger.getLogger(fname=False)
+
+
 try:
     from PBSQuery import PBSQuery
     import pbs
@@ -53,6 +57,37 @@ except ImportError as err:
 
         return fail
 
+class PbsJob(object):
+    '''
+    Data type representing a job
+    '''
+    __slots__ = ['jobid', 'jid', 'jstate', 'ehosts', 'state']
+    def __init__(self, jobid, jid, jstate, ehosts, state):
+        self.jobid = jobid
+        self.jid = jid
+        self.jstate = jstate
+        self.ehosts = ehosts
+        self.state = state
+
+    def __str__(self):
+        return "Jobid  %s jid %s state %s ehosts %s (%s)" % (self.jobid,
+                self.jid, self.jstate, self.ehosts, self.state)
+
+def format_state(pbsjobs):
+    '''Given a list of PbsJob objects, print them.'''
+    temp = "Id %s State %s Node %s"
+    if len(pbsjobs) == 0:
+        msg = "No jobs found."
+    elif len(pbsjobs) == 1:
+        job = pbsjobs[0]
+        msg = "Found 1 job " + temp % (job.jobid, job.state, job.ehosts)
+    else:
+        msg = "Found %s jobs\n" % len(pbsjobs)
+        for j in pbsjobs:
+            msg += "    %s\n" + temp % (j.jobid, j.state, j.ehosts)
+    _log.debug("msg %s", msg)
+
+    return msg
 
 class Pbs(ResourceManagerScheduler):
     """Interaction with torque"""
@@ -173,20 +208,8 @@ class Pbs(ResourceManagerScheduler):
 
         self.log.debug("Jobid  %s jid %s state %s ehosts %s (%s)",
                        jobid, jid, jstate, ehosts, state)
-
-        joined = zip(jid, jstate, [''.join(x[:1]) for x in ehosts])  # only use first node (don't use [0], job in Q have empty list; use ''.join to make string)
-        temp = "Id %s State %s Node %s"
-        if len(joined) == 0:
-            msg = "No jobs found."
-        elif len(joined) == 1:
-            msg = "Found 1 job %s" % (temp % tuple(joined[0]))
-        else:
-            msg = "Found %s jobs\n" % len(joined)
-            for j in joined:
-                msg += "    %s\n" % (temp % tuple(j))
-        self.log.debug("msg %s", msg)
-
-        return msg
+        pbsjobs = map(PbsJob, zip(jid, jstate, [''.join(x[:1]) for x in ehosts]))  # only use first node (don't use [0], job in Q have empty list; use ''.join to make string)
+        return pbsjobs
 
     @pbs_is_available
     def info(self, jobid, types=None, job_filter=None):
