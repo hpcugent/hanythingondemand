@@ -26,6 +26,7 @@
 '''
 
 
+import os
 import os.path
 import unittest
 from mock import patch 
@@ -373,9 +374,13 @@ SOME_ENV=123""")
         with patch('hod.config.config.resource_filename', side_effect=lambda pks, *args: os.path.join('/path/to/python/pkgs/', *args)):
             self.assertEqual(hcc.resolve_dist_path('Program-1.2.3'), '/path/to/python/pkgs/etc/hod/Program-1.2.3/hod.conf')
 
+
     def test_resolve_config_path(self):
         with patch('hod.config.config.resource_filename', side_effect=lambda pks, *args: os.path.join('/path/to/python/pkgs/', *args)):
             self.assertEqual(hcc.resolve_config_paths('', 'Program-1.2.3'), '/path/to/python/pkgs/etc/hod/Program-1.2.3/hod.conf')
             self.assertEqual(hcc.resolve_config_paths('/path/to/python/pkgs/etc/hod/Program-1.2.3/hod.conf', ''),
                     '/path/to/python/pkgs/etc/hod/Program-1.2.3/hod.conf')
             self.assertRaises(RuntimeError, hcc.resolve_config_paths, '', '')
+
+    def test_avail_dists(self):
+        self.assertEqual(hcc.avail_dists(), os.listdir(hcc.resolve_dists_dir()))
