@@ -25,6 +25,8 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
+
+import os.path
 import unittest
 from mock import patch 
 from os.path import basename
@@ -368,15 +370,11 @@ SOME_ENV=123""")
 
 
     def test_resolve_dist_path(self):
-        with patch('sys.argv', ['/path/to/python/pkgs/bin/hod', '--dist=Program-1.2.3']):
-            import sys
-            print sys.argv[0]
+        with patch('hod.config.config.resource_filename', side_effect=lambda pks, *args: os.path.join('/path/to/python/pkgs/', *args)):
             self.assertEqual(hcc.resolve_dist_path('Program-1.2.3'), '/path/to/python/pkgs/etc/hod/Program-1.2.3/hod.conf')
 
     def test_resolve_config_path(self):
-        with patch('sys.argv', ['/path/to/python/pkgs/bin/hod', '--dist=Program-1.2.3']):
-            import sys
-            print sys.argv[0]
+        with patch('hod.config.config.resource_filename', side_effect=lambda pks, *args: os.path.join('/path/to/python/pkgs/', *args)):
             self.assertEqual(hcc.resolve_config_paths('', 'Program-1.2.3'), '/path/to/python/pkgs/etc/hod/Program-1.2.3/hod.conf')
             self.assertEqual(hcc.resolve_config_paths('/path/to/python/pkgs/etc/hod/Program-1.2.3/hod.conf', ''),
                     '/path/to/python/pkgs/etc/hod/Program-1.2.3/hod.conf')

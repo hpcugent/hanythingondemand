@@ -34,9 +34,11 @@ from collections import Mapping
 from copy import deepcopy
 from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
+from pkg_resources import Requirement, resource_filename, resource_listdir
 
 from hod.node.node import Node
 from hod.config.template import mklocalworkdir
+
 
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
@@ -391,22 +393,23 @@ def write_service_config(outfile, data_dict, config_writer, template_resolver):
 
 def resolve_dists_dir():
     """Resolve path to distributions."""
-    binpath = realpath(dirname(sys.argv[0]))
-    distspath = realpath(mkpath(binpath, '..', 'etc', 'hod'))
-    return distspath
+    pkg = Requirement.parse("hanythingondemand")
+    return resource_filename(pkg, os.path.join('etc', 'hod'))
 
 def resolve_dist_path(dist):
     """
     Given a distribution name like Hadoop-2.3.0-cdh5.0.0, return the path to the
     relevant hod.conf
     """
-    distspath = resolve_dists_dir()
-    distpath = mkpath(distspath, dist, 'hod.conf')
+    distpath = resolve_dists_dir()
+    distpath = mkpath(distpath, dist, 'hod.conf')
     return distpath
 
 def avail_dists():
     """Return a list of available distributions"""
-    return os.listdir(resolve_dists_dir())
+
+    pkg = Requirement.parse("hanythingondemand")
+    return resource_listdir(pkg, os.path.join('etc', 'hod'))
 
 def resolve_config_paths(config, dist):
     '''
