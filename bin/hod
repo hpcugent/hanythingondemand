@@ -1,5 +1,6 @@
-##
-# Copyright 2009-2013 Ghent University
+#!/bin/bash
+# #
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -21,11 +22,27 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
-"""
-Nothing here for now.
+# #
 
-@author: Stijn De Weirdt (Ghent University)
-@author: Ewan Higgs (Ghent University)
-"""
-VERSION = '3.0.0dev'
+# Python 2.7 or more recent 2.x required
+REQ_MAJ_PYVER=2
+REQ_MIN_PYVER=7
+REQ_PYVER=${REQ_MAJ_PYVER}.${REQ_MIN_PYVER}
+
+# make sure Python version being used is compatible
+pyver=`python -V 2>&1 | cut -f2 -d' '`
+pyver_maj=`echo $pyver | cut -f1 -d'.'`
+pyver_min=`echo $pyver | cut -f2 -d'.'`
+
+if [ $pyver_maj -ne $REQ_MAJ_PYVER ]
+then
+    echo "ERROR: hanythingondemand is currently only compatible with Python v${REQ_MAJ_PYVER}.x, found v${pyver}" 1>&2
+    exit 1
+fi
+if [ $pyver_min -lt $REQ_MIN_PYVER ]
+then
+    echo "ERROR: hanythingondemand requires Python v${REQ_PYVER} or a more recent v${REQ_MAJ_PYVER}.x, found v${pyver}." 1>&2
+    exit 2
+fi
+
+python -O -m hod.main $@

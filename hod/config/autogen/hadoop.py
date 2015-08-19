@@ -147,7 +147,9 @@ def capacity_scheduler_xml_defaults(workdir, node_info):
         'yarn.scheduler.capacity.root.queues': 'default',
         'yarn.scheduler.capacity.root.default.capacity': 100,
         'yarn.scheduler.capacity.root.default.minimum-user-limit-percent': 100,
-        'yarn.scheduler.capacity.resource-calculator': 'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator'
+        'yarn.scheduler.capacity.resource-calculator': 'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator',
+        'yarn.scheduler.capacity.root.default.acl_submit_applications': '$user',
+        'yarn.scheduler.capacity.root.default.acl_administer_queue': '$user',
     }
     return dflts
 

@@ -25,6 +25,7 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
+import pytest
 import unittest
 import hod.rmscheduler.job as hrj
 
@@ -33,13 +34,13 @@ class HodRMSchedulerJobTestCase(unittest.TestCase):
     def test_job_init(self):
         j = hrj.Job(None)
 
-    @unittest.expectedFailure
+    @pytest.mark.xfail
     def test_job_submit(self):
         '''test Job submit.'''
         j = hrj.Job(None)
         j.submit()
 
-    @unittest.expectedFailure
+    @pytest.mark.xfail
     def test_job_generate_script(self):
         '''test Job generate_script.'''
         j = hrj.Job(None)

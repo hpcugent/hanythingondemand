@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # #
-# Copyright 2009-2013 Ghent University
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -24,27 +24,25 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-Generate a PBS job script using pbs_python. Will use mympirun to get the all started
-
-@author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
 
-import sys
-from hod.rmscheduler.hodjob import PbsEBMMHod, MympirunHodOption
+import unittest
+import pytest
+from mock import patch
+from ..util import capture
+from hod.subcommands.dists import DistsSubCommand
 
-from vsc.utils import fancylogger
-_log = fancylogger.getLogger(fname=False)
 
-def main(args):
-    try:
-        options = MympirunHodOption(go_args=args)
-        j = PbsEBMMHod(options)
-        j.run()
-    except StandardError, e:
-        fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
-        fancylogger.logToScreen(enable=True)
-        _log.raiseException(e.message)
+class TestDistsSubCommand(unittest.TestCase):
+    def test_run(self):
+        app = DistsSubCommand()
+        with patch('os.listdir', return_value=['Hadoop-1.2.3']):
+            with capture(app.run, []) as output:
+                self.assertTrue('Hadoop-1.2.3' in output)
 
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    def test_usage(self):
+        app = DistsSubCommand()
+        usage = app.usage()
+        self.assertTrue(isinstance(usage, basestring))
+
