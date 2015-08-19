@@ -3,6 +3,7 @@ omit =
     */test_*
     *__init__.py
     */.tox/*
+    */.virtualenvs/*
 
 [paths]
 source = 

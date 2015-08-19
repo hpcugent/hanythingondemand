@@ -32,23 +32,16 @@ import sys
 
 from hod.rmscheduler.job import Job
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
-from hod.config.config import parse_comma_delim_list, preserviceconfigopts_from_file_list
-
-from hod.config.hodoption import HodOption
-
-import hod.config.template as hct
+from hod.config.config import (parse_comma_delim_list,
+        preserviceconfigopts_from_file_list, resolve_config_paths)
 
 
 class HodJob(Job):
     """Hanything on demand job"""
 
-    OPTION_CLASS = HodOption
-    OPTION_IGNORE_PREFIX = ['rm', 'action']
+    OPTION_IGNORE_PREFIX = ['job', 'action']
 
-    def __init__(self, options=None):
-        if options is None:
-            options = self.OPTION_CLASS()
-
+    def __init__(self, options):
         super(HodJob, self).__init__(options)
 
         self.exeout = None
@@ -64,9 +57,9 @@ class HodJob(Job):
 
         self.name_suffix = 'HOD'  # suffixed name, to lookup later
         options_dict = self.options.dict_by_prefix()
-        options_dict['rm']['name'] = "%s_%s" % (options_dict['rm']['name'],
+        options_dict['job']['name'] = "%s_%s" % (options_dict['job']['name'],
                                                 self.name_suffix)
-        self.type = self.type_class(options_dict['rm'])
+        self.type = self.type_class(options_dict['job'])
 
         # all jobqueries are filtered on this suffix
         self.type.job_filter = {'Job_Name': '%s$' % self.name_suffix}
@@ -81,7 +74,7 @@ class HodJob(Job):
         self.log.debug("Using default class ResourceManagerScheduler.")
         self.type_class = ResourceManagerScheduler
 
-    def get_hod(self, exe_name='hod_main.py'):
+    def get_hod(self, exe_name='hod-local'):
         """Get the full path of the exe_name
              -look in bin or bin / .. / hod /
         """
@@ -110,54 +103,21 @@ class HodJob(Job):
 
     def run(self):
         """Do stuff based upon options"""
-        options_dict = self.options.dict_by_prefix()
-        actions = options_dict['action']
-        self.log.debug("Found actions %s", actions)
-        if actions.get('create', False):
-            self.submit()
-            msg = self.type.state()
-            print msg
-        elif actions.get('remove', None):
-            self.type.remove()
-        elif actions.get('show', None):
-            msg = self.type.state()
-            print msg
-        elif actions.get('showall', False):  # should be True
-            msg = self.type.state()
-            print msg
-        else:
-            self.log.error("Unknown action in actions %s", actions)
-
-
-class MympirunHodOption(HodOption):
-    """Extended option class for mympirun usage"""
-
-    def mympirun_options(self):
-        """Some mympiprun options"""
-        opts = {'debug': ("Run mympirun in debug mode", None, "store_true", False)}
-        descr = ['mympirun', 'Provide mympirun related options']
-        prefix = 'mympirun'
-
-        self.log.debug("Add mympirun option parser prefix %s descr %s opts %s",
-                prefix, descr, opts)
-        self.add_group_parser(opts, descr, prefix=prefix)
-
-    def make_init(self):
-        super(MympirunHodOption, self).make_init()
-        self.mympirun_options()
+        self.submit()
+        msg = self.type.state()
+        print msg
 
 
 class MympirunHod(HodJob):
     """Hod type job using mympirun cmd style."""
-    OPTION_CLASS = MympirunHodOption
-    OPTION_IGNORE_PREFIX = ['rm', 'action', 'mympirun']
+    OPTION_IGNORE_PREFIX = ['job', 'action', 'mympirun']
 
     def generate_exe(self):
         """Mympirun executable"""
 
         exe = ["mympirun"]
-        if self.options.options.mympirun_debug:
-            exe.append('--debug')
+        if self.options.options.debug:
+            exe.append("--debug")
         if self.exeout:
             exe.append("--output=%s" % self.exeout)
         exe.append("--hybrid=1")
@@ -173,21 +133,12 @@ class MympirunHod(HodJob):
         return [" ".join(exe)]
 
 
-class EasybuildMMHod(MympirunHod):
-    """MympirunHod type job for easybuild infrastructure
+class PbsHodJob(MympirunHod):
+    """PbsHodJob type job for easybuild infrastructure
         - easybuild module names
     """
-    def __init__(self, options=None):
-        super(EasybuildMMHod, self).__init__(options)
-
-        if self.options.options.help_templates:
-            reg = hct.TemplateRegistry()
-            hct.register_templates(reg, 'workdir')
-            print 'Hanythingondemand template parameters:\n'
-            for v in sorted(reg.fields.values(), key=lambda x: x.name):
-                print '%-16s:\t%s' % (v.name, v.doc)
-            sys.exit(1)
-
+    def __init__(self, options):
+        super(PbsHodJob, self).__init__(options)
         self.modules = []
 
         modname = 'hanythingondemand'
@@ -205,25 +156,22 @@ class EasybuildMMHod(MympirunHod):
                 ebmodname = candidates[-1]
                 self.log.debug("Using guessed modulename %s", ebmodname)
             else:
-                self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.',
+                self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.' %
                         ebmodname_envvar)
 
+        # FIXME
         self.modules.append(ebmodname)
 
-        # Add modules from hod.conf
-        config_filename = options.options.config_config
-        if config_filename:
-            config_filenames = parse_comma_delim_list(config_filename)
-            self.log.info('Loading "%s" manifest config', config_filenames)
-            precfg = preserviceconfigopts_from_file_list(config_filenames, workdir=options.options.config_workdir)
-            for module in precfg.modules:
-                self.log.debug("Adding '%s' module to startup script.", module)
-                self.modules.append(module)
-
-class PbsEBMMHod(EasybuildMMHod):
-    """MympirunHod type job for easybuild infrastructure
-        - type PBS
-    """
+        config_filenames = resolve_config_paths(options.options.hodconf, options.options.dist)
+        self.log.debug('Manifest config paths resolved to: %s', config_filenames)
+        config_filenames = parse_comma_delim_list(config_filenames)
+        self.log.info('Loading "%s" manifest config', config_filenames)
+        # If the user mistypes the --dist argument (e.g. Haddoop-...) then this will
+        # raise; TODO: cleanup the error reporting. 
+        precfg = preserviceconfigopts_from_file_list(config_filenames, workdir=options.options.workdir)
+        for module in precfg.modules:
+            self.log.debug("Adding '%s' module to startup script.", module)
+            self.modules.append(module)
 
     def set_type_class(self):
         """Set the typeclass"""

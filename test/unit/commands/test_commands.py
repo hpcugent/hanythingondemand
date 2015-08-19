@@ -26,12 +26,13 @@
 '''
 
 import unittest
+import pytest
 import hod.commands.command as hcc
 
 class HodCommandsCommandTestCase(unittest.TestCase):
     '''Test Command functions'''
 
-    @unittest.expectedFailure
+    @pytest.mark.xfail
     def test_command_breathing(self):
         '''test command can actually be created.'''
         c = hcc.Command()

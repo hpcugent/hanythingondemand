@@ -26,6 +26,9 @@
 @author: Ewan Higgs (Ghent University)
 """
 
+import os
+import sys
+
 from ConfigParser import NoOptionError, NoSectionError, SafeConfigParser
 from collections import Mapping
 from copy import deepcopy
@@ -169,9 +172,9 @@ class PreServiceConfigOpts(object):
         Lazily generate the missing configurations as a convenience to
         users.
         This should only be run when processing the config file while the job is
-        being run (e.g. from hod_main.py). e.g. If workdir is a directory on a
-        file system that is not accessible from the login node then we can't
-        process this information from the login node.
+        being run (e.g. from hod.subcommands.local.LocalApplication). e.g. If
+        workdir is a directory on a file system that is not accessible from the
+        login node then we can't process this information from the login node.
         '''
         node = Node()
         node_info = node.go()
@@ -385,3 +388,35 @@ def write_service_config(outfile, data_dict, config_writer, template_resolver):
     """Write service config files to disk."""
     with open(outfile, 'w') as f:
         f.write(config_writer(outfile, data_dict, template_resolver))
+
+def resolve_dists_dir():
+    """Resolve path to distributions."""
+    binpath = realpath(dirname(sys.argv[0]))
+    distspath = realpath(mkpath(binpath, '..', 'etc', 'hod'))
+    return distspath
+
+def resolve_dist_path(dist):
+    """
+    Given a distribution name like Hadoop-2.3.0-cdh5.0.0, return the path to the
+    relevant hod.conf
+    """
+    distspath = resolve_dists_dir()
+    distpath = mkpath(distspath, dist, 'hod.conf')
+    return distpath
+
+def avail_dists():
+    """Return a list of available distributions"""
+    return os.listdir(resolve_dists_dir())
+
+def resolve_config_paths(config, dist):
+    '''
+    Take two strings and return:
+    1. config if it's defined.
+    2. The expanded dist path if config is not defined.
+    '''
+    if config:
+        return config
+    elif dist:
+        return resolve_dist_path(dist)
+    else:
+        raise RuntimeError('A config or a dist must be provided')

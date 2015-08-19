@@ -1,5 +1,6 @@
-##
-# Copyright 2009-2013 Ghent University
+#!/usr/bin/env python
+# #
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -21,11 +22,24 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
+# #
 """
-Nothing here for now.
+Utilities for testing.
 
-@author: Stijn De Weirdt (Ghent University)
-@author: Ewan Higgs (Ghent University)
+@author: Ewan Higgs (Universiteit Gent)
 """
-VERSION = '3.0.0dev'
+
+import sys
+from cStringIO import StringIO
+from contextlib import contextmanager
+
+@contextmanager
+def capture(command, *args, **kwargs):
+    """Capture stdout in a context manager"""
+    out, sys.stdout = sys.stdout, StringIO()
+    command(*args, **kwargs)
+    sys.stdout.seek(0)
+    yield sys.stdout.read()
+    sys.stdout = out
+
+

@@ -86,7 +86,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     html_theme = 'nature'
 else:
-    html_theme = 'default'
+    html_theme = 'classic'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".

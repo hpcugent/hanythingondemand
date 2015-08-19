@@ -1,5 +1,6 @@
-##
-# Copyright 2009-2013 Ghent University
+#!/usr/bin/env python
+# ##
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -21,11 +22,31 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-##
 """
-Nothing here for now.
+hod-genconfig - parse a hod configuration file and output the resulting config
+directory.
 
-@author: Stijn De Weirdt (Ghent University)
 @author: Ewan Higgs (Ghent University)
 """
-VERSION = '3.0.0dev'
+
+import sys
+from vsc.utils import fancylogger
+_log = fancylogger.getLogger(fname=False)
+
+from hod.config.hodoption import HodOption
+from hod.hodproc import ConfiguredMaster
+from hod.mpiservice import setup_tasks
+
+def main(args):
+    options = HodOption(go_args=args)
+    svc = ConfiguredMaster(options)
+    try:
+        setup_tasks(svc)
+    except Exception as e:
+        _log.error("Failed to setup hod tasks: %s", str(e))
+        _log.exception("hod-genconfig failed")
+        sys.exit(1)
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
+

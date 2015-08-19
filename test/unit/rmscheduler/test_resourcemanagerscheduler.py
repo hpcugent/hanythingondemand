@@ -25,6 +25,7 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
+import pytest
 import unittest
 import hod.rmscheduler.resourcemanagerscheduler as hrr
 
@@ -37,7 +38,7 @@ class HodRMSchedulerResourceManagerSchedulerTestCase(unittest.TestCase):
         self.assertTrue('cwd' in o.vars)
         self.assertTrue('jobid' in o.vars)
 
-    @unittest.expectedFailure
+    @pytest.mark.xfail
     def test_resourcemanagerscheduler_submit(self):
         '''test ResourceManagerScheduler submit'''
         o = hrr.ResourceManagerScheduler(None)
