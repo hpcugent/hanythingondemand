@@ -25,11 +25,10 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
-import unittest
-from mock import patch, sentinel
-from cStringIO import StringIO
 import os
-from optparse import OptionParser, Values
+import unittest
+from cStringIO import StringIO
+from mock import patch
 
 import hod.rmscheduler.hodjob as hrh
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
@@ -97,10 +96,7 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
         o = hrh.MympirunHod(self.mpiopt)
         exe = o.generate_exe()
         # not sure we want SNone/hod.output.SNone or a bunch of these defaults here.
-        self.assertEqual(exe[0], 'mympirun --output=$None/hod.output.$None --hybrid=1 --variablesprefix=HOD python sentinel1 --hodconf=hod.conf')
-        """ From prod:
-        /usr/bin/python /apps/gent/SL6/sandybridge/software/vsc-mympirun/3.2.3/bin/mympirun --output=/vscmnt/gent_vulpix/_/user/home/gent/vsc410/vsc41041/jobs/hadoop/hod.output.12191.master16.delcatty.gent.vsc --hybrid=1 --variablesprefix=HADOOP,JAVA,HOD,MAPRED,HDFS,HDFS,MAPRED python /apps/gent/SL6/sandybridge/software/hanythingondemand/2.1.1-ictce-5.5.0-Python-2.7.6/bin/hod_main --hod-script=/user/home/gent/vsc410/vsc41041/jobs/hadoop/run_job.sh --hod-envclass=PbsEBMMHod
-        """
+        self.assertEqual(exe[0], 'mympirun --output=$None/hod.output.$None --hybrid=1 --variablesprefix=HOD python -m hod.subcommands.local --hodconf=hod.conf')
 
     def test_pbshodjob_init(self):
         '''test pbshodjob init function'''

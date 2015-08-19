@@ -65,8 +65,7 @@ class HodJob(Job):
 
         self.run_in_cwd = True
 
-        self.exeout = "$%s/hod.output.$%s" % (
-            self.type.vars['cwd'], self.type.vars['jobid'])
+        self.exeout = "$%s/hod.output.$%s" % (self.type.vars['cwd'], self.type.vars['jobid'])
 
     def set_type_class(self):
         """Set the typeclass"""
