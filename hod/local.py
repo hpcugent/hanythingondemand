@@ -26,45 +26,57 @@
 Main hanythingondemand script, should be invoked in a job
 
 @author: Ewan Higgs (Universiteit Gent)
+@author: Kenneth Hoste (Universiteit Gent)
 """
+import copy
 import sys
 from mpi4py import MPI
 
-from hod.subcommands.subcommand import SubCommand
+from hod import VERSION as HOD_VERSION
 
 from vsc.utils import fancylogger
+from vsc.utils.generaloption import GeneralOption
 
-from hod.subcommands.create import CreateOptions
 from hod.hodproc import ConfiguredSlave, ConfiguredMaster
 from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
+from hod.options import GENERAL_HOD_OPTIONS
 
 
 _log = fancylogger.getLogger(fname=False)
 
 
-class LocalSubCommand(SubCommand):
-    '''Run hod cluster locally.'''
-    CMD = "local"
-    HELP = "Run the hod program locally. Generally not run from the command line"
+class LocalOptions(GeneralOption):
+    """Option parser for 'genconfig' subcommand."""
+    VERSION = HOD_VERSION
 
-    def run(self, args):
-        options = CreateOptions(go_args=args)
+    def config_options(self):
+        """Add general configuration options."""
+        opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
+        descr = ["Local configuration", "Configuration options for the 'genconfig' subcommand"]
 
-        if MPI.COMM_WORLD.rank == MASTERRANK:
-            _log.debug('Starting master process')
-            svc = ConfiguredMaster(options)
-        else:
-            _log.debug('Starting slave process')
-            svc = ConfiguredSlave(options)
-        try:
-            setup_tasks(svc)
-            run_tasks(svc)
-            svc.stop_service()
-        except Exception, e:
-            _log.error(str(e))
-            _log.exception("HanythingOnDemand failed")
-            return 1
+        self.log.debug("Add config option parser descr %s opts %s", descr, opts)
+        self.add_group_parser(opts, descr)
+
+
+def main(args):
+    """Run HOD cluster."""
+    options = LocalOptions(go_args=args)
+
+    if MPI.COMM_WORLD.rank == MASTERRANK:
+        _log.debug('Starting master process')
+        svc = ConfiguredMaster(options)
+    else:
+        _log.debug('Starting slave process')
+        svc = ConfiguredSlave(options)
+    try:
+        setup_tasks(svc)
+        run_tasks(svc)
+        svc.stop_service()
+    except Exception as err:
+        _log.error(str(err))
+        _log.exception("HanythingOnDemand failed")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
-    LocalSubCommand().run(sys.argv[1:])
+    main(sys.argv[1:])

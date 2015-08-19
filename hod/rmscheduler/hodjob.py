@@ -95,7 +95,7 @@ class MympirunHod(HodJob):
 
         exe.append('--variablesprefix=%s' % ','.join(self.hodenvvarprefix))
 
-        exe.append("%s -m hod.subcommands.local" % self.pythonexe)
+        exe.append("%s -m hod.local" % self.pythonexe)
 
         exe.extend(self.hodargs)
 

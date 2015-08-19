@@ -96,7 +96,15 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
         o = hrh.MympirunHod(self.mpiopt)
         exe = o.generate_exe()
         # not sure we want SNone/hod.output.SNone or a bunch of these defaults here.
-        self.assertEqual(exe[0], 'mympirun --output=$None/hod.output.$None --hybrid=1 --variablesprefix=HOD python -m hod.subcommands.local --hodconf=hod.conf')
+        expected = ' '.join([
+            'mympirun',
+            '--output=$None/hod.output.$None',
+            '--hybrid=1',
+            '--variablesprefix=HOD',
+            'python -m hod.local',
+            '--hodconf=hod.conf',
+        ])
+        self.assertEqual(exe[0], expected)
 
     def test_pbshodjob_init(self):
         '''test pbshodjob init function'''
