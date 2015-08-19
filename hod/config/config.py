@@ -409,14 +409,21 @@ def avail_dists():
     return os.listdir(resolve_dists_dir())
 
 def resolve_config_paths(config, dist):
-    '''
+    """
     Take two strings and return:
     1. config if it's defined.
     2. The expanded dist path if config is not defined.
-    '''
+    """
     if config:
-        return config
+        if os.path.exists(config):
+            path = config
+        else:
+            raise ValueError("Specified config file '%s' does not exist." % config)
     elif dist:
-        return resolve_dist_path(dist)
+        path = resolve_dist_path(dist)
+        if not os.path.exists(path):
+            raise ValueError("Config file for specified dist '%s' does not exist: %s" % (dist, path))
     else:
         raise RuntimeError('A config or a dist must be provided')
+
+    return path
