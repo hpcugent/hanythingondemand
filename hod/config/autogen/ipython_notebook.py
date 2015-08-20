@@ -30,7 +30,7 @@ IPython Notebook autoconfiguration.
 
 import string
 
-def ipython_notebook_config(workdir, node_info):
+def ipython_notebook_config(workdir, _):
     '''
     Generate config 
     '''
@@ -41,16 +41,18 @@ c = get_config()
 c.IPKernelApp.pylab = 'inline'  # if you want plotting support always
 
 # Notebook config
-c.NotebookApp.ip = '$ip'
 c.NotebookApp.open_browser = False
 c.NotebookApp.password = u'sha1:{hashed_password}'
 # It is a good idea to put it on a known, fixed port
-c.NotebookApp.port = 9999
+c.NotebookApp.port = 8888
+c.NotebookApp.ipython_dir = u'{workdir}'
+c.NotebookApp.notebook_dir = u'{workdir}'
 """
     template = string.Template(template)
-    file_contents = template.substitute(
-            hashed_password='banana',
-            ip='$masterhostname')
+    # IPython.lib.passwd('hanythingondemand')
+    # 'sha1:906f33be372a:2c33c548645189cfa7a37ea0b77ccfb65852ba28'
+    passwd_hash = '906f33be372a:2c33c548645189cfa7a37ea0b77ccfb65852ba28'
+    file_contents = template.substitute(hashed_password=passwd_hash, workdir=workdir)
     return file_contents
 
 def autogen_config(workdir, node_info):
