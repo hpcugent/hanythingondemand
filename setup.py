@@ -74,6 +74,7 @@ PACKAGE = {
     ],
     'install_requires': [
         'vsc-base >= 1.7.3',
+        'setuptools',
         'mpi4py',
         'pbs-python',
         'netifaces',
