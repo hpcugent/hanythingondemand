@@ -64,7 +64,7 @@ def find_files(*dirs):
     return results
 
 PACKAGE = {
-    'name': 'hanythingondemand',
+    'name': hod.NAME,
     'version': hod.VERSION,
     'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
@@ -74,6 +74,7 @@ PACKAGE = {
     ],
     'install_requires': [
         'vsc-base >= 1.7.3',
+        'setuptools',
         'mpi4py',
         'pbs-python',
         'netifaces',
@@ -92,7 +93,7 @@ PACKAGE = {
         'hod.work',
     ],
     'data_files': find_files('etc'),
-    'scripts': ['bin/hod', 'bin/hod-local'],
+    'scripts': ['bin/hod'],
     'cmdclass' : {'test': TestCommand},
     'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
 }
