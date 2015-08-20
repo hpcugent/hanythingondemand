@@ -31,7 +31,7 @@ Hanythingondemand main program.
 """
 import sys
 
-from hod import VERSION
+import hod
 from hod.subcommands import create, listcmd, genconfig, helptemplate, dists
 
 
@@ -48,7 +48,7 @@ SUBCOMMAND_CLASSES = dict([(sc.CMD, sc) for sc in SUBCOMMANDS])
 
 def usage():
     """Print the usage information for 'hod'."""
-    usage = "hanythingondemand version %s - Run services within an HPC cluster\n" % VERSION
+    usage = "%s version %s - Run services within an HPC cluster\n" % (hod.NAME, hod.VERSION)
     usage += "usage: hod <subcommand> [subcommand options]\n"
     usage += "Available subcommands (one of these must be specified!):\n"
     for sc in SUBCOMMANDS:

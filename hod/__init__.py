@@ -28,4 +28,5 @@ Nothing here for now.
 @author: Stijn De Weirdt (Ghent University)
 @author: Ewan Higgs (Ghent University)
 """
+NAME = 'hanythingondemand'
 VERSION = '3.0.0dev'

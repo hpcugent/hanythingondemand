@@ -36,6 +36,7 @@ from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
 from pkg_resources import Requirement, resource_filename, resource_listdir
 
+import hod
 from hod.node.node import Node
 from hod.config.template import mklocalworkdir
 
@@ -56,6 +57,9 @@ RUNS_ON_MASTER = 0x1
 RUNS_ON_SLAVE = 0x2
 RUNS_ON_ALL = RUNS_ON_MASTER | RUNS_ON_SLAVE
 
+HOD_ETC_DIR = os.path.join('etc', 'hod')
+
+
 def load_service_config(fileobj):
     '''
     Load a .ini style config for a service.
@@ -65,6 +69,7 @@ def load_service_config(fileobj):
     config.optionxform = str
     config.readfp(fileobj)
     return config
+
 
 def _abspath(filepath, working_dir):
     '''
@@ -84,6 +89,7 @@ def _abspath(filepath, working_dir):
 
     return realpath(mkpath(working_dir, filepath))
 
+
 def _fileobj_dir(fileobj):
     '''
     Return the directory of the fileobj if it exists. If it's a file-like
@@ -93,10 +99,12 @@ def _fileobj_dir(fileobj):
         return dirname(fileobj.name)
     return ''
 
+
 def _parse_runs_on(s):
     '''Returns the relevant constant depending on the string argument'''
     options = dict(master=RUNS_ON_MASTER, slave=RUNS_ON_SLAVE, all=RUNS_ON_ALL)
     return options[s.lower()]
+
 
 def _cfgget(config, section, item, dflt=None, **kwargs):
     '''
@@ -112,6 +120,7 @@ def _cfgget(config, section, item, dflt=None, **kwargs):
     except (NoSectionError, NoOptionError):
         return dflt
 
+
 def parse_comma_delim_list(s):
     '''
     Convert a string containing a comma delimited list into a list of strings
@@ -119,6 +128,7 @@ def parse_comma_delim_list(s):
     Blanks are also removed. e.g. 'a,,b' results in ['a', 'b']
     '''
     return [x.strip() for x in filter(lambda x: x.strip(), s.split(','))]
+
 
 class PreServiceConfigOpts(object):
     r"""
@@ -197,6 +207,7 @@ class PreServiceConfigOpts(object):
                         self.service_files, self.directories,
                         self.config_writer, self.service_configs)
 
+
 def preserviceconfigopts_from_file_list(filenames, **kwargs):
     """Create and merge PreServiceConfigOpts from a list of filenames."""
     precfgs = [PreServiceConfigOpts(open(f, 'r'), **kwargs) for f in filenames]
@@ -205,6 +216,7 @@ def preserviceconfigopts_from_file_list(filenames, **kwargs):
     if bad_fields:
         raise RuntimeError("A valid configuration could not be generated from the files: %s: missing fields: %s" % (filenames, bad_fields))
     return precfg
+
 
 def merge(lhs, rhs):
     """
@@ -243,6 +255,7 @@ def merge(lhs, rhs):
 
     return lhs
 
+
 def invalid_fields(obj):
     """Return list of fields which are empty."""
     bad_fields = []
@@ -250,6 +263,7 @@ def invalid_fields(obj):
         if attr not in obj.OPTIONAL_FIELDS and not getattr(obj, attr):
             bad_fields.append(attr)
     return bad_fields
+
 
 def _collect_configs(config):
     """Convert sections into dicts of options"""
@@ -263,6 +277,7 @@ def _collect_configs(config):
         service_configs[section] = option_dict
 
     return service_configs
+
 
 def env2str(env):
     '''
@@ -348,6 +363,7 @@ class ConfigOpts(object):
         else:
             raise ValueError('ConfigOpts.runs_on has invalid value: %s' % self._runs_on)
 
+
 def autogen_fn(name):
     """
     Given a product name (hadoop, hdfs, etc), generate default configuration
@@ -365,6 +381,7 @@ def autogen_fn(name):
     """
     module = import_module('hod.config.autogen.%s' % name)
     return getattr(module, 'autogen_config')
+
 
 def service_config_fn(policy_path):
     """
@@ -386,15 +403,18 @@ def service_config_fn(policy_path):
     module = import_module(module_path)
     return getattr(module, fn)
 
+
 def write_service_config(outfile, data_dict, config_writer, template_resolver):
     """Write service config files to disk."""
     with open(outfile, 'w') as f:
         f.write(config_writer(outfile, data_dict, template_resolver))
 
+
 def resolve_dists_dir():
     """Resolve path to distributions."""
-    pkg = Requirement.parse("hanythingondemand")
-    return resource_filename(pkg, os.path.join('etc', 'hod'))
+    pkg = Requirement.parse(hod.NAME)
+    return resource_filename(pkg, HOD_ETC_DIR)
+
 
 def resolve_dist_path(dist):
     """
@@ -405,11 +425,12 @@ def resolve_dist_path(dist):
     distpath = mkpath(distpath, dist, 'hod.conf')
     return distpath
 
+
 def avail_dists():
     """Return a list of available distributions"""
+    pkg = Requirement.parse(hod.NAME)
+    return resource_listdir(pkg, HOD_ETC_DIR)
 
-    pkg = Requirement.parse("hanythingondemand")
-    return resource_listdir(pkg, os.path.join('etc', 'hod'))
 
 def resolve_config_paths(config, dist):
     '''

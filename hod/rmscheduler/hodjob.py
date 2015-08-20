@@ -30,6 +30,7 @@
 import os
 import sys
 
+import hod
 from hod.rmscheduler.job import Job
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 from hod.config.config import (parse_comma_delim_list,
@@ -111,7 +112,7 @@ class PbsHodJob(MympirunHod):
         super(PbsHodJob, self).__init__(options)
         self.modules = []
 
-        modname = 'hanythingondemand'
+        modname = hod.NAME
         # TODO this is undefined, module should be provided via E, eg EBMODULENAME
         ebmodname_envvar = 'EBMODNAME%s' % modname.upper()
 
