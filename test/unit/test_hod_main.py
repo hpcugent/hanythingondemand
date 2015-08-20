@@ -27,26 +27,21 @@
 
 import unittest
 
-from mock import patch
-
 import hod.main as hm
 import hod.subcommands.dists
 
 class TestHodMain(unittest.TestCase):
     def test_main_no_args(self):
-        with patch('sys.exit'):
-            hm.main([])
+        self.assertRaises(SystemExit, hm.main, [])
 
     def test_main_bad_cmd(self):
-        with patch('sys.exit'):
-            hm.main(['hod', 'banana'])
+        self.assertRaises(SystemExit, hm.main, ['hod', 'banana'])
 
     def test_main_good_cmd(self):
         hm.main(['hod', 'dists'])
 
     def test_main_help(self):
-        with patch('sys.exit'):
-            hm.main(['hod', '--help'])
+        self.assertRaises(SystemExit, hm.main, ['hod', '--help'])
 
     def test_usage(self):
         self.assertTrue(isinstance(hm.usage(), basestring))
