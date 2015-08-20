@@ -93,7 +93,7 @@ PACKAGE = {
         'hod.work',
     ],
     'data_files': find_files('etc'),
-    'scripts': ['bin/hod', 'bin/hod-local'],
+    'scripts': ['bin/hod'],
     'cmdclass' : {'test': TestCommand},
     'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
 }
