@@ -64,7 +64,7 @@ def find_files(*dirs):
     return results
 
 PACKAGE = {
-    'name': 'hanythingondemand',
+    'name': hod.NAME,
     'version': hod.VERSION,
     'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
