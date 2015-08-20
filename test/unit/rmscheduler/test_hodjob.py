@@ -110,14 +110,16 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
         '''test pbshodjob init function'''
         os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
 
-        with patch('__builtin__.open', side_effect=_mock_open):
-            o = hrh.PbsHodJob(self.opt)
+        with patch('hod.rmscheduler.hodjob.resolve_config_paths', side_effect=['hod.conf']):
+            with patch('__builtin__.open', side_effect=_mock_open):
+                o = hrh.PbsHodJob(self.opt)
 
     def test_pbshodjob_set_type_class(self):
         '''test PbsHodJob set_type_class'''
         # should look into using mock or something here
         os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
-        with patch('__builtin__.open', side_effect=_mock_open):
-            o = hrh.PbsHodJob(self.mpiopt)
+        with patch('hod.rmscheduler.hodjob.resolve_config_paths', side_effect=['hod.conf']):
+            with patch('__builtin__.open', side_effect=_mock_open):
+                o = hrh.PbsHodJob(self.mpiopt)
         o.set_type_class()
         self.assertEqual(o.type_class, Pbs)
