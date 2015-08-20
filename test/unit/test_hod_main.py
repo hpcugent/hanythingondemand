@@ -42,8 +42,7 @@ class TestHodMain(unittest.TestCase):
             hm.main(['hod', 'banana'])
 
     def test_main_good_cmd(self):
-        with patch('sys.exit'):
-            hm.main(['hod', 'dists'])
+        hm.main(['hod', 'dists'])
 
     def test_main_help(self):
         with patch('sys.exit'):
