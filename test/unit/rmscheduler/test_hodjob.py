@@ -25,11 +25,10 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
-import unittest
-from mock import patch, sentinel
-from cStringIO import StringIO
 import os
-from optparse import OptionParser, Values
+import unittest
+from cStringIO import StringIO
+from mock import patch
 
 import hod.rmscheduler.hodjob as hrh
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
@@ -66,8 +65,7 @@ def _mock_open(name, *args):
 
 
 class HodRMSchedulerHodjobTestCase(unittest.TestCase):
-    """Sadly there is a lot of mocking out here because get_hod is so reliant on
-    the path scheme."""
+    """Tests for HodJob class"""
 
     def setUp(self):
         '''setUp'''
@@ -76,22 +74,13 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
 
     def test_hodjob_init(self):
         '''test HodJob init function'''
-        with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
-            hj = hrh.HodJob(self.opt)
+        hj = hrh.HodJob(self.opt)
 
     def test_hodjob_set_type_class(self):
         '''test HodJob set_type_class'''
-        with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
-            hj = hrh.HodJob(self.opt)
-            hj.set_type_class()
+        hj = hrh.HodJob(self.opt)
+        hj.set_type_class()
         self.assertEqual(hj.type_class, ResourceManagerScheduler)
-
-    def test_hodjob_get_hod(self):
-        '''test HodJob get_hod'''
-        # TODO: Determine some tests for this path hacking 
-        with patch('os.path.isfile', side_effect=lambda x: True):
-            hj = hrh.HodJob(self.opt)
-            hj.get_hod('hod_main')
 
     def test_hodjob_run(self):
         '''test HodJob run'''
@@ -101,26 +90,28 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
 
     def test_mympirunhod_init(self):
         '''test MympirunHod init functioon'''
-        with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
-            o = hrh.MympirunHod(self.opt)
+        o = hrh.MympirunHod(self.opt)
 
     def test_mympirunhod_generate_exe(self):
-        with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
-            o = hrh.MympirunHod(self.mpiopt)
-            exe = o.generate_exe()
+        o = hrh.MympirunHod(self.mpiopt)
+        exe = o.generate_exe()
         # not sure we want SNone/hod.output.SNone or a bunch of these defaults here.
-        self.assertEqual(exe[0], 'mympirun --output=$None/hod.output.$None --hybrid=1 --variablesprefix=HOD python sentinel1 --hodconf=hod.conf')
-        """ From prod:
-        /usr/bin/python /apps/gent/SL6/sandybridge/software/vsc-mympirun/3.2.3/bin/mympirun --output=/vscmnt/gent_vulpix/_/user/home/gent/vsc410/vsc41041/jobs/hadoop/hod.output.12191.master16.delcatty.gent.vsc --hybrid=1 --variablesprefix=HADOOP,JAVA,HOD,MAPRED,HDFS,HDFS,MAPRED python /apps/gent/SL6/sandybridge/software/hanythingondemand/2.1.1-ictce-5.5.0-Python-2.7.6/bin/hod_main --hod-script=/user/home/gent/vsc410/vsc41041/jobs/hadoop/run_job.sh --hod-envclass=PbsEBMMHod
-        """
+        expected = ' '.join([
+            'mympirun',
+            '--output=$None/hod.output.$None',
+            '--hybrid=1',
+            '--variablesprefix=HOD',
+            'python -m hod.local',
+            '--hodconf=hod.conf',
+        ])
+        self.assertEqual(exe[0], expected)
 
     def test_pbshodjob_init(self):
         '''test pbshodjob init function'''
         os.environ['EBMODNAMEHANYTHINGONDEMAND'] = '/path/to/hanythindondemand'
 
-        with patch('hod.rmscheduler.hodjob.HodJob.get_hod', side_effect=lambda: ('sentinel1', 'sentinel2')):
-            with patch('__builtin__.open', side_effect=_mock_open):
-                o = hrh.PbsHodJob(self.opt)
+        with patch('__builtin__.open', side_effect=_mock_open):
+            o = hrh.PbsHodJob(self.opt)
 
     def test_pbshodjob_set_type_class(self):
         '''test PbsHodJob set_type_class'''
