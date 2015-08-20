@@ -21,7 +21,7 @@ c.IPKernelApp.pylab = 'inline'  # if you want plotting support always
 c.NotebookApp.open_browser = False
 #c.NotebookApp.password = u'sha1:bcd259ccf...[your hashed password here]'
 # It is a good idea to put it on a known, fixed port
-c.NotebookApp.port = 9999
+c.NotebookApp.port = 8888
 
 EOF
 
