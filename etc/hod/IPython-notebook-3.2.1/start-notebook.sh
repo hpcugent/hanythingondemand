@@ -19,16 +19,15 @@ c.IPKernelApp.pylab = 'inline'  # if you want plotting support always
 
 # Notebook config
 c.NotebookApp.open_browser = False
-#c.NotebookApp.password = u'sha1:bcd259ccf...[your hashed password here]'
 # It is a good idea to put it on a known, fixed port
 c.NotebookApp.port = 8888
+# use IPython.lib.passwd('password') to obtain the password hash
+#c.NotebookApp.password = u'sha1:bcd259ccf...[your hashed password here]'
 
 EOF
 
-# Add the PySpark classes to the Python path (taken from pyspark script):
-export SPARK_HOME=$EBROOTSPARK
-export PYTHONPATH="$SPARK_HOME/python/:$PYTHONPATH"
-export PYTHONPATH="$SPARK_HOME/python/lib/py4j-0.8.2.1-src.zip:$PYTHONPATH"  # FIXME?
+# Add the PySpark classes to the Python path (partially taken from pyspark script):
+export PYTHONPATH="$EBROOTSPARK/python/:$EBROOTSPARK:python/lib/py4j-0.8.2.1-src.zip:$PYTHONPATH"
 
 export PYTHONPATH=$PYTHONPATH:$EBROOTPYTHON/lib/python2.7/site-packages/ 
 
