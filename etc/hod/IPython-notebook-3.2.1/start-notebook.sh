@@ -32,4 +32,7 @@ export PYTHONPATH="$EBROOTSPARK/python/:$EBROOTSPARK/python/lib/py4j-0.8.2.1-src
 
 export PYTHONPATH=$PYTHONPATH:$EBROOTPYTHON/lib/python2.7/site-packages/ 
 
-ipython notebook --profile-dir="${config_dir}"
+#ipython notebook --profile-dir="${config_dir}"
+export PYSPARK_DRIVER_PYTHON=ipython 
+export PYSPARK_DRIVER_PYTHON_OPTS="notebook --profile-dir=${config_dir}" 
+pyspark
