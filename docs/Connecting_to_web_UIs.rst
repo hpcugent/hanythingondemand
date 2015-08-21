@@ -99,8 +99,20 @@ to use for your SOCKS proxy via the ``-D`` option of the SSH command.
 
 For example, to connect to ``node2001.delcatty.gent.vsc`` using port ``10000``::
 
-    ssh -D 10000 node2001.delcatty.gent.vsc
+    $ ssh -D 10000 node2001.delcatty.gent.vsc
+    $ hostname
+    node2001.delcatty.os
 
+.. note:: Starting the SSH tunnel will only work if you have an HOD cluster running on the specified workernode.
+          If not, you may see the connection 'hang' rather than fail. To cancel to connection attempt, use Ctrl-C.
+
+.. note:: When first connecting to a workernode, you will see a request to accept the RSA key fingerprint for that
+          workernode, as shown below. If you are confident you are connecting to the right workernode, enter '`yes`'::
+
+            The authenticity of host 'node2001.delcatty.gent.vsc (<no hostip for proxy command>)' can't be established.
+            RSA key fingerprint is e3:fe:27:2e:14:10:27:51:b8:22:c1:de:37:af:b9:1d.
+            Are you sure you want to continue connecting (yes/no)? yes
+            Warning: Permanently added 'node2001.delcatty.gent.vsc' (RSA) to the list of known hosts.
 
 .. _setting_up_ssh_tunnel_windows:
 
