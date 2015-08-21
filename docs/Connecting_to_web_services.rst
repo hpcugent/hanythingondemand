@@ -10,7 +10,7 @@ To connect to web user interfaces that are available for a running HOD cluster, 
 3. Point your browser to ``http://localhost:<port>`` (see :ref:`web_ui_ports`)
 
 .. contents::
-    :depth: 2
+    :depth: 3
     :backlinks: none
 
 .. _setting_up_ssh_tunnel:
