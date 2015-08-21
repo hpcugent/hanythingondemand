@@ -161,6 +161,8 @@ running HOD cluster via::
 
 The port number to use depends on the particular web user interface you want to connect to, see below.
 
+.. note:: The command ``netstat -tulpn`` may be helpful in figuring out the ports being used by the running services.
+
 .. _web_ui_ports_hadoop:
 
 Ports for Hadoop web user interface (defaults)
