@@ -3,9 +3,9 @@
 Connecting to web user interfaces
 =================================
 
-To connect to web user interfaces (UIs) that are available for a running HOD cluster, you need to follows these steps:
+To connect to web user interfaces (UIs) that are available for a running HOD cluster, you need to follow these steps:
 
-1. Set up an SSH tunnel to the head node of your HOD cluster (see :ref:`setting_up_ssh_tunnel`)
+1. Set up an SSH tunnel to the head node of your HOD cluster (see :ref:`ssh_tunnel`)
 2. Configure your browser to use the SSH tunnel as a SOCKS proxy (see :ref:`browser_proxy_configuration`)
 3. Point your browser to ``http://localhost:<port>`` (see :ref:`web_ui_ports`)
 
@@ -13,17 +13,93 @@ To connect to web user interfaces (UIs) that are available for a running HOD clu
     :depth: 3
     :backlinks: none
 
-.. _setting_up_ssh_tunnel:
+.. _ssh_tunnel:
 
 Setting up an SSH tunnel
 ------------------------
 
-To connect to the web user interfaces
+To connect to a web UI available on your running `hanythingondemand` cluster, you most likely need to set up
+an SSH tunnel first.
 
-.. _setting_up_ssh_tunnel_linux_osx:
+Typically, the HOD cluster is running on a workernode of an HPC cluster that is only accessible via the HPC login nodes.
+To connect to a web UI however, we need *direct* access. This can be achieved by tunneling via SSH over the login nodes.
 
-Setting up an SSH tunnel in Linux/Mac OS X
-******************************************
+To set up an SSH tunnel, follow these steps:
+
+1. Determine hostname of the head node of your HOD cluster (see :ref:`ssh_tunnel_hostname`)
+2. Configure your SSH client (see :ref:`ssh_tunnel_client_configuration`)
+3. Start the SSH tunnel (see :ref:`start_SSH_tunnel`)
+
+.. _ssh_tunnel_hostname:
+
+Determine hostname of head node of HOD cluster
+**********************************************
+
+The first step is to figure out which workernode is the *head* node of your HOD cluster, using ``hod list``.
+
+For example::
+
+    $ hod list
+    Found 1 job Id 123456.master15.delcatty.gent.vsc State R Node node2001.delcatty.gent.vsc
+
+So, in this example, ``node2001.delcatty.gent.vsc`` is the `fully qualified domain name (FQDN)` of the head node
+of our HOD cluster.
+
+.. _ssh_tunnel_client_configuration:
+
+Configuring your SSH client to use an SSH tunnel
+************************************************
+
+.. _ssh_tunnel_client_configuration_windows:
+
+Configuring PuTTy in Windows
+++++++++++++++++++++++++++++
+
+.. _ssh_tunnel_client_configuration_osx_linux:
+
+Configuring SSH in Mac OS X or Linux
+++++++++++++++++++++++++++++++++++++
+
+To configure SSH to connect to a particular workernode using an SSH tunnel, you need to add a couple of lines to
+your ``$HOME/.ssh/config`` file.
+
+For example, to configure SSH that it should tunnel via the HPC login node ``login.hpc.ugent.be`` for all FQDNs
+that start with ``node`` and end with ``.gent.vsc``, using ``vsc40000`` as a user name, the following lines should be added::
+
+  Host node*.gent.vsc
+      ProxyCommand ssh -q login.hpc.ugent.be 'exec nc -w 21600s %h %p'
+      User vsc40000
+
+
+.. _start_SSH_tunnel:
+
+Starting the SSH tunnel
+***********************
+
+To start the SSH tunnel, simply set up an SSH connection to that head node of your HOD cluster, while specifying
+a `local port` that can be used to set up a SOCKS proxy to that workernode.
+
+You can choose a port number yourself, but stick to numbers **lower than 1024** (lower ports are priveledged ports,
+and thus require adminstration rights).
+
+We will use port number ``10000`` (`ten thousand`) as an example below (and you should be able to use it too).
+
+.. _start_SSH_tunnel_windows:
+
+Starting the SSH tunnel using PuTTy in Windows
+++++++++++++++++++++++++++++++++++++++++++++++
+
+.. _start_SSH_tunnel_osx_linux:
+
+Starting the SSH tunnel on Mac OS X or Linux
+++++++++++++++++++++++++++++++++++++++++++++
+
+On OS X or Linux, just SSH to the FQDN of the head node of the HOD cluster, and specify the local port you want
+to use for your SOCKS proxy via the ``-D`` option of the SSH command.
+
+For example, to connect to ``node2001.delcatty.gent.vsc`` using port ``10000``::
+
+    ssh -D 10000 node2001.delcatty.gent.vsc
 
 
 .. _setting_up_ssh_tunnel_windows:
