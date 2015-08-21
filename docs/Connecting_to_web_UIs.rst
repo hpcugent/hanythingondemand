@@ -176,6 +176,19 @@ Ports for Hadoop web user interface (defaults)
 
 (see also http://blog.cloudera.com/blog/2009/08/hadoop-default-ports-quick-reference)
 
+.. _web_ui_ports_spark:
+
+Ports for Spark web services
+****************************
+
+* ``4040``: information about running Spark application
+
+
+.. note:: If multiple Spark applications (SparkContexts) are running, their web UI will be available via
+          successive ports beginning with 4040 (4041, 4042, etc).
+
+(see also https://spark.apache.org/docs/latest/monitoring.html)
+
 .. _web_ui_ports_ipython:
 
 Ports for IPython web services
