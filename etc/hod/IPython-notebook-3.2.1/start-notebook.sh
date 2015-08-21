@@ -9,9 +9,10 @@ module load Spark/1.4.1
 
 ipython profile create nbserver
 
-config_dir=(mktmp -d ipython_notebook)
+config_dir="$1/ipython_notebook"
+mkdir "$config_dir"
 
-cat <<EOF > ${config_dir}/ipython_notebook_config.py
+cat <<EOF > "${config_dir}/ipython_notebook_config.py"
 c = get_config()
 
 # Kernel config
@@ -27,8 +28,8 @@ c.NotebookApp.port = 8888
 EOF
 
 # Add the PySpark classes to the Python path (partially taken from pyspark script):
-export PYTHONPATH="$EBROOTSPARK/python/:$EBROOTSPARK:python/lib/py4j-0.8.2.1-src.zip:$PYTHONPATH"
+export PYTHONPATH="$EBROOTSPARK/python/:$EBROOTSPARK/python/lib/py4j-0.8.2.1-src.zip:$PYTHONPATH"
 
 export PYTHONPATH=$PYTHONPATH:$EBROOTPYTHON/lib/python2.7/site-packages/ 
 
-ipython notebook --profile-dir=${config_dir}
+ipython notebook --profile-dir="${config_dir}"

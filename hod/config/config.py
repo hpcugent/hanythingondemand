@@ -137,7 +137,9 @@ class PreServiceConfigOpts(object):
     can begin.
     """
     __slots__ = ['version', 'workdir', 'config_writer', 'directories',
-                 'autogen', 'modules', 'service_configs', 'service_files', 'master_env']
+                 'autogen', 'modules', 'service_configs', 'service_files', 
+                 'master_env', '_hodconfdir'
+                ]
 
     OPTIONAL_FIELDS=['master_env', 'modules', 'service_configs', 'directories', 'autogen']
 
@@ -163,6 +165,7 @@ class PreServiceConfigOpts(object):
 
         self.modules = _get_list('modules')
         self.master_env = _get_list('master_env')
+        self._hodconfdir = fileobj_dir
         self.service_files = _get_list('services')
         self.service_files = [_fixup_path(cfg) for cfg in self.service_files]
         self.directories = _get_list('directories')
@@ -178,6 +181,10 @@ class PreServiceConfigOpts(object):
     @property
     def configdir(self):
         return mkpath(self.localworkdir, 'conf')
+
+    @property
+    def hodconfdir(self):
+        return self._hodconfdir
 
     def autogen_configs(self):
         '''
@@ -260,7 +267,9 @@ def invalid_fields(obj):
     """Return list of fields which are empty."""
     bad_fields = []
     for attr in obj.__slots__:
-        if attr not in obj.OPTIONAL_FIELDS and not getattr(obj, attr):
+        if (attr not in obj.OPTIONAL_FIELDS
+                and not getattr(obj, attr)
+                and not attr.startswith('_')):
             bad_fields.append(attr)
     return bad_fields
 

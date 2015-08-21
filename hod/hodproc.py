@@ -115,6 +115,9 @@ class ConfiguredMaster(MpiService):
         _setup_config_paths(m_config, resolver)
 
         master_env = dict([(v, os.getenv(v)) for v in m_config.master_env])
+        # There may be scripts in the hod.conf dir so add it to the PATH
+        master_env['PATH'] = master_env.get('PATH', os.getenv('PATH')) + ':' + m_config.hodconfdir
+
         self.log.debug('MasterEnv is: %s', env2str(master_env))
 
         svc_cfgs = m_config.service_files
