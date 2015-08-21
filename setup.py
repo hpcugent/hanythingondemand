@@ -96,6 +96,7 @@ PACKAGE = {
     'scripts': ['bin/hod'],
     'cmdclass' : {'test': TestCommand},
     'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
+    'zip_safe': False
 }
 
 if __name__ == '__main__':
