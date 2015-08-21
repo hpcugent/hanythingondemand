@@ -26,5 +26,5 @@ Introductory topics
     Administration
     Configuration
     Logging
-    Connecting_to_web_services
+    Connecting_to_web_UIs
     Spark

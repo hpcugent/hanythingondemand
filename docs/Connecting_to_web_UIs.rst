@@ -3,7 +3,7 @@
 Connecting to web user interfaces
 =================================
 
-To connect to web user interfaces that are available for a running HOD cluster, you need to follows these steps:
+To connect to web user interfaces (UIs) that are available for a running HOD cluster, you need to follows these steps:
 
 1. Set up an SSH tunnel to the head node of your HOD cluster (see :ref:`setting_up_ssh_tunnel`)
 2. Configure your browser to use the SSH tunnel as a SOCKS proxy (see :ref:`browser_proxy_configuration`)
@@ -17,6 +17,8 @@ To connect to web user interfaces that are available for a running HOD cluster, 
 
 Setting up an SSH tunnel
 ------------------------
+
+To connect to the web user interfaces
 
 .. _setting_up_ssh_tunnel_linux_osx:
 
