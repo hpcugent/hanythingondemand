@@ -10,7 +10,7 @@ module load Spark/1.4.1
 ipython profile create nbserver
 
 config_dir="$1/ipython_notebook"
-mkdir "$config_dir"
+mkdir -p "$config_dir"
 
 cat <<EOF > "${config_dir}/ipython_notebook_config.py"
 c = get_config()
@@ -35,4 +35,5 @@ export PYTHONPATH=$PYTHONPATH:$EBROOTPYTHON/lib/python2.7/site-packages/
 #ipython notebook --profile-dir="${config_dir}"
 export PYSPARK_DRIVER_PYTHON=ipython 
 export PYSPARK_DRIVER_PYTHON_OPTS="notebook --profile-dir=${config_dir}" 
-pyspark
+export PYSPARK_SUBMIT_ARGS="--master yarn --deploy-mode client"
+pyspark --master yarn
