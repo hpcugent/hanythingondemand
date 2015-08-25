@@ -27,4 +27,5 @@ Introductory topics
     Configuration
     Logging
     Connecting_to_web_UIs
+    Configuring_PuTTY_on_Windows 
     Spark

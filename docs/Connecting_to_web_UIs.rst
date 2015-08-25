@@ -52,8 +52,10 @@ Configuring your SSH client to use an SSH tunnel
 
 .. _ssh_tunnel_client_configuration_windows:
 
-Configuring PuTTy in Windows
+Configuring PuTTY in Windows
 ++++++++++++++++++++++++++++
+
+:ref:`configuring_putty_on_windows` is more involved than Linux or OS X so it has its own page.
 
 .. _ssh_tunnel_client_configuration_osx_linux:
 
@@ -88,6 +90,8 @@ We will use port number ``10000`` (`ten thousand`) as an example below (and you 
 
 Starting the SSH tunnel using PuTTy in Windows
 ++++++++++++++++++++++++++++++++++++++++++++++
+
+With your saved session configured, open the proxy session.
 
 .. _start_SSH_tunnel_osx_linux:
 
