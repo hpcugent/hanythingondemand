@@ -1,5 +1,5 @@
 ##
-# Copyright 2009-2013 Ghent University
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -23,10 +23,17 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 ##
 """
-Nothing here for now.
+Tests for IPython Notebook autoconfiguration.
 
-@author: Stijn De Weirdt (Ghent University)
 @author: Ewan Higgs (Ghent University)
 """
-NAME = 'hanythingondemand'
-VERSION = '3.0.0dev'
+
+import hod.config.autogen.ipython_notebook as hcip
+
+import unittest
+class TestIpythonNodebook(unittest.TestCase):
+    def test_ipython_notebook_config(self):
+        cfg = hcip.ipython_notebook_config('/', {})
+        self.assertTrue(isinstance(cfg, basestring))
+        self.assertTrue(cfg.startswith("\nc = get_config()"))
+

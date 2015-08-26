@@ -1,2 +1,2 @@
-include *.md *.py *.conf *.xml
-recursive-include etc *.conf *.xml
+include *.md *.py *.conf *.sh *.xml
+recursive-include etc *.conf *.xml *.sh
