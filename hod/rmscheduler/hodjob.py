@@ -30,6 +30,7 @@
 import os
 import sys
 
+import hod
 from hod.rmscheduler.job import Job
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 from hod.config.config import (parse_comma_delim_list,
@@ -48,7 +49,6 @@ class HodJob(Job):
 
         # TODO abs path?
         self.pythonexe = 'python'
-        self.hodexe, self.hodpythonpath = self.get_hod()
         self.hodargs = self.options.generate_cmd_line(ignore='^(%s)_' % '|'.join(self.OPTION_IGNORE_PREFIX))
 
         self.hodenvvarprefix = ['HOD']
@@ -66,40 +66,12 @@ class HodJob(Job):
 
         self.run_in_cwd = True
 
-        self.exeout = "$%s/hod.output.$%s" % (
-            self.type.vars['cwd'], self.type.vars['jobid'])
+        self.exeout = "$%s/hod.output.$%s" % (self.type.vars['cwd'], self.type.vars['jobid'])
 
     def set_type_class(self):
         """Set the typeclass"""
         self.log.debug("Using default class ResourceManagerScheduler.")
         self.type_class = ResourceManagerScheduler
-
-    def get_hod(self, exe_name='hod-local'):
-        """Get the full path of the exe_name
-             -look in bin or bin / .. / hod /
-        """
-        fullscriptname = os.path.abspath(sys.argv[0])
-
-        bindir = os.path.dirname(fullscriptname)
-        hodpythondir = os.path.abspath("%s/.." % bindir)
-        hoddir = os.path.abspath("%s/../hod" % bindir)
-
-        self.log.debug("Found fullscriptname %s binname %s hoddir %s",
-                       fullscriptname, bindir, hoddir)
-
-        fn = None
-        paths = [bindir, hoddir]
-        for tmpdir in paths:
-            fn = os.path.join(tmpdir, exe_name)
-            if os.path.isfile(fn):
-                self.log.debug("Found exe_name %s location %s", exe_name, fn)
-                break
-            else:
-                fn = None
-        if not fn:
-            self.log.error("No exe_name %s found in paths %s", exe_name, paths)
-
-        return fn, hodpythondir
 
     def run(self):
         """Do stuff based upon options"""
@@ -124,13 +96,12 @@ class MympirunHod(HodJob):
 
         exe.append('--variablesprefix=%s' % ','.join(self.hodenvvarprefix))
 
-        exe.append(self.pythonexe)
-        exe.append(self.hodexe)
+        exe.append("%s -m hod.local" % self.pythonexe)
 
         exe.extend(self.hodargs)
 
         self.log.debug("Generated exe %s", exe)
-        return [" ".join(exe)]
+        return [' '.join(exe)]
 
 
 class PbsHodJob(MympirunHod):
@@ -141,7 +112,7 @@ class PbsHodJob(MympirunHod):
         super(PbsHodJob, self).__init__(options)
         self.modules = []
 
-        modname = 'hanythingondemand'
+        modname = hod.NAME
         # TODO this is undefined, module should be provided via E, eg EBMODULENAME
         ebmodname_envvar = 'EBMODNAME%s' % modname.upper()
 
