@@ -14,8 +14,11 @@ if [[ ! -d "$1" ]] ; then
     exit 1
 fi
 
-config_dir="$1/ipython_notebook"
+config_dir="$1/conf/ipython_notebook"
+log_dir="$1/log"
+
 mkdir -p "$config_dir"
+mkdir -p "$log_dir"
 
 cat <<EOF > "${config_dir}/ipython_notebook_config.py"
 c = get_config()
@@ -41,4 +44,4 @@ export PYTHONPATH=$PYTHONPATH:$EBROOTPYTHON/lib/python2.7/site-packages/
 export PYSPARK_DRIVER_PYTHON=ipython 
 export PYSPARK_DRIVER_PYTHON_OPTS="notebook --profile-dir=${config_dir}" 
 export PYSPARK_SUBMIT_ARGS="--master yarn --deploy-mode client"
-pyspark --master yarn
+pyspark --master yarn >"$log_dir/pyspark.stdout" 2>"$log_dir/pyspark.stderr"
