@@ -12,9 +12,8 @@ To configure PuTTY on Windows we need to do the following tasks:
 Download the required software
 ------------------------------
 
-Windows is notoriously hostile to software development so none of the technology
-required is built in. This means we need to download some software to begin. All
-of the following is available from the PuTTY website:
+To work with Hanythingondemand from Windows, we need to download some software
+to begin. All of the following is available from the PuTTY website:
 http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html
 
 1. PuTTy - The ssh client.
