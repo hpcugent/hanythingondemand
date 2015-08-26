@@ -148,10 +148,10 @@ class PreServiceConfigOpts(object):
         self.version = _cfgget(_config, _META_SECTION, 'version', '', **kwargs)
 
         self.workdir = _cfgget(_config, _CONFIG_SECTION, 'workdir', '', **kwargs)
-        fileobj_dir = _fileobj_dir(fileobj)
+        self._hodconfdir = _fileobj_dir(fileobj)
 
         def _fixup_path(cfg):
-            return _abspath(cfg, fileobj_dir)
+            return _abspath(cfg, self._hodconfdir)
 
         def _get_list(name):
             '''
@@ -165,7 +165,6 @@ class PreServiceConfigOpts(object):
 
         self.modules = _get_list('modules')
         self.master_env = _get_list('master_env')
-        self._hodconfdir = fileobj_dir
         self.service_files = _get_list('services')
         self.service_files = [_fixup_path(cfg) for cfg in self.service_files]
         self.directories = _get_list('directories')
@@ -267,9 +266,8 @@ def invalid_fields(obj):
     """Return list of fields which are empty."""
     bad_fields = []
     for attr in obj.__slots__:
-        if (attr not in obj.OPTIONAL_FIELDS
-                and not getattr(obj, attr)
-                and not attr.startswith('_')):
+        if not (attr in obj.OPTIONAL_FIELDS or getattr(obj, attr) or
+                attr.startswith('_')):
             bad_fields.append(attr)
     return bad_fields
 

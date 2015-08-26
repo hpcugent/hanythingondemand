@@ -9,6 +9,11 @@ module load Spark/1.4.1
 
 ipython profile create nbserver
 
+if [[ ! -d "$1" ]] ; then
+    echo "Argument <localworkdir> required" 
+    exit 1
+fi
+
 config_dir="$1/ipython_notebook"
 mkdir -p "$config_dir"
 
