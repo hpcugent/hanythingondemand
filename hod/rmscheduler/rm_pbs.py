@@ -208,7 +208,8 @@ class Pbs(ResourceManagerScheduler):
 
         self.log.debug("Jobid  %s jid %s state %s ehosts %s (%s)",
                        jobid, jid, jstate, ehosts, state)
-        pbsjobs = map(PbsJob, zip(jid, jstate, [''.join(x[:1]) for x in ehosts]))  # only use first node (don't use [0], job in Q have empty list; use ''.join to make string)
+        # only use first node (don't use [0], job in Q have empty list; use ''.join to make string)
+        pbsjobs = map(PbsJob, zip(jid, jstate, [''.join(x[:1]) for x in ehosts]))
         return pbsjobs
 
     @pbs_is_available
