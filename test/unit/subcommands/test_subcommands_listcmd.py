@@ -40,7 +40,7 @@ class TestListSubCommand(unittest.TestCase):
 
     def test_run_good(self):
         import hod.rmscheduler.rm_pbs as rm_pbs
-        job = rm_pbs.PbsJob('good-jobid', 'good-jid', 'good-jstate', 'good-host', 'good-state')
+        job = rm_pbs.PbsJob('good-jobid', 'good-state', 'good-host')
         with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [job])):
             app = ListSubCommand()
             with capture(app.run, []) as (out, err):

@@ -61,17 +61,14 @@ class PbsJob(object):
     '''
     Data type representing a job
     '''
-    __slots__ = ['jobid', 'jid', 'jstate', 'ehosts', 'state']
-    def __init__(self, jobid, jid, jstate, ehosts, state):
+    __slots__ = ['jobid', 'state', 'hosts']
+    def __init__(self, jobid, jstate, hosts):
         self.jobid = jobid
-        self.jid = jid
-        self.jstate = jstate
-        self.ehosts = ehosts
-        self.state = state
+        self.state = jstate
+        self.hosts = hosts
 
     def __str__(self):
-        return "Jobid  %s jid %s state %s ehosts %s (%s)" % (self.jobid,
-                self.jid, self.jstate, self.ehosts, self.state)
+        return "Jobid  %s state %s ehosts %s (%s)" % (self.jobid, self.state, self.hosts, self.state)
 
 def format_state(pbsjobs):
     '''Given a list of PbsJob objects, print them.'''
@@ -80,11 +77,11 @@ def format_state(pbsjobs):
         msg = "No jobs found."
     elif len(pbsjobs) == 1:
         job = pbsjobs[0]
-        msg = "Found 1 job " + temp % (job.jobid, job.state, job.ehosts)
+        msg = "Found 1 job " + temp % (job.jobid, job.state, job.hosts)
     else:
         msg = "Found %s jobs\n" % len(pbsjobs)
         for j in pbsjobs:
-            msg += "    %s\n" + temp % (j.jobid, j.state, j.ehosts)
+            msg += "    %s\n" + temp % (j.jobid, j.state, j.hosts)
     _log.debug("msg %s", msg)
 
     return msg
@@ -186,8 +183,7 @@ class Pbs(ResourceManagerScheduler):
         if jobid is None:
             jobid = self.jobid
 
-        state = self.info(
-            jobid, types=['job_state', 'exec_host'], job_filter=job_filter)
+        state = self.info(jobid, types=['job_state', 'exec_host'], job_filter=job_filter)
 
         jid = [x['id'] for x in state]
 
@@ -206,9 +202,12 @@ class Pbs(ResourceManagerScheduler):
             return res[:num]
         ehosts = [get_uniq_hosts(x.get('exec_host', '')) for x in state]
 
-        self.log.debug("Jobid  %s jid %s state %s ehosts %s (%s)",
-                       jobid, jid, jstate, ehosts, state)
-        pbsjobs = map(PbsJob, zip(jid, jstate, [''.join(x[:1]) for x in ehosts]))  # only use first node (don't use [0], job in Q have empty list; use ''.join to make string)
+        self.log.debug("Jobid  %s jid %s state %s ehosts %s (%s)", jobid, jid, jstate, ehosts, state)
+        def _first_or_blank(x):
+            '''Only use first node (don't use [0], job in Q have empty list'''
+            return '' if len(x) == 0 else x[0]
+
+        pbsjobs = [PbsJob(j, s, h) for (j, s, h) in  zip(jid, jstate, map(_first_or_blank, ehosts))]
         return pbsjobs
 
     @pbs_is_available
@@ -254,8 +253,7 @@ class Pbs(ResourceManagerScheduler):
         # more then one, return value
         res = []
         for j in jobs:
-            job_details = dict(
-                [(attrib.name, attrib.value) for attrib in j.attribs])
+            job_details = dict([(attrib.name, attrib.value) for attrib in j.attribs])
             job_details['id'] = j.name  # add id
             if self.match_filter(job_details, job_filter):
                 res.append(job_details)

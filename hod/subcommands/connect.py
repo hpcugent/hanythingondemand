@@ -81,7 +81,7 @@ class ConnectSubCommand(SubCommand):
 
             pbs = rm_pbs.Pbs(optparser)
             jobs = pbs.state()
-            pbsjobs = [job for job in jobs if job.jid == cluster_label]
+            pbsjobs = [job for job in jobs if job.jobid == cluster_label]
 
             if len(pbsjobs) == 0:
                 sys.stderr.write("Job %s not found by pbs.\n" % cluster_label)
@@ -94,7 +94,7 @@ class ConnectSubCommand(SubCommand):
                 sys.stderr.write("Cannot connect to %s yet. It is still queued.\n", cluster_label)
                 return 1
 
-            os.execvp('/usr/bin/ssh', ['ssh', '-t', pbsjob.ehosts, 'exec', 'bash', '--rcfile', env_script, '-i'])
+            os.execvp('/usr/bin/ssh', ['ssh', '-t', pbsjob.hosts, 'exec', 'bash', '--rcfile', env_script, '-i'])
             return 0 # pragma: no cover
 
         except StandardError as err:

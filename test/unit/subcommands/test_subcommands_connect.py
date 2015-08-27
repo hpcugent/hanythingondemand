@@ -42,9 +42,9 @@ class MockPbs(object):
         pass
     def state(self, jobid=None, fltr=None):
         return [
-                rm_pbs.PbsJob('1234', '1234', '', '127.0.0.1', 'R'),
-                rm_pbs.PbsJob('q123', 'q123', '', '127.0.0.1', 'Q'),
-                rm_pbs.PbsJob('h123', 'h123', '', '127.0.0.1', 'H'),
+                rm_pbs.PbsJob('1234', 'R', '127.0.0.1'),
+                rm_pbs.PbsJob('q123', 'Q', '127.0.0.1'),
+                rm_pbs.PbsJob('h123', 'H', '127.0.0.1'),
                 ]
 
 def mock_getenv(var, dflt=None):
