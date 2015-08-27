@@ -64,28 +64,28 @@ class TestCreateSubCommand(unittest.TestCase):
     @pytest.mark.xfail(reason="Requires easybuild environment")
     def test_run_no_args(self):
         app = hsc.ConnectSubCommand()
-        self.assertEqual(app.run([]), 1)
+        self.assertRaiseRegexp(SystemExit, '1', app.run([]))
 
     def test_run_with_bad_jobid_arg(self):
         with patch('hod.rmscheduler.rm_pbs.Pbs', MockPbs):
             with patch('os.getenv', mock_getenv):
                 with patch('os.listdir', mock_listdir):
                     app = hsc.ConnectSubCommand()
-                    self.assertEqual(app.run(['connect', 'not-a-job-id']), 1)
+                    self.assertRaiseRegexp(SystemExit, '1', app.run(['connect', 'not-a-job-id']))
 
     def test_run_with_queued_jobid_arg(self):
         with patch('hod.rmscheduler.rm_pbs.Pbs', MockPbs):
             with patch('os.getenv', mock_getenv):
                 with patch('os.listdir', mock_listdir):
                     app = hsc.ConnectSubCommand()
-                    self.assertEqual(app.run(['connect', 'q123']), 1)
+                    self.assertRaiseRegexp(SystemExit, '1', app.run(['connect', 'q123']))
 
     def test_run_with_held_jobid_arg(self):
         with patch('hod.rmscheduler.rm_pbs.Pbs', MockPbs):
             with patch('os.getenv', mock_getenv):
                 with patch('os.listdir', mock_listdir):
                     app = hsc.ConnectSubCommand()
-                    self.assertEqual(app.run(['connect', 'h123']), 1)
+                    self.assertRaiseRegexp(SystemExit, '1', app.run(['connect', 'h123']))
 
 
     def test_run_with_good_jobid_arg(self):

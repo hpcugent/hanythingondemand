@@ -87,33 +87,26 @@ def known_cluster_labels():
         return []
 
 
-def _cluster_info(label, info_file, contents=False):
+def _cluster_info(label, info_file):
     """
-    Return specified cluster info for cluster with specified label.
+    Return path to specified cluster info file for cluster with specified label.
     @param label: cluster label
     @param info_file: type of info to return (env, jobid, ...)
-    @param contents: returns contents of info file rather than path to info file
     """
-    res = None
     labels = known_cluster_labels()
     if label in labels:
-        info_file = os.path.join(cluster_info_dir, label, info_file)
+        info_file = os.path.join(cluster_info_dir(), label, info_file)
         if os.path.exists(info_file):
-            if contents:
-                res = open(info_file).read()
-            else:
-                res = info_file
+            return info_file
         else:
             raise ValueError("No 'env' file found for cluster with label '%s'" % label)
     else:
         raise ValueError("Unknown cluster label '%s': %s" % (label, labels))
 
-    return res
-
 
 def cluster_jobid(label):
     """Return job ID for cluster with specified label."""
-    return _cluster_info(label, 'jobid', contents=True)
+    return open(_cluster_info(label, 'jobid')).read()
 
 
 def cluster_env_file(label):
