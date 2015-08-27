@@ -37,25 +37,19 @@ import sys
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
-from hod import VERSION as HOD_VERSION
+from hod.local import cluster_env_file
 from hod.subcommands.subcommand import SubCommand
+import hod
 import hod.rmscheduler.rm_pbs as rm_pbs
 
 
 _log = fancylogger.getLogger(fname=False)
 
-def default_cluster_path():
-    '''
-    Return $XDG_CONFIG_HOME/hod.d or $HOME/.local/hod.d
-    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
-    '''
-    dflt = os.path.join(os.getenv('HOME'), '.config')
-    return os.path.join(os.getenv('XDG_CONFIG_HOME', dflt), 'hod.d')
-
 class ConnectOptions(GeneralOption):
     """Option parser for 'list' subcommand."""
-    VERSION = HOD_VERSION
+    VERSION = hod.VERSION
     ALLOPTSMANDATORY = False # let us use optionless arguments.
+
 
 class ConnectSubCommand(SubCommand):
     """
@@ -74,34 +68,32 @@ class ConnectSubCommand(SubCommand):
         optparser = ConnectOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
             if len(optparser.args) > 1:
-                jobid = optparser.args[1]
+                cluster_label = optparser.args[1]
             else:
-                sys.stderr.write('No jobid provided.\n')
+                sys.stderr.write("No jobid provided.\n")
                 return 1
 
-            cluster_dir = default_cluster_path()
-            clusters = os.listdir(cluster_dir)
-
-            if jobid not in clusters:
-                sys.stderr.write('No env found for job %s\n' % jobid)
+            try:
+                env_script = cluster_env_file(cluster_label)
+            except ValueError as e:
+                sys.stderr.write(e.message + '\n')
                 return 1
 
             pbs = rm_pbs.Pbs(optparser)
             jobs = pbs.state()
-            pbsjobs = [job for job in jobs if job.jid == jobid]
+            pbsjobs = [job for job in jobs if job.jid == cluster_label]
 
             if len(pbsjobs) == 0:
-                sys.stderr.write('Job %s not found by pbs.\n' % jobid)
+                sys.stderr.write("Job %s not found by pbs.\n" % cluster_label)
                 return 1
 
             pbsjob = pbsjobs[0]
             if pbsjob.state == ['Q', 'H']:
                 # This should never happen since the hod.d/<jobid>/env file is
                 # written on cluster startup. Maybe someone hacked the dirs.
-                sys.stderr.write("Cannot connect to %s yet. It is still queued.\n" % jobid)
+                sys.stderr.write("Cannot connect to %s yet. It is still queued.\n", cluster_label)
                 return 1
 
-            env_script = os.path.join(cluster_dir, jobid, 'env')
             os.execvp('/usr/bin/ssh', ['ssh', '-t', pbsjob.ehosts, 'exec', 'bash', '--rcfile', env_script, '-i'])
             return 0 # pragma: no cover
 
@@ -109,4 +101,3 @@ class ConnectSubCommand(SubCommand):
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
             _log.raiseException(err.message)
-

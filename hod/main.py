@@ -31,8 +31,8 @@ Hanythingondemand main program.
 """
 import sys
 
-from hod import VERSION
-from hod.subcommands import create, listcmd, genconfig, helptemplate, dists, connect
+import hod
+from hod.subcommands import connect, create, dists, genconfig, helptemplate, listcmd
 
 
 SUBCOMMANDS = [
@@ -49,7 +49,7 @@ SUBCOMMAND_CLASSES = dict([(sc.CMD, sc) for sc in SUBCOMMANDS])
 
 def usage():
     """Print the usage information for 'hod'."""
-    usage = "hanythingondemand version %s - Run services within an HPC cluster\n" % VERSION
+    usage = "%s version %s - Run services within an HPC cluster\n" % (hod.NAME, hod.VERSION)
     usage += "usage: hod <subcommand> [subcommand options]\n"
     usage += "Available subcommands (one of these must be specified!):\n"
     for sc in SUBCOMMANDS:
@@ -70,17 +70,17 @@ def init_subcmd(args):
 def main(args):
     """Parse options and run specified subcommand."""
     subcmd, args = init_subcmd(args)
-    if subcmd:
-        subcmd.run(args)
+    if subcmd is not None:
+        return subcmd.run(args)
 
     elif len([arg for arg in args if not arg.startswith('-')]) > 1:
         sys.stderr.write("ERROR: No known subcommand specified")
         sys.stderr.write(usage())
-        sys.exit(1)
+        return 1
     else:
         # no subcommand provided, print usage info
         print usage()
-        sys.exit(0)
+        return 0
 
 if __name__ == '__main__':
-    main(sys.argv)
+    sys.exit(main(sys.argv))

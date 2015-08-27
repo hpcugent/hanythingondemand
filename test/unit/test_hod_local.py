@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# #
-# Copyright 2009-2015 Ghent University
+###
+# Copyright 2009-2014 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -22,25 +21,27 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-# #
-"""
-List available distributions known to hanythingondemand.
+'''
+@author Ewan Higgs (Universiteit Gent)
+'''
 
-@author: Ewan Higgs (Ghent University)
-@author: Kenneth Hoste (Ghent University)
-"""
-from vsc.utils.generaloption import GeneralOption
+import unittest
 
-from hod.config.config import avail_dists
-from hod.subcommands.subcommand import SubCommand
+from mock import patch, Mock
 
+import hod.local as hl
+import hod.mpiservice as hm
 
-class DistsSubCommand(SubCommand):
-    """Implementation of HOD 'dists' subcommand."""
-    CMD = 'dists'
-    HELP = "List the available distributions"
+class TestHodLocal(unittest.TestCase):
+    def test_local_no_args(self):
+        # create_env_file is not implemented yet.
+        self.assertRaises(NotImplementedError, hl.main, [])
 
-    def run(self, args):
-        """Run 'dists' subcommand."""
-        print '\n'.join(avail_dists())
-        return 0
+    def test_master_rank(self):
+        with patch('mpi4py.MPI.COMM_WORLD', Mock(rank=hm.MASTERRANK)):
+            # create_env_file is not implemented yet.
+            self.assertRaises(NotImplementedError, hl.main, [])
+
+    def test_slave_rank(self):
+        with patch('mpi4py.MPI.COMM_WORLD', Mock(rank=hm.MASTERRANK + 1)):
+            self.assertRaisesRegexp(SystemExit, '1', hl.main, [])

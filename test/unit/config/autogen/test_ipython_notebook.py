@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# #
+##
 # Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,25 +21,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-# #
+##
 """
-List available distributions known to hanythingondemand.
+Tests for IPython Notebook autoconfiguration.
 
 @author: Ewan Higgs (Ghent University)
-@author: Kenneth Hoste (Ghent University)
 """
-from vsc.utils.generaloption import GeneralOption
 
-from hod.config.config import avail_dists
-from hod.subcommands.subcommand import SubCommand
+import hod.config.autogen.ipython_notebook as hcip
 
+import unittest
+class TestIpythonNodebook(unittest.TestCase):
+    def test_ipython_notebook_config(self):
+        cfg = hcip.ipython_notebook_config('/', {})
+        self.assertTrue(isinstance(cfg, basestring))
+        self.assertTrue(cfg.startswith("\nc = get_config()"))
 
-class DistsSubCommand(SubCommand):
-    """Implementation of HOD 'dists' subcommand."""
-    CMD = 'dists'
-    HELP = "List the available distributions"
-
-    def run(self, args):
-        """Run 'dists' subcommand."""
-        print '\n'.join(avail_dists())
-        return 0

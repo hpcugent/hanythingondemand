@@ -55,8 +55,10 @@ def mock_getenv(var, dflt=None):
     else:
         return None
 
+CLUSTERS = ['1234', 'old-finished-job']
+
 def mock_listdir(path):
-    return ['1234', 'old-finished-job']
+    return CLUSTERS
 
 class TestCreateSubCommand(unittest.TestCase):
     @pytest.mark.xfail(reason="Requires easybuild environment")
@@ -91,24 +93,26 @@ class TestCreateSubCommand(unittest.TestCase):
             with patch('hod.subcommands.connect.os.execvp'):
                 with patch('os.getenv', mock_getenv):
                     with patch('os.listdir', mock_listdir):
-                        app = hsc.ConnectSubCommand()
-                        self.assertEqual(app.run(['connect', '1234']), 0)
+                        with patch('os.path.exists', return_value=True):
+                            app = hsc.ConnectSubCommand()
+                            self.assertEqual(app.run(['connect', '1234']), 0)
 
     def test_run_with_check_msgs(self):
         with patch('hod.rmscheduler.rm_pbs.Pbs', MockPbs):
             with patch('hod.subcommands.connect.os.execvp'):
                 with patch('os.getenv', mock_getenv):
-                    with patch('os.listdir', mock_listdir):
-                        app = hsc.ConnectSubCommand()
-                        with capture(app.run, ['connect']) as (out, err):
-                            self.assertEqual(out, '')
-                            self.assertEqual(err, 'No jobid provided.\n')
-                        with capture(app.run, ['connect', 'not-a-job-id']) as (out, err):
-                            self.assertEqual(out, '')
-                            self.assertEqual(err, 'No env found for job not-a-job-id\n')
-                        with capture(app.run, ['connect', 'old-finished-job']) as (out, err):
-                            self.assertEqual(out, '')
-                            self.assertEqual(err, 'Job old-finished-job not found by pbs.\n')
-                        with capture(app.run, ['connect', '1234']) as (out, err):
-                            self.assertEqual(out, '')
-                            self.assertEqual(err, '')
+                    with patch('hod.local.known_cluster_labels', return_value=CLUSTERS):
+                        with patch('os.path.exists', return_value=True):
+                            app = hsc.ConnectSubCommand()
+                            with capture(app.run, ['connect']) as (out, err):
+                                self.assertEqual(out, '')
+                                self.assertEqual(err, 'No jobid provided.\n')
+                            with capture(app.run, ['connect', 'not-a-job-id']) as (out, err):
+                                self.assertEqual(out, '')
+                                self.assertEqual(err, "Unknown cluster label 'not-a-job-id': ['1234', 'old-finished-job']\n")
+                            with capture(app.run, ['connect', 'old-finished-job']) as (out, err):
+                                self.assertEqual(out, '')
+                                self.assertEqual(err, 'Job old-finished-job not found by pbs.\n')
+                            with capture(app.run, ['connect', '1234']) as (out, err):
+                                self.assertEqual(out, '')
+                                self.assertEqual(err, '')
