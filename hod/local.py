@@ -29,6 +29,7 @@ Main hanythingondemand script, should be invoked in a job
 @author: Kenneth Hoste (Universiteit Gent)
 """
 import copy
+import os
 import sys
 from mpi4py import MPI
 
@@ -61,15 +62,60 @@ class LocalOptions(GeneralOption):
         self.add_group_parser(opts, descr)
 
 
+def cluster_config_dir():
+    """
+    Determine cluster configuration directory.
+    Returns $XDG_CONFIG_HOME/hod.d or $HOME/.config/hod.d
+    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+    """
+    dflt = os.path.join(os.getenv('HOME'), '.config')
+    return os.path.join(os.getenv('XDG_CONFIG_HOME', dflt), 'hod.d')
+
+
+def known_cluster_labels():
+    """
+    Return list of known cluster labels.
+    """
+    path = cluster_config_dir()
+    if os.path.exists(path):
+        os.listdir(path)
+    else:
+        _log.warning("No cluster config directory '%s' (yet)", path)
+        return []
+
+
+def cluster_env_file(label):
+    """
+    Return path to env file for cluster with specified label.
+    """
+    if label in known_cluster_labels():
+        env_script = os.path.join(cluster_config_dir, label, 'env')
+        if os.path.exists(env_script):
+            return env_script
+        else:
+            _log.error("No 'env' file found for cluster with label '%s'", label)
+            sys.exit(1)
+    else:
+        _log.error("Unknown cluster label '%s': %s", label, known_cluster_labels())
+        sys.exit(1)
+
+
+def create_env_file():
+    """Create env file that can be source when connecting to the current hanythingondemand cluster."""
+    raise NotImplementedError
+
+
 def main(args):
     """Run HOD cluster."""
     options = LocalOptions(go_args=args)
 
     if MPI.COMM_WORLD.rank == MASTERRANK:
-        _log.debug('Starting master process')
+        _log.debug("Creating env file")
+        create_env_file()
+        _log.debug("Starting master process")
         svc = ConfiguredMaster(options)
     else:
-        _log.debug('Starting slave process')
+        _log.debug("Starting slave process")
         svc = ConfiguredSlave(options)
     try:
         setup_tasks(svc)
