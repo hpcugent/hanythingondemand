@@ -81,7 +81,7 @@ def known_cluster_labels():
     """
     path = cluster_info_dir()
     if os.path.exists(path):
-        os.listdir(path)
+        return os.listdir(path)
     else:
         _log.warning("No cluster config directory '%s' (yet)", path)
         return []
@@ -95,7 +95,8 @@ def _cluster_info(label, info_file, contents=False):
     @param contents: returns contents of info file rather than path to info file
     """
     res = None
-    if label in known_cluster_labels():
+    labels = known_cluster_labels()
+    if label in labels:
         info_file = os.path.join(cluster_info_dir, label, info_file)
         if os.path.exists(info_file):
             if contents:
@@ -103,11 +104,9 @@ def _cluster_info(label, info_file, contents=False):
             else:
                 res = info_file
         else:
-            _log.error("No 'env' file found for cluster with label '%s'", label)
-            sys.exit(1)
+            raise ValueError("No 'env' file found for cluster with label '%s'" % label)
     else:
-        _log.error("Unknown cluster label '%s': %s", label, known_cluster_labels())
-        sys.exit(1)
+        raise ValueError("Unknown cluster label '%s': %s" % (label, labels))
 
     return res
 
@@ -195,6 +194,7 @@ def main(args):
         setup_tasks(svc)
         run_tasks(svc)
         svc.stop_service()
+        return 0
     except Exception as err:
         _log.error(str(err))
         _log.exception("HanythingOnDemand failed")

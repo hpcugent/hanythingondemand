@@ -37,14 +37,13 @@ import sys
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
-from hod.local import cluster_env_file
+from hod.local import cluster_env_file, cluster_jobid
 from hod.subcommands.subcommand import SubCommand
 import hod
 import hod.rmscheduler.rm_pbs as rm_pbs
 
 
 _log = fancylogger.getLogger(fname=False)
-
 
 class ConnectOptions(GeneralOption):
     """Option parser for 'list' subcommand."""
@@ -74,12 +73,16 @@ class ConnectSubCommand(SubCommand):
                 _log.error("No label provided.")
                 sys.exit(1)
 
-            jobid = cluster_jobid(label)
-            env_script = cluster_env_file(label)
+            try:
+                jobid = cluster_jobid(label)
+                env_script = cluster_env_file(label)
+            except ValueError as e:
+                _log.error(e.message)
+                sys.exit(1)
 
             pbs = rm_pbs.Pbs(optparser)
             jobs = pbs.state()
-            pbsjobs = [job for job in jobs if job.jid == jobid]
+            pbsjobs = [job for job in jobs if job.jid == label]
 
             if len(pbsjobs) == 0:
                 _log.error("Job with job ID '%s' not found by pbs.", jobid)

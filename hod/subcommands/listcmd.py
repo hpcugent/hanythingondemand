@@ -57,6 +57,7 @@ class ListSubCommand(SubCommand):
             pbs = rm_pbs.Pbs(optparser)
             state = rm_pbs.format_state(pbs.state())
             print state
+            return 0
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)

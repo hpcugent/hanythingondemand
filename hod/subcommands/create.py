@@ -95,6 +95,7 @@ class CreateSubCommand(SubCommand):
         try:
             j = PbsHodJob(options)
             j.run()
+            return 0
         except StandardError as e:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
