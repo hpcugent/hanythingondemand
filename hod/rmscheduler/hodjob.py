@@ -45,8 +45,6 @@ class HodJob(Job):
     def __init__(self, options):
         super(HodJob, self).__init__(options)
 
-        self.exeout = None
-
         # TODO abs path?
         self.pythonexe = 'python'
         self.hodargs = self.options.generate_cmd_line(ignore='^(%s)_' % '|'.join(self.OPTION_IGNORE_PREFIX))
@@ -66,7 +64,7 @@ class HodJob(Job):
 
         self.run_in_cwd = True
 
-        self.exeout = "$%s/hod.output.$%s" % (self.type.vars['cwd'], self.type.vars['jobid'])
+        self.main_out = "$%s/hod.output.$%s" % (self.type.vars['cwd'], self.type.vars['jobid'])
 
     def set_type_class(self):
         """Set the typeclass"""
@@ -87,21 +85,25 @@ class MympirunHod(HodJob):
     def generate_exe(self):
         """Mympirun executable"""
 
-        exe = ["mympirun"]
+        main = ['mympirun']
+
         if self.options.options.debug:
-            exe.append("--debug")
-        if self.exeout:
-            exe.append("--output=%s" % self.exeout)
-        exe.append("--hybrid=1")
+            main.append('--debug')
 
-        exe.append('--variablesprefix=%s' % ','.join(self.hodenvvarprefix))
+        if self.main_out:
+            main.append('--output=%s' % self.main_out)
 
-        exe.append("%s -m hod.local" % self.pythonexe)
+        # single MPI process per node
+        main.append("--hybrid=1")
 
-        exe.extend(self.hodargs)
+        main.append('--variablesprefix=%s' % ','.join(self.hodenvvarprefix))
 
-        self.log.debug("Generated exe %s", exe)
-        return [' '.join(exe)]
+        main.append("%s -m hod.local" % self.pythonexe)
+
+        main.extend(self.hodargs)
+
+        self.log.debug("Generated main command: %s", main)
+        return [' '.join(main)]
 
 
 class PbsHodJob(MympirunHod):
