@@ -82,7 +82,7 @@ class ConnectSubCommand(SubCommand):
 
             pbs = rm_pbs.Pbs(optparser)
             jobs = pbs.state()
-            pbsjobs = [job for job in jobs if job.jobid == label]
+            pbsjobs = [job for job in jobs if job.jobid == jobid]
 
             if len(pbsjobs) == 0:
                 _log.error("Job with job ID '%s' not found by pbs.", jobid)
