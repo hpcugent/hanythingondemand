@@ -62,33 +62,34 @@ class ConnectSubCommand(SubCommand):
     """
     CMD = 'connect'
     HELP = "Connect to a hod cluster."
-    EXAMPLE = "hod connect <jobid>"
+    EXAMPLE = "hod connect <label>"
 
     def run(self, args):
         """Run 'connect' subcommand."""
         optparser = ConnectOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
             if len(optparser.args) > 1:
-                jobid = optparser.args[1]
+                label = optparser.args[1]
             else:
-                _log.error("No jobid provided.")
+                _log.error("No label provided.")
                 sys.exit(1)
 
-            env_script = cluster_env_file(jobid)
+            jobid = cluster_jobid(label)
+            env_script = cluster_env_file(label)
 
             pbs = rm_pbs.Pbs(optparser)
             jobs = pbs.state()
             pbsjobs = [job for job in jobs if job.jid == jobid]
 
             if len(pbsjobs) == 0:
-                _log.error("Job %s not found by pbs.", jobid)
+                _log.error("Job with job ID '%s' not found by pbs.", jobid)
                 sys.exit(1)
 
             pbsjob = pbsjobs[0]
             if pbsjob.state == ['Q', 'H']:
                 # This should never happen since the hod.d/<jobid>/env file is
                 # written on cluster startup. Maybe someone hacked the dirs.
-                _log.error("Cannot connect to %s yet. It is still queued.", jobid)
+                _log.error("Cannot connect to cluster with job ID '%s' yet. It is still queued.", jobid)
                 sys.exit(1)
 
             os.execvp('/usr/bin/ssh', ['ssh', '-t', pbsjob.ehosts, 'exec', 'bash', '--rcfile', env_script, '-i'])
