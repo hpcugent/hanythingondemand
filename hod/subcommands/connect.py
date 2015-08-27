@@ -37,7 +37,7 @@ import sys
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
-from hod.local import cluster_env_file
+from hod.local import cluster_env_file, cluster_jobid
 from hod.subcommands.subcommand import SubCommand
 import hod
 import hod.rmscheduler.rm_pbs as rm_pbs
@@ -61,38 +61,39 @@ class ConnectSubCommand(SubCommand):
     """
     CMD = 'connect'
     HELP = "Connect to a hod cluster."
-    EXAMPLE = "hod connect <jobid>"
+    EXAMPLE = "hod connect <label>"
 
     def run(self, args):
         """Run 'connect' subcommand."""
         optparser = ConnectOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
             if len(optparser.args) > 1:
-                cluster_label = optparser.args[1]
+                label = optparser.args[1]
             else:
-                sys.stderr.write("No jobid provided.\n")
-                return 1
+                _log.error("No label provided.")
+                sys.exit(1)
 
             try:
-                env_script = cluster_env_file(cluster_label)
+                jobid = cluster_jobid(label)
+                env_script = cluster_env_file(label)
             except ValueError as e:
-                sys.stderr.write(e.message + '\n')
-                return 1
+                _log.error(e.message)
+                sys.exit(1)
 
             pbs = rm_pbs.Pbs(optparser)
             jobs = pbs.state()
-            pbsjobs = [job for job in jobs if job.jobid == cluster_label]
+            pbsjobs = [job for job in jobs if job.jobid == label]
 
             if len(pbsjobs) == 0:
-                sys.stderr.write("Job %s not found by pbs.\n" % cluster_label)
-                return 1
+                _log.error("Job with job ID '%s' not found by pbs.", jobid)
+                sys.exit(1)
 
             pbsjob = pbsjobs[0]
             if pbsjob.state == ['Q', 'H']:
                 # This should never happen since the hod.d/<jobid>/env file is
                 # written on cluster startup. Maybe someone hacked the dirs.
-                sys.stderr.write("Cannot connect to %s yet. It is still queued.\n", cluster_label)
-                return 1
+                _log.error("Cannot connect to cluster with job ID '%s' yet. It is still queued.", jobid)
+                sys.exit(1)
 
             os.execvp('/usr/bin/ssh', ['ssh', '-t', pbsjob.hosts, 'exec', 'bash', '--rcfile', env_script, '-i'])
             return 0 # pragma: no cover

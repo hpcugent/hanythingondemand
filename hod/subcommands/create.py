@@ -70,6 +70,7 @@ class CreateOptions(GeneralOption):
         """Add general configuration options."""
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
         opts.update({
+            'label': ("Cluster label", 'string', 'store', None),
             'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
         })
         descr = ["Create configuration", "Configuration options for the 'create' subcommand"]

@@ -30,6 +30,8 @@ Main hanythingondemand script, should be invoked in a job
 """
 import copy
 import os
+import random
+import string
 import sys
 from mpi4py import MPI
 
@@ -54,6 +56,7 @@ class LocalOptions(GeneralOption):
         """Add general configuration options."""
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
         opts.update({
+            'label': ("Cluster label", 'string', 'store', None),
             'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
         })
         descr = ["Local configuration", "Configuration options for the 'genconfig' subcommand"]
@@ -62,9 +65,9 @@ class LocalOptions(GeneralOption):
         self.add_group_parser(opts, descr)
 
 
-def cluster_config_dir():
+def cluster_info_dir():
     """
-    Determine cluster configuration directory.
+    Determine cluster info directory.
     Returns $XDG_CONFIG_HOME/hod.d or $HOME/.config/hod.d
     http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     """
@@ -76,7 +79,7 @@ def known_cluster_labels():
     """
     Return list of known cluster labels.
     """
-    path = cluster_config_dir()
+    path = cluster_info_dir()
     if os.path.exists(path):
         return os.listdir(path)
     else:
@@ -84,38 +87,102 @@ def known_cluster_labels():
         return []
 
 
-def cluster_env_file(label):
+def _cluster_info(label, info_file):
     """
-    Return path to env file for cluster with specified label.
+    Return path to specified cluster info file for cluster with specified label.
+    @param label: cluster label
+    @param info_file: type of info to return (env, jobid, ...)
     """
     labels = known_cluster_labels()
     if label in labels:
-        env_script = os.path.join(cluster_config_dir(), label, 'env')
-        if os.path.exists(env_script):
-            return env_script
+        info_file = os.path.join(cluster_info_dir(), label, info_file)
+        if os.path.exists(info_file):
+            return info_file
         else:
             raise ValueError("No 'env' file found for cluster with label '%s'" % label)
     else:
         raise ValueError("Unknown cluster label '%s': %s" % (label, labels))
 
 
-def create_env_file():
+def cluster_jobid(label):
+    """Return job ID for cluster with specified label."""
+    return open(_cluster_info(label, 'jobid')).read()
+
+
+def cluster_env_file(label):
+    """
+    Return path to env file for cluster with specified label.
+    """
+    return _cluster_info(label, 'env')
+
+
+def generate_cluster_env_script():
+    """
+    Generate the env script for this cluster.
+    """
+    #FIXME
+    return """
+#[ -f $HOME/.profile ] && source $HOME/.profile
+#[ -f $HOME/.bashrc  ] && source $HOME/.bashrc
+export masterhostname=
+export masterdatatname=
+export workdir=~/data
+export localworkdir=~/data/localhost
+
+echo "Welcome to hod"
+echo "Your environment:"
+echo masterhostname=${masterhostname}
+echo masterdataname=${masterdataname}
+echo masterhostaddress=${masterhostaddress}
+echo masterdataaddress=${masterdataaddress}
+echo hostaddress=${hostaddress}
+echo dataaddress=${dataaddress}
+echo user=${user}
+echo workdir=${workdir}
+echo localworkdir=${localworkdir}
+echo modules=${modules}
+
+module load ${modules}
+"""
+
+def create_cluster_info(label):
     """Create env file that can be source when connecting to the current hanythingondemand cluster."""
-    raise NotImplementedError
+    info_dir = os.path.join(cluster_info_dir(), label)
+    try:
+        os.makedirs(info_dir)
+    except OSError as err:
+        _log.error("Failed to create cluster info dir '%s': %s", info_dir, err)
+
+    try:
+        with open(os.path.join(info_dir, 'jobid'), 'w') as jobid:
+            jobid.write(os.getenv('PBS_JOBID', 'PBS_JOBID_NOT_DEFINED'))
+
+        env_script_txt = generate_cluster_env_script()
+
+        with open(os.path.join(info_dir, 'env'), 'w') as env_script:
+            env_script.write(env_script_txt)
+    except IOError as err:
+        _log.error("Failedto write cluster info files: %s", err)
 
 
 def main(args):
     """Run HOD cluster."""
-    options = LocalOptions(go_args=args)
+    optparser = LocalOptions(go_args=args)
 
     if MPI.COMM_WORLD.rank == MASTERRANK:
-        _log.debug("Creating env file")
-        create_env_file()
+        label = optparser.options.label
+        if label is None:
+            # if no label is specified, use job ID;
+            # if $PBS_JOBID is not set, generate a random string (10 chars)
+            label = os.getenv('PBS_JOBID', ''.join(random.choice(string.letters + string.digits) for _ in range(10)))
+        _log.debug("Creating cluster info using label '%s'", label)
+        create_cluster_info(label)
+
         _log.debug("Starting master process")
-        svc = ConfiguredMaster(options)
+        svc = ConfiguredMaster(optparser)
     else:
         _log.debug("Starting slave process")
-        svc = ConfiguredSlave(options)
+        svc = ConfiguredSlave(optparser)
     try:
         setup_tasks(svc)
         run_tasks(svc)
