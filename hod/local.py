@@ -71,7 +71,7 @@ def cluster_info_dir():
     Returns $XDG_CONFIG_HOME/hod.d or $HOME/.config/hod.d
     http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     """
-    dflt = os.path.join(os.getenv('HOME'), '.config')
+    dflt = os.path.join(os.getenv('HOME', ''), '.config')
     return os.path.join(os.getenv('XDG_CONFIG_HOME', dflt), 'hod.d')
 
 
