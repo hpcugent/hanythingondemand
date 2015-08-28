@@ -53,7 +53,7 @@ export HOD_LOCALWORKDIR='%(hod_localworkdir)s'
 # TODO: HADOOP_LOG_DIR?
 module load %(modules)s
 
-echo "Welcome to your %s cluster (label: %(label)s)"
+echo "Welcome to your hanythingondemand cluster (label: %(label)s)"
 
 echo "Relevant environment variables:"
 env | egrep '^HADOOP_|^HOD_|PBS_JOBID' | sort
@@ -149,7 +149,8 @@ def create_cluster_info(label, hadoop_conf_dir, modules, localworkdir):
     """Create env file that can be source when connecting to the current hanythingondemand cluster."""
     info_dir = os.path.join(cluster_info_dir(), label)
     try:
-        os.makedirs(info_dir)
+        if not os.path.exists(info_dir):
+            os.makedirs(info_dir)
     except OSError as err:
         _log.error("Failed to create cluster info dir '%s': %s", info_dir, err)
 
