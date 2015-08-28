@@ -71,6 +71,7 @@ class CreateOptions(GeneralOption):
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
         opts.update({
             'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
+            'source-scripts': ("Scripts to source when connecting to the cluster", 'strlist', 'store', []),
         })
         descr = ["Create configuration", "Configuration options for the 'create' subcommand"]
 

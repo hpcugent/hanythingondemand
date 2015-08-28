@@ -77,7 +77,7 @@ class LocalOptions(GeneralOption):
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
         opts.update({
             'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
-            'source-scripts': ("List of scripts to source when connecting to a cluster", 'strlist', 'store', ''),
+            'source-scripts': ("Scripts to source when connecting to the cluster", 'strlist', 'store', []),
         })
         descr = ["Local configuration", "Configuration options for the 'genconfig' subcommand"]
 
