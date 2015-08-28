@@ -48,8 +48,6 @@ from hod.options import GENERAL_HOD_OPTIONS
 
 CLUSTER_ENV_TEMPLATE = """
 # set up environment
-%(source_scripts)s
-
 export HADOOP_CONF_DIR='%(hadoop_conf_dir)s'
 export HOD_LOCALWORKDIR='%(hod_localworkdir)s'
 # TODO: HADOOP_LOG_DIR?
@@ -77,7 +75,6 @@ class LocalOptions(GeneralOption):
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
         opts.update({
             'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
-            'source-scripts': ("Scripts to source when connecting to the cluster", 'strlist', 'store', []),
         })
         descr = ["Local configuration", "Configuration options for the 'genconfig' subcommand"]
 
@@ -185,7 +182,6 @@ def main(args):
             'hod_localworkdir': hodconf.localworkdir,
             'label': label,
             'modules': ' '.join(hodconf.modules),
-            'source_scripts': '; '.join(['source ' + s for s in optparser.options.source_scripts]),
         }
         save_cluster_info(cluster_info)
 

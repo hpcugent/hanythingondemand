@@ -104,7 +104,8 @@ class ConnectSubCommand(SubCommand):
             else:
                 print "HOD cluster '%s' @ job ID %s appears to be running at nodes %s..." % (label, jobid, pbsjob.hosts)
 
-            cmd = ['ssh', '-t', pbsjob.hosts, 'exec', 'bash', '--rcfile', env_script, '-i']
+            # --login -i: interactive login shell
+            cmd = ['ssh', '-t', pbsjob.hosts, 'exec', 'bash', '--rcfile', env_script, '--login', '-i']
             _log.info("Logging in using command: %s", ' '.join(cmd))
             os.execvp('/usr/bin/ssh', cmd)
             return 0 # pragma: no cover
