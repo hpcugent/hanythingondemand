@@ -73,12 +73,16 @@ class ConnectSubCommand(SubCommand):
                 _log.error("No label provided.")
                 sys.exit(1)
 
+            print "Connecting to HOD cluster with label '%s'..." % label
+
             try:
                 jobid = cluster_jobid(label)
                 env_script = cluster_env_file(label)
             except ValueError as e:
                 _log.error(e.message)
                 sys.exit(1)
+
+            print "Job ID found: %s" % jobid
 
             pbs = rm_pbs.Pbs(optparser)
             jobs = pbs.state()
@@ -87,6 +91,9 @@ class ConnectSubCommand(SubCommand):
             if len(pbsjobs) == 0:
                 _log.error("Job with job ID '%s' not found by pbs.", jobid)
                 sys.exit(1)
+            elif len(pbsjobs) > 1:
+                _log.error("Multiple jobs found with job ID '%s': %s", jobid, pbsjobs)
+                sys.exit(1)
 
             pbsjob = pbsjobs[0]
             if pbsjob.state == ['Q', 'H']:
@@ -94,8 +101,12 @@ class ConnectSubCommand(SubCommand):
                 # written on cluster startup. Maybe someone hacked the dirs.
                 _log.error("Cannot connect to cluster with job ID '%s' yet. It is still queued.", jobid)
                 sys.exit(1)
+            else:
+                print "HOD cluster '%s' @ job ID %s appears to be running at nodes %s..." % (label, jobid, pbsjob.hosts)
 
-            os.execvp('/usr/bin/ssh', ['ssh', '-t', pbsjob.hosts, 'exec', 'bash', '--rcfile', env_script, '-i'])
+            cmd = ['ssh', '-t', pbsjob.hosts, 'exec', 'bash', '--rcfile', env_script, '-i']
+            _log.info("Logging in using command: %s", ' '.join(cmd))
+            os.execvp('/usr/bin/ssh', cmd)
             return 0 # pragma: no cover
 
         except StandardError as err:
