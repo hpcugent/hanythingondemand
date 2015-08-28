@@ -47,22 +47,21 @@ from hod.options import GENERAL_HOD_OPTIONS
 
 
 CLUSTER_ENV_TEMPLATE = """
-# make 'module' command is defined
-. /etc/profile.d/modules.sh
-
 # set up environment
+%(source_scripts)s
+
 export HADOOP_CONF_DIR='%(hadoop_conf_dir)s'
 export HOD_LOCALWORKDIR='%(hod_localworkdir)s'
 # TODO: HADOOP_LOG_DIR?
 module load %(modules)s
 
 echo "Welcome to your hanythingondemand cluster (label: %(label)s)"
-
+echo
 echo "Relevant environment variables:"
 env | egrep '^HADOOP_|^HOD_|PBS_JOBID' | sort
-
+echo
 echo "List of loaded modules:"
-module list
+module list 2>&1
 """
 
 
@@ -78,6 +77,7 @@ class LocalOptions(GeneralOption):
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
         opts.update({
             'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
+            'source-scripts': ("List of scripts to source when connecting to a cluster", 'strlist', 'store', ''),
         })
         descr = ["Local configuration", "Configuration options for the 'genconfig' subcommand"]
 
@@ -136,21 +136,16 @@ def cluster_env_file(label):
     return _cluster_info(label, 'env')
 
 
-def generate_cluster_env_script(label, hadoop_conf_dir, modules, localworkdir):
+def generate_cluster_env_script(cluster_info):
     """
     Generate the env script for this cluster.
     """
-    return CLUSTER_ENV_TEMPLATE % {
-        'hadoop_conf_dir': hadoop_conf_dir,
-        'hod_localworkdir': localworkdir,
-        'label': label,
-        'modules': ' '.join(modules),
-    }
+    return CLUSTER_ENV_TEMPLATE % cluster_info
 
 
-def create_cluster_info(label, hadoop_conf_dir, modules, localworkdir):
-    """Create env file that can be source when connecting to the current hanythingondemand cluster."""
-    info_dir = os.path.join(cluster_info_dir(), label)
+def save_cluster_info(cluster_info):
+    """Save info (job ID, env script, ...) for this cluster in the cluster info dir."""
+    info_dir = os.path.join(cluster_info_dir(), cluster_info['label'])
     try:
         if not os.path.exists(info_dir):
             os.makedirs(info_dir)
@@ -161,12 +156,12 @@ def create_cluster_info(label, hadoop_conf_dir, modules, localworkdir):
         with open(os.path.join(info_dir, 'jobid'), 'w') as jobid:
             jobid.write(os.getenv('PBS_JOBID', 'PBS_JOBID_NOT_DEFINED'))
 
-        env_script_txt = generate_cluster_env_script(label, hadoop_conf_dir, modules, localworkdir)
+        env_script_txt = generate_cluster_env_script(cluster_info)
 
         with open(os.path.join(info_dir, 'env'), 'w') as env_script:
             env_script.write(env_script_txt)
     except IOError as err:
-        _log.error("Failedto write cluster info files: %s", err)
+        _log.error("Failed to write cluster info files: %s", err)
 
 
 def main(args):
@@ -185,7 +180,14 @@ def main(args):
         config_path = resolve_config_paths(optparser.options.hodconf, optparser.options.dist)
         hodconf = load_hod_config(config_path, optparser.options.workdir, optparser.options.modules)
 
-        create_cluster_info(label, hodconf.configdir, hodconf.modules, hodconf.localworkdir)
+        cluster_info = {
+            'hadoop_conf_dir': hodconf.configdir,
+            'hod_localworkdir': hodconf.localworkdir,
+            'label': label,
+            'modules': ' '.join(hodconf.modules),
+            'source_scripts': '; '.join(['source ' + s for s in optparser.options.source_scripts]),
+        }
+        save_cluster_info(cluster_info)
 
         _log.debug("Starting master process")
         svc = ConfiguredMaster(optparser.options)
