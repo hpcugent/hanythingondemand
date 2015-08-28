@@ -40,9 +40,27 @@ from hod import VERSION as HOD_VERSION
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
-from hod.hodproc import ConfiguredSlave, ConfiguredMaster
+from hod.config.config import resolve_config_paths
+from hod.hodproc import ConfiguredSlave, ConfiguredMaster, load_hod_config
 from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
 from hod.options import GENERAL_HOD_OPTIONS
+
+
+CLUSTER_ENV_TEMPLATE = """
+# set up environment
+export HADOOP_CONF_DIR='%(hadoop_conf_dir)s'
+export HOD_LOCALWORKDIR='%(hod_localworkdir)s'
+# TODO: HADOOP_LOG_DIR?
+module load %(modules)s
+
+echo "Welcome to your %s cluster (label: %(label)s)"
+
+echo "Relevant environment variables:"
+env | egrep '^HADOOP_|^HOD_|PBS_JOBID' | sort
+
+echo "List of loaded modules:"
+module list
+"""
 
 
 _log = fancylogger.getLogger(fname=False)
@@ -56,7 +74,6 @@ class LocalOptions(GeneralOption):
         """Add general configuration options."""
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
         opts.update({
-            'label': ("Cluster label", 'string', 'store', None),
             'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
         })
         descr = ["Local configuration", "Configuration options for the 'genconfig' subcommand"]
@@ -116,36 +133,19 @@ def cluster_env_file(label):
     return _cluster_info(label, 'env')
 
 
-def generate_cluster_env_script():
+def generate_cluster_env_script(label, hadoop_conf_dir, modules, localworkdir):
     """
     Generate the env script for this cluster.
     """
-    #FIXME
-    return """
-#[ -f $HOME/.profile ] && source $HOME/.profile
-#[ -f $HOME/.bashrc  ] && source $HOME/.bashrc
-export masterhostname=
-export masterdatatname=
-export workdir=~/data
-export localworkdir=~/data/localhost
+    return CLUSTER_ENV_TEMPLATE % {
+        'hadoop_conf_dir': hadoop_conf_dir,
+        'hod_localworkdir': localworkdir,
+        'label': label,
+        'modules': ' '.join(modules),
+    }
 
-echo "Welcome to hod"
-echo "Your environment:"
-echo masterhostname=${masterhostname}
-echo masterdataname=${masterdataname}
-echo masterhostaddress=${masterhostaddress}
-echo masterdataaddress=${masterdataaddress}
-echo hostaddress=${hostaddress}
-echo dataaddress=${dataaddress}
-echo user=${user}
-echo workdir=${workdir}
-echo localworkdir=${localworkdir}
-echo modules=${modules}
 
-module load ${modules}
-"""
-
-def create_cluster_info(label):
+def create_cluster_info(label, hadoop_conf_dir, modules, localworkdir):
     """Create env file that can be source when connecting to the current hanythingondemand cluster."""
     info_dir = os.path.join(cluster_info_dir(), label)
     try:
@@ -157,7 +157,7 @@ def create_cluster_info(label):
         with open(os.path.join(info_dir, 'jobid'), 'w') as jobid:
             jobid.write(os.getenv('PBS_JOBID', 'PBS_JOBID_NOT_DEFINED'))
 
-        env_script_txt = generate_cluster_env_script()
+        env_script_txt = generate_cluster_env_script(label, hadoop_conf_dir, modules, localworkdir)
 
         with open(os.path.join(info_dir, 'env'), 'w') as env_script:
             env_script.write(env_script_txt)
@@ -176,13 +176,18 @@ def main(args):
             # if $PBS_JOBID is not set, generate a random string (10 chars)
             label = os.getenv('PBS_JOBID', ''.join(random.choice(string.letters + string.digits) for _ in range(10)))
         _log.debug("Creating cluster info using label '%s'", label)
-        create_cluster_info(label)
+
+        # list of modules that should be loaded: modules for selected service + extra modules specified via --modules
+        config_path = resolve_config_paths(optparser.options.hodconf, optparser.options.dist)
+        hodconf = load_hod_config(config_path, optparser.options.workdir, optparser.options.modules)
+
+        create_cluster_info(label, hodconf.configdir, hodconf.modules, hodconf.localworkdir)
 
         _log.debug("Starting master process")
-        svc = ConfiguredMaster(optparser)
+        svc = ConfiguredMaster(optparser.options)
     else:
         _log.debug("Starting slave process")
-        svc = ConfiguredSlave(optparser)
+        svc = ConfiguredSlave(optparser.options)
     try:
         setup_tasks(svc)
         run_tasks(svc)

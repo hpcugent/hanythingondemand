@@ -32,10 +32,11 @@ Hanythingondemand main program.
 from vsc.utils import fancylogger
 
 GENERAL_HOD_OPTIONS = {
-    'hodconf': ("Top level configuration file. This can be a comma separated list of config files with "
-                "the later files taking precendence.", 'string', 'store', None),
     'dist': ("Prepackaged Hadoop distribution (e.g.  Hadoop/2.5.0-cdh5.3.1-native). "
              "This cannot be set if --hodconf is set", 'string', 'store', None),
+    'hodconf': ("Top level configuration file. This can be a comma separated list of config files with "
+                "the later files taking precendence.", 'string', 'store', None),
+    'label': ("Cluster label", 'string', 'store', None),
     'workdir': ("Working directory", 'string', 'store', None),
 }
 
