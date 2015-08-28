@@ -102,10 +102,12 @@ class ConnectSubCommand(SubCommand):
                 _log.error("Cannot connect to cluster with job ID '%s' yet. It is still queued.", jobid)
                 sys.exit(1)
             else:
-                print "HOD cluster '%s' @ job ID %s appears to be running at nodes %s..." % (label, jobid, pbsjob.hosts)
+                print "HOD cluster '%s' @ job ID %s appears to be running..." % (label, jobid)
 
-            # --login -i: interactive login shell
-            cmd = ['ssh', '-t', pbsjob.hosts, 'exec', 'bash', '--rcfile', env_script, '--login', '-i']
+            print "Setting up SSH connection to %s..." % pbsjob.hosts
+
+            # -i: interactive non-login shell
+            cmd = ['ssh', '-t', pbsjob.hosts, 'exec', 'bash', '--rcfile', env_script, '-i']
             _log.info("Logging in using command: %s", ' '.join(cmd))
             os.execvp('/usr/bin/ssh', cmd)
             return 0 # pragma: no cover

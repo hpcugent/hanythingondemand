@@ -47,6 +47,9 @@ from hod.options import GENERAL_HOD_OPTIONS
 
 
 CLUSTER_ENV_TEMPLATE = """
+# make sure session is properly set up (e.g., that 'module' command is defined)
+source /etc/profile
+
 # set up environment
 export HADOOP_CONF_DIR='%(hadoop_conf_dir)s'
 export HOD_LOCALWORKDIR='%(hod_localworkdir)s'
