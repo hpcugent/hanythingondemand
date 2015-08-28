@@ -86,13 +86,15 @@ class CreateSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'create' subcommand."""
-        options = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
-        if not validate_pbs_option(options):
+        optparser = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
+        if not validate_pbs_option(optparser):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 
         try:
-            j = PbsHodJob(options)
+            # FIXME: check whether label is already in use
+            j = PbsHodJob(optparser)
+            print "Submitting HOD cluster with label '%s'..." % optparser.options.label
             j.run()
             return 0
         except StandardError as e:
