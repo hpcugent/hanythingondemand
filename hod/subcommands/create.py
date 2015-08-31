@@ -96,6 +96,8 @@ class CreateSubCommand(SubCommand):
             j = PbsHodJob(optparser)
             print "Submitting HOD cluster with label '%s'..." % optparser.options.label
             j.run()
+            jobs = j.state()
+            print "Jobs submitted: %s" % [str(j) for j in jobs]
             return 0
         except StandardError as e:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
