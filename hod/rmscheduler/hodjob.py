@@ -75,9 +75,10 @@ class HodJob(Job):
     def run(self):
         """Do stuff based upon options"""
         self.submit()
-        jobs = self.type.state()
-        print "Jobs submitted: %s" % [str(j) for j in jobs]
 
+    def state(self):
+        """Find the job information of submitted jobs"""
+        return self.type.state()
 
 class MympirunHod(HodJob):
     """Hod type job using mympirun cmd style."""

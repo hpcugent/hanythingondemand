@@ -33,19 +33,10 @@ import pytest
 import hod.rmscheduler.rm_pbs as rm_pbs
 import hod.subcommands.connect as hsc
 
-from ..util import capture
+from ..util import capture, MockPbs
 
 from mock import patch
 
-class MockPbs(object):
-    def __init__(self, optparser):
-        pass
-    def state(self, jobid=None, fltr=None):
-        return [
-                rm_pbs.PbsJob('1234', 'R', '127.0.0.1'),
-                rm_pbs.PbsJob('q123', 'Q', '127.0.0.1'),
-                rm_pbs.PbsJob('h123', 'H', '127.0.0.1'),
-                ]
 
 def mock_getenv(var, dflt=None):
     if var == 'HOME':
