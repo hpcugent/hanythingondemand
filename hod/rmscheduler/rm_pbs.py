@@ -70,8 +70,6 @@ class PbsJob(object):
     def __str__(self):
         return "Jobid  %s state %s ehosts %s" % (self.jobid, self.state, self.hosts)
 
-    def __repr__(self):
-        return "PbsJob(jobid=%s, state=%s, hosts=%s)" % (self.jobid, self.state, self.hosts)
 
 def format_state(pbsjobs):
     '''Given a list of PbsJob objects, print them.'''

@@ -56,6 +56,7 @@ class ListSubCommand(SubCommand):
         try:
             pbs = rm_pbs.Pbs(optparser)
             state = rm_pbs.format_state(pbs.state())
+            # FIXME: only HOD jobs, mention label
             print state
             return 0
         except StandardError as err:

@@ -32,6 +32,7 @@ import sys
 
 import hod
 from hod.rmscheduler.job import Job
+from hod.rmscheduler.rm_pbs import Pbs
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 from hod.config.config import (parse_comma_delim_list,
         preserviceconfigopts_from_file_list, resolve_config_paths)
@@ -74,9 +75,10 @@ class HodJob(Job):
     def run(self):
         """Do stuff based upon options"""
         self.submit()
-        msg = self.type.state()
-        print msg
 
+    def state(self):
+        """Find the job information of submitted jobs"""
+        return self.type.state()
 
 class MympirunHod(HodJob):
     """Hod type job using mympirun cmd style."""
@@ -149,5 +151,4 @@ class PbsHodJob(MympirunHod):
     def set_type_class(self):
         """Set the typeclass"""
         self.log.debug("Using default class Pbs.")
-        from hod.rmscheduler.rm_pbs import Pbs
         self.type_class = Pbs

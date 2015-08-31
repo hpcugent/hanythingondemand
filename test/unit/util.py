@@ -32,6 +32,7 @@ Utilities for testing.
 import sys
 from cStringIO import StringIO
 from contextlib import contextmanager
+import hod.rmscheduler.rm_pbs as rm_pbs
 
 @contextmanager
 def capture(command, *args, **kwargs):
@@ -44,3 +45,16 @@ def capture(command, *args, **kwargs):
     yield sys.stdout.read(), sys.stderr.read()
     sys.stdout = out
     sys.stderr = err
+
+class MockPbs(object):
+    def __init__(self, optparser):
+        pass
+
+    def state(self, jobid=None, fltr=None):
+        return [
+                rm_pbs.PbsJob('1234', 'R', '127.0.0.1'),
+                rm_pbs.PbsJob('q123', 'Q', '127.0.0.1'),
+                rm_pbs.PbsJob('h123', 'H', '127.0.0.1'),
+                ]
+
+
