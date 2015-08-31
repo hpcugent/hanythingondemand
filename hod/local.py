@@ -143,6 +143,20 @@ def generate_cluster_env_script(cluster_info):
     return CLUSTER_ENV_TEMPLATE % cluster_info
 
 
+def gen_cluster_info(label, options):
+    """Generate cluster info as a dict, intended to use as template values for CLUSTER_ENV_TEMPLATE."""
+    # list of modules that should be loaded: modules for selected service + extra modules specified via --modules
+    config_path = resolve_config_paths(options.hodconf, options.dist)
+    hodconf = load_hod_config(config_path, options.workdir, options.modules)
+    cluster_info = {
+        'hadoop_conf_dir': hodconf.configdir,
+        'hod_localworkdir': hodconf.localworkdir,
+        'label': label,
+        'modules': ' '.join(hodconf.modules),
+    }
+    return cluster_info
+
+
 def save_cluster_info(cluster_info):
     """Save info (job ID, env script, ...) for this cluster in the cluster info dir."""
     info_dir = os.path.join(cluster_info_dir(), cluster_info['label'])
@@ -174,18 +188,9 @@ def main(args):
             # if no label is specified, use job ID;
             # if $PBS_JOBID is not set, generate a random string (10 chars)
             label = os.getenv('PBS_JOBID', ''.join(random.choice(string.letters + string.digits) for _ in range(10)))
+
         _log.debug("Creating cluster info using label '%s'", label)
-
-        # list of modules that should be loaded: modules for selected service + extra modules specified via --modules
-        config_path = resolve_config_paths(optparser.options.hodconf, optparser.options.dist)
-        hodconf = load_hod_config(config_path, optparser.options.workdir, optparser.options.modules)
-
-        cluster_info = {
-            'hadoop_conf_dir': hodconf.configdir,
-            'hod_localworkdir': hodconf.localworkdir,
-            'label': label,
-            'modules': ' '.join(hodconf.modules),
-        }
+        cluster_info = gen_cluster_info(label, optparser.options)
         save_cluster_info(cluster_info)
 
         _log.debug("Starting master process")
@@ -193,6 +198,7 @@ def main(args):
     else:
         _log.debug("Starting slave process")
         svc = ConfiguredSlave(optparser.options)
+
     try:
         setup_tasks(svc)
         run_tasks(svc)

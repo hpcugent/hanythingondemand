@@ -34,11 +34,15 @@ import hod.mpiservice as hm
 
 class TestHodLocal(unittest.TestCase):
     def test_local_no_args(self):
-        self.assertRaisesRegexp(SystemExit, '1', hl.main, [])
+        with patch('hod.local.gen_cluster_info', return_value={}):
+            with patch('hod.local.save_cluster_info', side_effect=lambda *args: None):
+                self.assertRaisesRegexp(SystemExit, '1', hl.main, [])
 
     def test_master_rank(self):
         with patch('mpi4py.MPI.COMM_WORLD', Mock(rank=hm.MASTERRANK)):
-            self.assertRaisesRegexp(SystemExit, '1', hl.main, [])
+            with patch('hod.local.gen_cluster_info', return_value={}):
+                with patch('hod.local.save_cluster_info', side_effect=lambda *args: None):
+                    self.assertRaisesRegexp(SystemExit, '1', hl.main, [])
 
     def test_slave_rank(self):
         with patch('mpi4py.MPI.COMM_WORLD', Mock(rank=hm.MASTERRANK + 1)):

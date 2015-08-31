@@ -85,8 +85,9 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
     def test_hodjob_run(self):
         '''test HodJob run'''
         with patch('os.path.isfile', side_effect=lambda x: True):
-            hj = hrh.HodJob(self.opt)
-            hj.run()
+            with patch('hod.rmscheduler.rm_pbs.Pbs.state', return_value=[]):
+                hj = hrh.HodJob(self.opt)
+                hj.run()
 
     def test_mympirunhod_init(self):
         '''test MympirunHod init functioon'''
