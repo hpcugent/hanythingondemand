@@ -32,6 +32,7 @@ import sys
 
 import hod
 from hod.rmscheduler.job import Job
+from hod.rmscheduler.rm_pbs import Pbs
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 from hod.config.config import (parse_comma_delim_list,
         preserviceconfigopts_from_file_list, resolve_config_paths)
@@ -44,8 +45,6 @@ class HodJob(Job):
 
     def __init__(self, options):
         super(HodJob, self).__init__(options)
-
-        self.exeout = None
 
         # TODO abs path?
         self.pythonexe = 'python'
@@ -66,7 +65,7 @@ class HodJob(Job):
 
         self.run_in_cwd = True
 
-        self.exeout = "$%s/hod.output.$%s" % (self.type.vars['cwd'], self.type.vars['jobid'])
+        self.main_out = "$%s/hod.output.$%s" % (self.type.vars['cwd'], self.type.vars['jobid'])
 
     def set_type_class(self):
         """Set the typeclass"""
@@ -76,9 +75,10 @@ class HodJob(Job):
     def run(self):
         """Do stuff based upon options"""
         self.submit()
-        msg = self.type.state()
-        print msg
 
+    def state(self):
+        """Find the job information of submitted jobs"""
+        return self.type.state()
 
 class MympirunHod(HodJob):
     """Hod type job using mympirun cmd style."""
@@ -87,21 +87,25 @@ class MympirunHod(HodJob):
     def generate_exe(self):
         """Mympirun executable"""
 
-        exe = ["mympirun"]
+        main = ['mympirun']
+
         if self.options.options.debug:
-            exe.append("--debug")
-        if self.exeout:
-            exe.append("--output=%s" % self.exeout)
-        exe.append("--hybrid=1")
+            main.append('--debug')
 
-        exe.append('--variablesprefix=%s' % ','.join(self.hodenvvarprefix))
+        if self.main_out:
+            main.append('--output=%s' % self.main_out)
 
-        exe.append("%s -m hod.local" % self.pythonexe)
+        # single MPI process per node
+        main.append("--hybrid=1")
 
-        exe.extend(self.hodargs)
+        main.append('--variablesprefix=%s' % ','.join(self.hodenvvarprefix))
 
-        self.log.debug("Generated exe %s", exe)
-        return [' '.join(exe)]
+        main.append("%s -m hod.local" % self.pythonexe)
+
+        main.extend(self.hodargs)
+
+        self.log.debug("Generated main command: %s", main)
+        return [' '.join(main)]
 
 
 class PbsHodJob(MympirunHod):
@@ -147,5 +151,4 @@ class PbsHodJob(MympirunHod):
     def set_type_class(self):
         """Set the typeclass"""
         self.log.debug("Using default class Pbs.")
-        from hod.rmscheduler.rm_pbs import Pbs
         self.type_class = Pbs

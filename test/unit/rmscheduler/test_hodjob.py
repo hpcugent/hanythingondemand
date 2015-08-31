@@ -33,7 +33,7 @@ from mock import patch
 import hod.rmscheduler.hodjob as hrh
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 from hod.subcommands.create import CreateOptions
-from hod.rmscheduler.rm_pbs import Pbs
+import hod.rmscheduler.rm_pbs as rm_pbs
 
 manifest_config = """
 [Meta]
@@ -122,4 +122,4 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
             with patch('__builtin__.open', side_effect=_mock_open):
                 o = hrh.PbsHodJob(self.mpiopt)
         o.set_type_class()
-        self.assertEqual(o.type_class, Pbs)
+        self.assertEqual(o.type_class, rm_pbs.Pbs)

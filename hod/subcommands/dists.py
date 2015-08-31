@@ -43,3 +43,4 @@ class DistsSubCommand(SubCommand):
     def run(self, args):
         """Run 'dists' subcommand."""
         print '\n'.join(avail_dists())
+        return 0

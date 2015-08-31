@@ -32,7 +32,7 @@ Hanythingondemand main program.
 import sys
 
 import hod
-from hod.subcommands import create, listcmd, genconfig, helptemplate, dists
+from hod.subcommands import connect, create, dists, genconfig, helptemplate, listcmd
 
 
 SUBCOMMANDS = [
@@ -41,6 +41,7 @@ SUBCOMMANDS = [
     dists.DistsSubCommand,
     helptemplate.HelpTemplateSubCommand,
     genconfig.GenConfigSubCommand,
+    connect.ConnectSubCommand,
 ]
 
 SUBCOMMAND_CLASSES = dict([(sc.CMD, sc) for sc in SUBCOMMANDS])
@@ -69,17 +70,17 @@ def init_subcmd(args):
 def main(args):
     """Parse options and run specified subcommand."""
     subcmd, args = init_subcmd(args)
-    if subcmd:
-        subcmd.run(args)
+    if subcmd is not None:
+        return subcmd.run(args)
 
     elif len([arg for arg in args if not arg.startswith('-')]) > 1:
         sys.stderr.write("ERROR: No known subcommand specified")
         sys.stderr.write(usage())
-        sys.exit(1)
+        return 1
     else:
         # no subcommand provided, print usage info
         print usage()
-        sys.exit(0)
+        return 0
 
 if __name__ == '__main__':
-    main(sys.argv)
+    sys.exit(main(sys.argv))

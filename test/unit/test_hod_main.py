@@ -32,16 +32,16 @@ import hod.subcommands.dists
 
 class TestHodMain(unittest.TestCase):
     def test_main_no_args(self):
-        self.assertRaisesRegexp(SystemExit, '0', hm.main, [])
+        self.assertEqual(0, hm.main([]))
 
     def test_main_bad_cmd(self):
-        self.assertRaisesRegexp(SystemExit, '1', hm.main, ['hod', 'banana'])
+        self.assertEqual(1, hm.main(['hod', 'banana']))
 
     def test_main_good_cmd(self):
-        hm.main(['hod', 'dists'])
+        self.assertEqual(0, hm.main(['hod', 'dists']))
 
     def test_main_help(self):
-        self.assertRaisesRegexp(SystemExit, '0', hm.main, ['hod', '--help'])
+        self.assertEqual(0, hm.main(['hod', '--help']))
 
     def test_usage(self):
         self.assertTrue(isinstance(hm.usage(), basestring))

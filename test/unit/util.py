@@ -32,14 +32,29 @@ Utilities for testing.
 import sys
 from cStringIO import StringIO
 from contextlib import contextmanager
+import hod.rmscheduler.rm_pbs as rm_pbs
 
 @contextmanager
 def capture(command, *args, **kwargs):
-    """Capture stdout in a context manager"""
+    """Capture stdout and stderr in a context manager"""
     out, sys.stdout = sys.stdout, StringIO()
+    err, sys.stderr = sys.stderr, StringIO()
     command(*args, **kwargs)
     sys.stdout.seek(0)
-    yield sys.stdout.read()
+    sys.stderr.seek(0)
+    yield sys.stdout.read(), sys.stderr.read()
     sys.stdout = out
+    sys.stderr = err
+
+class MockPbs(object):
+    def __init__(self, optparser):
+        pass
+
+    def state(self, jobid=None, fltr=None):
+        return [
+                rm_pbs.PbsJob('1234', 'R', '127.0.0.1'),
+                rm_pbs.PbsJob('q123', 'Q', '127.0.0.1'),
+                rm_pbs.PbsJob('h123', 'H', '127.0.0.1'),
+                ]
 
 

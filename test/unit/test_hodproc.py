@@ -68,10 +68,14 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
         self.assertEqual(cm.options, opts)
 
     def test_configured_master_distribution(self):
-        opts = CreateOptions(go_args=['progname', '--hodconf', 'hod.conf',
-        '--modules', 'Python-2.7.9-intel-2015a,Spark/1.3.0'])
+        args = [
+            'progname',
+            '--hodconf', 'hod.conf',
+            '--modules', 'Python-2.7.9-intel-2015a,Spark/1.3.0',
+        ]
+        opts = CreateOptions(go_args=args)
         autogen_config = Mock()
-        cm = hh.ConfiguredMaster(opts)
+        cm = hh.ConfiguredMaster(opts.options)
         with patch('hod.hodproc._setup_config_paths', side_effect=None):
             with patch('hod.config.config.PreServiceConfigOpts.autogen_configs',
                     side_effect=autogen_config):
@@ -88,7 +92,7 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
         opts = CreateOptions(go_args=['progname', '--hodconf', 'hod.conf',
         '--modules', 'Python-2.7.9-intel-2015a,Spark/1.3.0'])
         autogen_config = Mock()
-        cm = hh.ConfiguredSlave(opts)
+        cm = hh.ConfiguredSlave(opts.options)
         with patch('hod.hodproc._setup_config_paths', side_effect=None):
             with patch('hod.config.config.PreServiceConfigOpts.autogen_configs',
                     side_effect=autogen_config):
