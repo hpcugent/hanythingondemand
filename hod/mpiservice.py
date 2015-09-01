@@ -63,10 +63,6 @@ __all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_tasks', 'run_ta
 
 MASTERRANK = 0
 
-# Parameters to send over the network to allow slaves to construct hod.config.ConfigOpts
-# objects
-
-ConfigOptsParams = namedtuple('ConfigOptsParams', ['filename', 'workdir', 'modules', 'master_template_kwargs'])
 Task = namedtuple('Task', ['type', 'name', 'ranks', 'config_opts', 'master_env'])
 
 def _who_is_out_there(comm, rank):
@@ -199,7 +195,7 @@ def _mkconfigopts(cfg_opts):
         reg.register(ct)
 
     resolver = TemplateResolver(**reg.to_kwargs())
-    return ConfigOpts(open(cfg_opts.filename, 'r'), resolver)
+    return ConfigOpts.from_params(cfg_opts, resolver)
 
 
 @mpi4py_is_available
@@ -209,20 +205,20 @@ def run_tasks(svc):
     active_work = []
     wait_iter_sleep = 60  # run through all active work, then wait wait_iter_sleep seconds
 
-    for wrk in svc.tasks:
+    for task in svc.tasks:
         # pass any existing previous work
-        _log.debug("newcomm  for ranks %s for work %s: %s", wrk.ranks, wrk.name, wrk.type)
-        newcomm = _make_comm_group(svc.comm, wrk.ranks)
+        _log.debug("newcomm  for ranks %s for work %s: %s", task.ranks, task.name, task.type)
+        newcomm = _make_comm_group(svc.comm, task.ranks)
 
         if newcomm == MPI.COMM_NULL:
-            _log.debug('Skipping work setup for rank %d of this type %s', svc.rank, wrk.type)
+            _log.debug('Skipping work setup for rank %d of this type %s', svc.rank, task.type)
             continue
 
-        _log.debug('Setting up rank %d of this type %s', svc.rank, wrk.type)
+        _log.debug('Setting up rank %d of this type %s', svc.rank, task.type)
         svc.tempcomm.append(newcomm)
-        cfg = _mkconfigopts(wrk.config_opts)
-        work = wrk.type(cfg, wrk.master_env)
-        _log.debug("work %s begin", wrk.type.__name__)
+        cfg = _mkconfigopts(task.config_opts)
+        work = task.type(cfg, task.master_env)
+        _log.debug("work %s begin", task.type.__name__)
         work.prepare_work_cfg()
         # adding started work
         active_work.append(work)

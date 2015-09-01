@@ -37,7 +37,7 @@ from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
 from hod import VERSION as HOD_VERSION
-from hod.options import GENERAL_HOD_OPTIONS, validate_pbs_option
+from hod.options import GENERAL_HOD_OPTIONS, RESOURCE_MANAGER_OPTIONS, validate_pbs_option
 from hod.rmscheduler.hodjob import PbsHodJob
 from hod.subcommands.subcommand import SubCommand
 from hod.subcommands.create import CreateOptions
@@ -47,11 +47,30 @@ _log = fancylogger.getLogger('batch', fname=False)
 class BatchOptions(GeneralOption):
     VERSION = HOD_VERSION
 
+    def resource_manager_options(self):
+        """Add configuration options for job being submitted."""
+        opts = copy.deepcopy(RESOURCE_MANAGER_OPTIONS)
+        descr = ["Resource manager / Scheduler",
+                 "Provide resource manager/scheduler related options (eg number of nodes)"]
+        prefix = 'job'
+        self.add_group_parser(opts, descr, prefix=prefix)
+
+    def batch_options(self):
+        """Add batch configuration options"""
+        opts = {
+            'script': ("Script to run on the cluster", "string", "store", None),
+        }
+        descr = ["Batch options", "Configuration options for the 'batch' subcommand"]
+        self.log.debug("Add config option parser descr %s opts %s", descr, opts)
+        self.add_group_parser(opts, descr)
+
     def config_options(self):
         """Add general configuration options."""
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
-        opts['script'] = ("Script to run on the cluster", "string", "store", None )
-        descr = ["Batch configuration", "Configuration options for the 'batch' subcommand"]
+        opts.update({
+            'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
+        })
+        descr = ["Create configuration", "Configuration options for the 'batch' subcommand"]
 
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)
         self.add_group_parser(opts, descr)
@@ -59,7 +78,7 @@ class BatchOptions(GeneralOption):
 
 class BatchSubCommand(SubCommand):
     """Implementation of 'create' subcommand."""
-    CMD = 'Batch'
+    CMD = 'batch'
     EXAMPLE = "--hodconf=<hod.conf file> --workdir=<working directory> --script=<jobscript>"
     HELP = "Submit a job to spawn a cluster on a PBS job controller, run a job script, and tear down the cluster when it's done"
 
@@ -75,7 +94,6 @@ class BatchSubCommand(SubCommand):
             return 1
 
         try:
-            # Don't use pbshodjob here; make a different type.
             j = PbsHodJob(optparser)
             j.run()
             return 0

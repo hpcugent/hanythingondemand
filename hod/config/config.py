@@ -30,7 +30,7 @@ import os
 import sys
 
 from ConfigParser import NoOptionError, NoSectionError, SafeConfigParser
-from collections import Mapping
+from collections import Mapping, namedtuple
 from copy import deepcopy
 from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
@@ -135,6 +135,8 @@ class PreServiceConfigOpts(object):
     Manifest file for the group of services responsible for defining service
     level configs which need to be run through the template before any services
     can begin.
+
+    aka hod.conf or hodconf.
     """
     __slots__ = ['version', 'workdir', 'config_writer', 'directories',
                  'autogen', 'modules', 'service_configs', 'service_files', 'master_env']
@@ -300,23 +302,56 @@ class ConfigOpts(object):
     Some of the slots are computed on call so that they can run on the Slave
     nodes as opposed to the Master nodes.
     """
-    def __init__(self, fileobj, template_resolver):
-        self._config = load_service_config(fileobj)
-        self.name = _cfgget(self._config, _UNIT_SECTION, 'Name')
-        self._runs_on = _parse_runs_on(_cfgget(self._config, _UNIT_SECTION, 'RunsOn'))
+
+    @staticmethod
+    def from_file(fileobj, template_resolver):
+        """Load a ConfigOpts from a configuration file."""
+        _config = load_service_config(fileobj)
+
+        name = _cfgget(_config, _UNIT_SECTION, 'Name')
+        runs_on = _parse_runs_on(_cfgget(_config, _UNIT_SECTION, 'RunsOn'))
+        pre_start_script = _cfgget(_config, _SERVICE_SECTION, 'ExecStartPre', '')
+        start_script = _cfgget(_config, _SERVICE_SECTION, 'ExecStart')
+        stop_script = _cfgget(_config, _SERVICE_SECTION, 'ExecStop')
+        env = dict([(k, v) for k, v in _config.items(_ENVIRONMENT_SECTION)])
+
+        return ConfigOpts(name, runs_on, pre_start_script, start_script,
+                stop_script, env, template_resolver)
+
+    def to_params(self, workdir, modules, master_template_args):
+        """Create a ConfigOptsParams object from the ConfigOpts"""
+        return ConfigOptsParams(self.name, self.runs_on, self.pre_start_script,
+                self.start_script, self.stop_script, self._env, workdir,
+                modules, master_template_args)
+
+    @staticmethod
+    def from_params(configopts, template_resolver):
+        """Create a ConfigOpts from a ConfigOptsParams"""
+        return ConfigOpts(configopts.name, configopts.runs_on,
+                configopts.pre_start_script, configopts.start_script,
+                configopts.stop_script, configopts.env, template_resolver)
+
+    def __init__(self, name, runs_on, pre_start_script, start_script,
+            stop_script, env, template_resolver):
+        self.name = name
+        self._runs_on = runs_on
         self._tr = template_resolver
+        self._pre_start_script = pre_start_script
+        self._start_script = start_script
+        self._stop_script = stop_script
+        self._env = env
 
     @property
     def pre_start_script(self):
-        return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStartPre', ''))
+        return self._tr(self._pre_start_script)
 
     @property
     def start_script(self):
-        return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStart'))
+        return self._tr(self._start_script)
 
     @property
     def stop_script(self):
-        return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStop'))
+        return self._tr(self._stop_script)
 
     @property
     def workdir(self):
@@ -332,7 +367,7 @@ class ConfigOpts(object):
 
     @property
     def env(self):
-        return dict([(k, self._tr(v)) for k, v in self._config.items(_ENVIRONMENT_SECTION)])
+        return dict([(k, self._tr(v)) for k, v in self._env.items()])
 
     def __str__(self):
         return 'ConfigOpts(name=%s, runs_on=%d, pre_start_script=%s, ' \
@@ -363,6 +398,19 @@ class ConfigOpts(object):
         else:
             raise ValueError('ConfigOpts.runs_on has invalid value: %s' % self._runs_on)
 
+# Parameters to send over the network to allow slaves to construct hod.config.ConfigOpts
+# objects
+ConfigOptsParams = namedtuple('ConfigOptsParams', [
+    'name', 
+    'runs_on',
+    'pre_start_script', 
+    'start_script',
+    'stop_script', 
+    'env', 
+    'workdir', 
+    'modules', 
+    'master_template_kwargs'
+    ])
 
 def autogen_fn(name):
     """
