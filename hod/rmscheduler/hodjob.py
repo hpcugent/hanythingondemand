@@ -56,8 +56,7 @@ class HodJob(Job):
 
         self.name_suffix = 'HOD'  # suffixed name, to lookup later
         options_dict = self.options.dict_by_prefix()
-        options_dict['job']['name'] = "%s_%s" % (options_dict['job']['name'],
-                                                self.name_suffix)
+        options_dict['job']['name'] = "%s_%s" % (options_dict['job']['name'], self.name_suffix)
         self.type = self.type_class(options_dict['job'])
 
         # all jobqueries are filtered on this suffix

@@ -40,6 +40,15 @@ GENERAL_HOD_OPTIONS = {
     'workdir': ("Working directory", 'string', 'store', None),
 }
 
+RESOURCE_MANAGER_OPTIONS = {
+    'walltime': ("Job walltime in hours", 'float', 'store', 48, 'l'),
+    'nodes': ("Full nodes for the job", "int", "store", 5, "n"),
+    'ppn': ("Processors per node (-1=full node)", "int", "store", -1),
+    'mail': ("When to send mail (b=begin, e=end, a=abort)", "string", "extend", [], "m"),
+    'mailothers': ("Other email adresses to send mail to", "string", "extend", [], "M"),
+    'name': ("Job name", "string", "store", "HanythingOnDemand_job", "N"),
+    'queue': ("Queue name (empty string is default queue)", "string", "store", "", "q"),
+}
 
 _log = fancylogger.getLogger('create', fname=False)
 

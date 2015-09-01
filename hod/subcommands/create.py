@@ -36,7 +36,7 @@ from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
 from hod import VERSION as HOD_VERSION
-from hod.options import GENERAL_HOD_OPTIONS, validate_pbs_option
+from hod.options import GENERAL_HOD_OPTIONS, RESOURCE_MANAGER_OPTIONS, validate_pbs_option
 from hod.rmscheduler.hodjob import PbsHodJob
 from hod.subcommands.subcommand import SubCommand
 
@@ -50,15 +50,7 @@ class CreateOptions(GeneralOption):
 
     def resource_manager_options(self):
         """Add configuration options for job being submitted."""
-        opts = {
-            'walltime': ("Job walltime in hours", 'float', 'store', 48, 'l'),
-            'nodes': ("Full nodes for the job", "int", "store", 5, "n"),
-            'ppn': ("Processors per node (-1=full node)", "int", "store", -1),
-            'mail': ("When to send mail (b=begin, e=end, a=abort)", "string", "extend", [], "m"),
-            'mailothers': ("Other email adresses to send mail to", "string", "extend", [], "M"),
-            'name': ("Job name", "string", "store", "HanythingOnDemand_job", "N"),
-            'queue': ("Queue name (empty string is default queue)", "string", "store", "", "q"),
-        }
+        opts = copy.deepcopy(RESOURCE_MANAGER_OPTIONS)
         descr = ["Resource manager / Scheduler",
                  "Provide resource manager/scheduler related options (eg number of nodes)"]
         prefix = 'job'

@@ -234,7 +234,7 @@ ExecStop=stopper
 
 [Environment]
 SOME_ENV=123""")
-        cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
+        cfg = hcc.ConfigOpts.from_file(config, hct.TemplateResolver(workdir=''))
         self.assertEqual(cfg.name, 'testconfig')
         self.assertEqual(cfg._runs_on, hcc.RUNS_ON_MASTER)
         self.assertEqual(cfg.runs_on(0, [0, 1, 2, 3]), [0])
@@ -257,7 +257,7 @@ ExecStop=stopper
 
 [Environment]
 SOME_ENV=123""")
-        cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
+        cfg = hcc.ConfigOpts.from_file(config, hct.TemplateResolver(workdir=''))
         self.assertEqual(cfg.name, 'testconfig')
         self.assertEqual(cfg._runs_on, hcc.RUNS_ON_SLAVE)
         self.assertEqual(cfg.runs_on(0, [0, 1, 2]), [1, 2])
@@ -275,7 +275,7 @@ ExecStop=stopper
 
 [Environment]
 SOME_ENV=123""")
-        cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
+        cfg = hcc.ConfigOpts.from_file(config, hct.TemplateResolver(workdir=''))
         self.assertEqual(cfg.name, 'testconfig')
         self.assertEqual(cfg._runs_on, hcc.RUNS_ON_ALL)
         self.assertEqual(cfg.runs_on(0, [0, 1, 2]), [0, 1, 2])
@@ -304,7 +304,7 @@ ExecStop=$BINDIR/stopper
 [Environment]
 SOME_ENV=123""")
         with patch('hod.config.template.os.environ', dict(BINDIR='/usr/bin')):
-            cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
+            cfg = hcc.ConfigOpts.from_file(config, hct.TemplateResolver(workdir=''))
             self.assertEqual(cfg.start_script, '/usr/bin/starter')
             self.assertEqual(cfg.stop_script, '/usr/bin/stopper')
 
@@ -321,7 +321,7 @@ ExecStop=stopper
 
 [Environment]
 SOME_ENV=123""")
-        cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
+        cfg = hcc.ConfigOpts.from_file(config, hct.TemplateResolver(workdir=''))
         remade_cfg = loads(dumps(cfg))
         self.assertEqual(cfg.name, remade_cfg.name)
         self.assertEqual(cfg.start_script, remade_cfg.start_script)
@@ -340,7 +340,7 @@ ExecStop=%(daemon)s/stopper
 
 [Environment]
 SOME_ENV=123""")
-        cfg = hcc.ConfigOpts(config, hct.TemplateResolver(workdir=''))
+        cfg = hcc.ConfigOpts.from_file(config, hct.TemplateResolver(workdir=''))
         self.assertEqual(cfg.start_script, '$MYPATH/starter')
         self.assertEqual(cfg.stop_script, '$MYPATH/stopper')
 
