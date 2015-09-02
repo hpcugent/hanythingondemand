@@ -35,7 +35,7 @@ from hod.rmscheduler.job import Job
 from hod.rmscheduler.rm_pbs import Pbs
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 from hod.config.config import (parse_comma_delim_list,
-        preserviceconfigopts_from_file_list, resolve_config_paths)
+        PreServiceConfigOpts, resolve_config_paths)
 
 
 class HodJob(Job):
@@ -142,7 +142,7 @@ class PbsHodJob(MympirunHod):
         self.log.info('Loading "%s" manifest config', config_filenames)
         # If the user mistypes the --dist argument (e.g. Haddoop-...) then this will
         # raise; TODO: cleanup the error reporting. 
-        precfg = preserviceconfigopts_from_file_list(config_filenames, workdir=options.options.workdir)
+        precfg = PreServiceConfigOpts.from_file_list(config_filenames, workdir=options.options.workdir)
         for module in precfg.modules:
             self.log.debug("Adding '%s' module to startup script.", module)
             self.modules.append(module)

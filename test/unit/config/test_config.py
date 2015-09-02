@@ -327,6 +327,27 @@ SOME_ENV=123""")
         self.assertEqual(cfg.start_script, remade_cfg.start_script)
         self.assertEqual(cfg.stop_script, remade_cfg.stop_script)
 
+    def test_ConfigOptsParams_pickles(self):
+        config = StringIO("""
+[Unit]
+Name=testconfig
+RunsOn=master
+
+[Service]
+ExecStart=starter
+ExecStop=stopper
+
+[Environment]
+SOME_ENV=123""")
+        cfg = hcc.ConfigOpts.from_file(config, hct.TemplateResolver(workdir=''))
+        cfgparams = cfg.to_params('workdir', 'modules', dict(master='template_args'))
+        print cfgparams
+        remade_cfg = loads(dumps(cfgparams))
+        self.assertEqual(cfgparams.name, remade_cfg.name)
+        self.assertEqual(cfgparams.start_script, remade_cfg.start_script)
+        self.assertEqual(cfgparams.stop_script, remade_cfg.stop_script)
+
+
     def test_ConfigOpts_ConfigParser_replacement(self):
         config = StringIO("""
 [Unit]
@@ -343,6 +364,11 @@ SOME_ENV=123""")
         cfg = hcc.ConfigOpts.from_file(config, hct.TemplateResolver(workdir=''))
         self.assertEqual(cfg.start_script, '$MYPATH/starter')
         self.assertEqual(cfg.stop_script, '$MYPATH/stopper')
+
+        params = cfg.to_params(workdir='', modules='', master_template_args=dict())
+        cfg2 = hcc.ConfigOpts.from_params(params, hct.TemplateResolver(workdir=''))
+        self.assertEqual(cfg2.start_script, '$MYPATH/starter')
+        self.assertEqual(cfg2.stop_script, '$MYPATH/stopper')
 
     def test_env2str(self):
         env = dict(PATH="/usr/bin", LD_LIBRARY_PATH="something with spaces")
