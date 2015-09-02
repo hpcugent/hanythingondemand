@@ -27,7 +27,6 @@
 """
 
 import os
-import sys
 
 from ConfigParser import NoOptionError, NoSectionError, SafeConfigParser
 from collections import Mapping, namedtuple
@@ -127,7 +126,7 @@ def parse_comma_delim_list(s):
     with no spaces on the end or beginning.
     Blanks are also removed. e.g. 'a,,b' results in ['a', 'b']
     '''
-    return [x.strip() for x in filter(lambda x: x.strip(), s.split(','))]
+    return [tok.strip() for tok in [el for el in s.split(',') if el.strip()]]
 
 
 class PreServiceConfigOpts(object):
@@ -141,7 +140,17 @@ class PreServiceConfigOpts(object):
     __slots__ = ['version', 'workdir', 'config_writer', 'directories',
                  'autogen', 'modules', 'service_configs', 'service_files', 'master_env']
 
-    OPTIONAL_FIELDS=['master_env', 'modules', 'service_configs', 'directories', 'autogen']
+    OPTIONAL_FIELDS = ['master_env', 'modules', 'service_configs', 'directories', 'autogen']
+
+    @staticmethod
+    def from_file_list(filenames, **kwargs):
+        """Create and merge PreServiceConfigOpts from a list of filenames."""
+        precfgs = [PreServiceConfigOpts(open(f, 'r'), **kwargs) for f in filenames]
+        precfg = reduce(merge, precfgs)
+        bad_fields = invalid_fields(precfg)
+        if bad_fields:
+            raise RuntimeError("A valid configuration could not be generated from the files: %s: missing fields: %s" % (filenames, bad_fields))
+        return precfg
 
     def __init__(self, fileobj, **kwargs):
         _config = load_service_config(fileobj)
@@ -210,16 +219,6 @@ class PreServiceConfigOpts(object):
                         self.config_writer, self.service_configs)
 
 
-def preserviceconfigopts_from_file_list(filenames, **kwargs):
-    """Create and merge PreServiceConfigOpts from a list of filenames."""
-    precfgs = [PreServiceConfigOpts(open(f, 'r'), **kwargs) for f in filenames]
-    precfg = reduce(merge, precfgs)
-    bad_fields = invalid_fields(precfg)
-    if bad_fields:
-        raise RuntimeError("A valid configuration could not be generated from the files: %s: missing fields: %s" % (filenames, bad_fields))
-    return precfg
-
-
 def merge(lhs, rhs):
     """
     Merge two objects of the same type based on their __slot__ list. This
@@ -227,7 +226,7 @@ def merge(lhs, rhs):
     Rules:
         List types are concatenated.
         Dict types are merged using a deep merge.
-        String types are overwritten. 
+        String types are overwritten.
     """
     if type(lhs) != type(rhs):
         raise RuntimeError('merge can only use two of the same type')
@@ -320,16 +319,16 @@ class ConfigOpts(object):
 
     def to_params(self, workdir, modules, master_template_args):
         """Create a ConfigOptsParams object from the ConfigOpts"""
-        return ConfigOptsParams(self.name, self.runs_on, self.pre_start_script,
-                self.start_script, self.stop_script, self._env, workdir,
+        return ConfigOptsParams(self.name, self._runs_on, self._pre_start_script,
+                self._start_script, self._stop_script, self._env, workdir,
                 modules, master_template_args)
 
     @staticmethod
-    def from_params(configopts, template_resolver):
+    def from_params(params, template_resolver):
         """Create a ConfigOpts from a ConfigOptsParams"""
-        return ConfigOpts(configopts.name, configopts.runs_on,
-                configopts.pre_start_script, configopts.start_script,
-                configopts.stop_script, configopts.env, template_resolver)
+        return ConfigOpts(params.name, params.runs_on,
+                params.pre_start_script, params.start_script,
+                params.stop_script, params.env, template_resolver)
 
     def __init__(self, name, runs_on, pre_start_script, start_script,
             stop_script, env, template_resolver):
@@ -401,16 +400,16 @@ class ConfigOpts(object):
 # Parameters to send over the network to allow slaves to construct hod.config.ConfigOpts
 # objects
 ConfigOptsParams = namedtuple('ConfigOptsParams', [
-    'name', 
+    'name',
     'runs_on',
-    'pre_start_script', 
+    'pre_start_script',
     'start_script',
-    'stop_script', 
-    'env', 
-    'workdir', 
-    'modules', 
+    'stop_script',
+    'env',
+    'workdir',
+    'modules',
     'master_template_kwargs'
-    ])
+])
 
 def autogen_fn(name):
     """
@@ -499,3 +498,4 @@ def resolve_config_paths(config, dist):
         raise RuntimeError('A config or a dist must be provided')
 
     return path
+
