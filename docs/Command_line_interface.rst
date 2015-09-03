@@ -24,15 +24,16 @@ Running ``hod`` without arguments is equivalent to ``hod --help``, and results i
 .. code::
 
     $ hod
-    hod: hanythingondemand - Run services within a torque cluster
-    usage: hod [--version] [--help] <subcommand> [subcommand options]
-    Available subcommands:
+    hanythingondemand version 3.0.0 - Run services within an HPC cluster
+    usage: hod <subcommand> [subcommand options]
+    Available subcommands (one of these must be specified!):
         create          Submit a job to spawn a cluster on a PBS job controller
+        batch           Submit a job to spawn a cluster on a PBS job controller, run a job script, and tear down the cluster when it's done
         list            List submitted/running clusters
         dists           List the available distributions
         help-template   Print the values of the configuration templates based on the current machine.
         genconfig       Write hod configs to a directory for diagnostic purposes
-
+        connect         Connect to a hod cluster.
 
 .. _cmdline_hod_options:
 
@@ -96,14 +97,12 @@ More details on a specific subcommand are available via ``hod <subcommand> --hel
 Known subcommands:
 
 * :ref:`cmdline_create`
+* :ref:`cmdline_batch`
 * :ref:`cmdline_list`
 * :ref:`cmdline_dists`
 * :ref:`cmdline_helptemplate`
 * :ref:`cmdline_genconfig`
 * :ref:`cmdline_connect`
-* :ref:`cmdline_destroy`
-* :ref:`cmdline_disconnect`
-* :ref:`cmdline_status`
 
 .. _cmdline_create:
 
@@ -130,21 +129,31 @@ Configuration options for ``hod create``
 ``hod create --modules <module names>``
 +++++++++++++++++++++++++++++++++++++++
 
-foo
+Add modules to the dist so each node has access to them. If code submitted to
+the cluster requires a particular module, it should be added with this option.
+For example, if an IPython notebook plans to use Python modules on the worker
+kernels (or through Spark) they will need to be added here.
 
 .. _cmdline_create_options_job:
 
 Configuration options for job scheduler passed via ``hod create``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-foo
-
 .. _cmdline_create_options_job_mail:
 
 ``hod create --job-mail``/``-m``
 ++++++++++++++++++++++++++++++++
 
-foo
+Send a mail when the cluster has started or finished.
+
+.. _cmdline_batch:
+
+``hod batch --script=<script-name>``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a cluster and run the script. Upon completion of the script, the cluster will be stopped.
+
+.. note:: Either the ``--hodconf`` or ``--dist`` option must be specified.
 
 .. _cmdline_list:
 
@@ -161,12 +170,12 @@ Print a list of existing clusters, and their state ('``submitted``' or '``active
 ``hod dists``
 ~~~~~~~~~~~~~
 
-Print a numbered list of available cluster configuration files.
+Print a list of available cluster configuration files.
 
 
 .. _cmdline_helptemplate:
 
-``hod help-template`` (rename??)
+``hod help-template``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. FIXME machine?
@@ -176,14 +185,12 @@ Print the values for the configuration templates based on the current machine.
 
 .. _cmdline_genconfig:
 
-``hod genconfig`` (rename??)
+``hod genconfig``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Generate hanythingondemand cluster configuration files to the working directory for diagnostic purposes.
 
 
-
-.. TODO
 .. _cmdline_connect:
 
 ``hod connect <cluster label>``
@@ -196,37 +203,3 @@ Connect to an existing hanythingondemand cluster, and set up the environment to 
 If no cluster label is specified, a list of existing clusters is printed (via ``hod list-clusters``).
 
 SSH to head node + set up environment (source $HOME/.config/hod.d/<label>.<jobid>/env)
-
-.. TODO
-.. _cmdline_destroy:
-
-``hod destroy <cluster label>``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. qdel
-
-Destroy an existing hanythingondemand cluster.
-
-If no cluster label is specified, a list of existing clusters is printed (via ``hod list-clusters``).
-
-
-.. TODO
-.. _cmdline_disconnect:
-
-``hod disconnect``
-~~~~~~~~~~~~~~~~~~
-
-.. exit SSH session
-
-Disconnect from the cluster ``hod`` is currently connected to (if any).
-
-
-.. TODO
-.. _cmdline_status:
-
-``hod status <cluster label>``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Print current status, i.e. whether we are connected to a cluster (and if so, which one), etc.
-
-If a cluster label is specified, a more detailed status of the specific cluster is printed.
