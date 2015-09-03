@@ -54,19 +54,22 @@ and available options for the specified subcommand.
 
 Specify location of cluster configuration file.
 
+Can also be specified using ``$HOD_HODCONF``.
+
 ``hod --dist <dist label>``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Specify one of the included cluster configuration file to be used (see also :ref:`cmdline_dists`).
+
+Can also be specified using ``$HOD_DIST``.
 
 ``hod --workdir <path>``
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+Specify the top-level working directory to use.
 
-.. _cmdline_hod_version:
+Can also be specified using ``$HOD_WORKDIR``.
 
-``hod --version``
-^^^^^^^^^^^^^^^^^
-
-Print hanythingondemand version information.
 
 .. .. _cmdline_hod_scheduler:
 
@@ -88,9 +91,8 @@ Print hanythingondemand version information.
 -------------------
 
 The ``hod`` command provides a number of subcommands, which correspond to different actions.
-Some of these require to be in a particular state (e.g., being connected to a hanythingondemand cluster).
 
-An overview of the available subcommands is available via :ref:`cmdline_hod_usage`.
+An overview of the available subcommands is available via ``hod --help`` (see :ref:`cmdline_hod`).
 
 More details on a specific subcommand are available via ``hod <subcommand> --help``.
 
@@ -106,23 +108,30 @@ Known subcommands:
 
 .. _cmdline_create:
 
-``hod create [cluster label]``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``hod create``
+~~~~~~~~~~~~~~
 
-.. TODO label part
-
-Create a hanythingondemand cluster, with the specified label and cluster configuration file.
+Create a hanythingondemand cluster, with the specified label (optional) and cluster configuration file (required).
 
 .. TODO the number part
 
-The configuration file can be a filepath, or a number (that corresponds to a file listed by ``hod dists``).
+The configuration file can be a filepath, or one of the included cluster configuration files (see :ref:`cmdline_dists`).
 
-.. note:: Either the ``--hodconf`` or ``--dist`` option must be specified.
+.. note:: --workdir *and* either the ``--hodconf`` or ``--dist`` must be specified.
 
 .. _cmdline_create_options:
 
 Configuration options for ``hod create``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. _cmdline_create_options_label:
+
+``hod create --label <label>``
+++++++++++++++++++++++++++++++
+
+Specify label for this cluster. If not label is specified, the job ID will be used as a label.
+
+The label can be used to later connect to the cluster while it is running (see :ref:`cmdline_connect`).
 
 .. _cmdline_create_options_modules:
 
@@ -136,15 +145,14 @@ kernels (or through Spark) they will need to be added here.
 
 .. _cmdline_create_options_job:
 
+``hod create --job-*``
+++++++++++++++++++++++
+
+The resources being requested for the job that is submitted can be controlled via the available ``--job`` options,
+see :ref:`cmdline_job_options`.
+
 Configuration options for job scheduler passed via ``hod create``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. _cmdline_create_options_job_mail:
-
-``hod create --job-mail``/``-m``
-++++++++++++++++++++++++++++++++
-
-Send a mail when the cluster has started or finished.
 
 .. _cmdline_batch:
 
@@ -153,7 +161,24 @@ Send a mail when the cluster has started or finished.
 
 Create a cluster and run the script. Upon completion of the script, the cluster will be stopped.
 
-.. note:: Either the ``--hodconf`` or ``--dist`` option must be specified.
+.. note:: --workdir *and* either the ``--hodconf`` or ``--dist`` must be specified.
+
+.. _cmdline_batch_options_label:
+
+``hod batch --label <label>``
++++++++++++++++++++++++++++++
+
+Specify label for this cluster. If not label is specified, the job ID will be used as a label.
+
+The label can be used to later connect to the cluster while it is running (see :ref:`cmdline_connect`).
+
+.. _cmdline_batch_options_job:
+
+``hod batch --job-*``
+++++++++++++++++++++++
+
+The resources being requested for the job that is submitted can be controlled via the available ``--job`` options,
+see :ref:`cmdline_job_options`.
 
 .. _cmdline_list:
 
@@ -200,6 +225,5 @@ Generate hanythingondemand cluster configuration files to the working directory 
 
 Connect to an existing hanythingondemand cluster, and set up the environment to use it.
 
-If no cluster label is specified, a list of existing clusters is printed (via ``hod list-clusters``).
-
-SSH to head node + set up environment (source $HOME/.config/hod.d/<label>.<jobid>/env)
+This basically corresponds to logging in to the cluster head node using SSH and sourcing the cluster information script
+that was created for this cluster (``$HOME/.config/hod.d/<label>/env``).
