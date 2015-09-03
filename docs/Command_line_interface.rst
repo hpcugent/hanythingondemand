@@ -187,7 +187,7 @@ see :ref:`cmdline_job_options`.
 
 .. TODO enhance output?
 
-Print a list of existing clusters, and their state ('``submitted``' or '``active``').
+Print a list of existing clusters, and their state ('``queued``' or '``running``').
 
 
 .. _cmdline_dists:
