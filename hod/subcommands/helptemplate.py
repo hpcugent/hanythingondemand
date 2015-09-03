@@ -44,9 +44,8 @@ class HelpTemplateOptions(GeneralOption):
 
 def mk_registry():
     """Make a TemplateRegistry and register basic items"""
-    config_opts = ConfigOptsParams('svc-name', 'MASTER', 'ExecPreStart',
-            'ExecStart', 'ExecStop', dict(), workdir='WORKDIR',
-        modules=['MODULES'], master_template_kwargs=[])
+    config_opts = ConfigOptsParams('svc-name', 'MASTER', 'ExecPreStart', 'ExecStart', 'ExecStop',
+                                   dict(), workdir='WORKDIR', modules=['MODULES'], master_template_kwargs=[])
     reg = hct.TemplateRegistry()
     hct.register_templates(reg, config_opts)
     master_template_kwargs = master_template_opts(reg.fields.values())

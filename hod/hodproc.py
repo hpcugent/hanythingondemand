@@ -126,9 +126,9 @@ class ConfiguredMaster(MpiService):
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
 
         if hasattr(self.options, 'script') and self.options.script is not None:
-            script = self.options.script
+            script = self.options.script + '; qdel $PBS_JOBID'
             # TODO: How can we test this?
-            config = ConfigOpts(script, RUNS_ON_MASTER, '', script + '; qdel $PBS_JOBID', '', master_env, resolver)
+            config = ConfigOpts(script, RUNS_ON_MASTER, '', script, '', master_env, resolver)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
             cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))

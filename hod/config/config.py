@@ -305,33 +305,29 @@ class ConfigOpts(object):
     @staticmethod
     def from_file(fileobj, template_resolver):
         """Load a ConfigOpts from a configuration file."""
-        _config = load_service_config(fileobj)
+        config = load_service_config(fileobj)
 
-        name = _cfgget(_config, _UNIT_SECTION, 'Name')
-        runs_on = _parse_runs_on(_cfgget(_config, _UNIT_SECTION, 'RunsOn'))
-        pre_start_script = _cfgget(_config, _SERVICE_SECTION, 'ExecStartPre', '')
-        start_script = _cfgget(_config, _SERVICE_SECTION, 'ExecStart')
-        stop_script = _cfgget(_config, _SERVICE_SECTION, 'ExecStop')
-        env = dict([(k, v) for k, v in _config.items(_ENVIRONMENT_SECTION)])
+        name = _cfgget(config, _UNIT_SECTION, 'Name')
+        runs_on = _parse_runs_on(_cfgget(config, _UNIT_SECTION, 'RunsOn'))
+        pre_start_script = _cfgget(config, _SERVICE_SECTION, 'ExecStartPre', '')
+        start_script = _cfgget(config, _SERVICE_SECTION, 'ExecStart')
+        stop_script = _cfgget(config, _SERVICE_SECTION, 'ExecStop')
+        env = dict(config.items(_ENVIRONMENT_SECTION))
 
-        return ConfigOpts(name, runs_on, pre_start_script, start_script,
-                stop_script, env, template_resolver)
+        return ConfigOpts(name, runs_on, pre_start_script, start_script, stop_script, env, template_resolver)
 
     def to_params(self, workdir, modules, master_template_args):
-        """Create a ConfigOptsParams object from the ConfigOpts"""
-        return ConfigOptsParams(self.name, self._runs_on, self._pre_start_script,
-                self._start_script, self._stop_script, self._env, workdir,
-                modules, master_template_args)
+        """Create a ConfigOptsParams object from the ConfigOpts instance"""
+        return ConfigOptsParams(self.name, self._runs_on, self._pre_start_script, self._start_script, 
+                                self._stop_script, self._env, workdir, modules, master_template_args)
 
     @staticmethod
     def from_params(params, template_resolver):
-        """Create a ConfigOpts from a ConfigOptsParams"""
-        return ConfigOpts(params.name, params.runs_on,
-                params.pre_start_script, params.start_script,
-                params.stop_script, params.env, template_resolver)
+        """Create a ConfigOpts instance from a ConfigOptsParams instance"""
+        return ConfigOpts(params.name, params.runs_on, params.pre_start_script, params.start_script,
+                          params.stop_script, params.env, template_resolver)
 
-    def __init__(self, name, runs_on, pre_start_script, start_script,
-            stop_script, env, template_resolver):
+    def __init__(self, name, runs_on, pre_start_script, start_script, stop_script, env, template_resolver):
         self.name = name
         self._runs_on = runs_on
         self._tr = template_resolver
@@ -498,4 +494,3 @@ def resolve_config_paths(config, dist):
         raise RuntimeError('A config or a dist must be provided')
 
     return path
-

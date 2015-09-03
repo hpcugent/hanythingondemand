@@ -27,7 +27,7 @@
 Generate a PBS job script using pbs_python. Will use mympirun to get the cluster
 all started, run a job, and tear down the cluster when it's done.
 
-@author: Stijn De Weirdt (Universiteit Gent)
+@author: Kenneth Hoste (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
 import copy
@@ -70,14 +70,14 @@ class BatchOptions(GeneralOption):
         opts.update({
             'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
         })
-        descr = ["Create configuration", "Configuration options for the 'batch' subcommand"]
+        descr = ["Batch job creation configuration", "Configuration options for the 'batch' subcommand"]
 
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)
         self.add_group_parser(opts, descr)
 
 
 class BatchSubCommand(SubCommand):
-    """Implementation of 'create' subcommand."""
+    """Implementation of 'batch' subcommand."""
     CMD = 'batch'
     EXAMPLE = "--hodconf=<hod.conf file> --workdir=<working directory> --script=<jobscript>"
     HELP = "Submit a job to spawn a cluster on a PBS job controller, run a job script, and tear down the cluster when it's done"
