@@ -149,7 +149,8 @@ class PreServiceConfigOpts(object):
         precfg = reduce(merge, precfgs)
         bad_fields = invalid_fields(precfg)
         if bad_fields:
-            raise RuntimeError("A valid configuration could not be generated from the files: %s: missing fields: %s" % (filenames, bad_fields))
+            raise RuntimeError("A valid configuration could not be generated from the files: %s: missing fields: %s" %
+                               (filenames, bad_fields))
         return precfg
 
     def __init__(self, fileobj, **kwargs):
