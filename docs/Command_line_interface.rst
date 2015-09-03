@@ -117,7 +117,7 @@ Create a hanythingondemand cluster, with the specified label (optional) and clus
 
 The configuration file can be a filepath, or one of the included cluster configuration files (see :ref:`cmdline_dists`).
 
-.. note:: --workdir *and* either the ``--hodconf`` or ``--dist`` must be specified.
+.. note:: ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
 
 .. _cmdline_create_options:
 
@@ -151,17 +151,14 @@ kernels (or through Spark) they will need to be added here.
 The resources being requested for the job that is submitted can be controlled via the available ``--job`` options,
 see :ref:`cmdline_job_options`.
 
-Configuration options for job scheduler passed via ``hod create``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 .. _cmdline_batch:
 
 ``hod batch --script=<script-name>``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Create a cluster and run the script. Upon completion of the script, the cluster will be stopped.
 
-.. note:: --workdir *and* either the ``--hodconf`` or ``--dist`` must be specified.
+.. note:: ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
 
 .. _cmdline_batch_options_label:
 
