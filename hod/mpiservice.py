@@ -1,5 +1,5 @@
 # #
-# Copyright 2009-2013 Ghent University
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -23,26 +23,43 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
+Supporting MPI functionality
 
 @author: Stijn De Weirdt (Ghent University)
+@author: Ewan Higgs (Ghent University)
+@author: Kenneth Hoste (Ghent University)
 """
-
-from collections import namedtuple
-from hod.config.template import (ConfigTemplate, TemplateRegistry,
-        TemplateResolver, register_templates)
-from hod.config.config import ConfigOpts
-from mpi4py import MPI
-
 import socket
 import time
+from collections import namedtuple
+from vsc.utils import fancylogger
 
 import hod.node.node as node
+from hod.config.config import ConfigOpts
+from hod.config.template import ConfigTemplate, TemplateRegistry, TemplateResolver, register_templates
 
-from vsc.utils import fancylogger
+
 _log = fancylogger.getLogger(fname=False)
 
-__all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_tasks',
-        'run_tasks']
+
+try:
+    from mpi4py import MPI
+    # mpi4py is available, no need guard against import errors
+    def mpi4py_is_available(fn):
+        """No-op decorator."""
+        return fn
+
+except ImportError as err:
+    def mpi4py_is_available(_):
+        """Decorator which raises an ImportError because mpi4py is not available."""
+        def fail(*args, **kwargs):
+            """Raise ImportError since mpi4py is not available."""
+            raise ImportError("%s; is there an environment module providing MPI support loaded?" % err)
+
+        return fail
+
+
+__all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_tasks', 'run_tasks']
 
 MASTERRANK = 0
 
@@ -58,6 +75,8 @@ def _who_is_out_there(comm, rank):
     _log.debug("Are out there %s on comm %s", others, comm)
     return others
 
+
+@mpi4py_is_available
 def _check_comm(comm, txt):
     """Report details about communicator"""
     if comm == MPI.COMM_NULL:
@@ -71,17 +90,20 @@ def _check_comm(comm, txt):
         else:
             _log.debug("%scomm %s size %d rank %d", txt, comm, mysize, myrank)
 
+
 def barrier(comm, txt):
     """Perform MPI.barrier"""
     _log.debug("%s with barrier", txt)
     comm.barrier()
     _log.debug("%s with barrier DONE", txt)
 
+
 def _check_group(group, txt):
     """Report details about group"""
     myrank = group.Get_rank()
     mysize = group.Get_size()
     _log.debug("%s group %s size %d rank %d", txt, group, mysize, myrank)
+
 
 def _make_comm_group(comm, ranks):
     """Make a new communicator based on set of ranks"""
@@ -96,6 +118,8 @@ def _make_comm_group(comm, ranks):
 
     return newcomm
 
+
+@mpi4py_is_available
 def _stop_comm(comm):
     """Stop a single communicator"""
     _check_comm(comm, 'Stopping')
@@ -112,15 +136,18 @@ def _stop_comm(comm):
         _log.debug("Stop disconnect")
         comm.Disconnect()
 
+
 def _master_spread(comm, tasks):
     retval = comm.bcast(tasks, root=MASTERRANK)
     _log.debug("Distributed '%s' from masterrank %s", tasks, MASTERRANK)
     return retval
 
+
 def _slave_spread(comm):
     tasks = comm.bcast(root=MASTERRANK)
     _log.debug("Received '%s' from masterrank %s", tasks, MASTERRANK)
     return tasks
+
 
 def master_template_opts(stub_config_opts=None):
     '''
@@ -164,6 +191,7 @@ def setup_tasks(svc):
     else:
         svc.tasks = _slave_spread(svc.comm)
 
+
 def _mkconfigopts(cfg_opts):
     reg = TemplateRegistry()
     register_templates(reg, cfg_opts)
@@ -173,6 +201,8 @@ def _mkconfigopts(cfg_opts):
     resolver = TemplateResolver(**reg.to_kwargs())
     return ConfigOpts(open(cfg_opts.filename, 'r'), resolver)
 
+
+@mpi4py_is_available
 def run_tasks(svc):
     """Make communicators for tasks and execute the work there"""
     # Based on initial dist, create the groups and communicators and map with work
@@ -220,8 +250,11 @@ def run_tasks(svc):
             time.sleep(wait_iter_sleep)
     _log.debug("No more active work left.")
 
+
 class MpiService(object):
     """Basic mpi based service class"""
+
+    @mpi4py_is_available
     def __init__(self, log=None):
         self.log = log
         if self.log is None:

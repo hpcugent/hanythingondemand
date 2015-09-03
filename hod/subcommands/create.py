@@ -29,13 +29,16 @@ Generate a PBS job script using pbs_python. Will use mympirun to get the all sta
 @author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
+import copy
 import sys
 
 from vsc.utils import fancylogger
-
-from hod.subcommands.subcommand import SubCommand
-from hod.rmscheduler.hodjob import PbsHodJob
 from vsc.utils.generaloption import GeneralOption
+
+from hod import VERSION as HOD_VERSION
+from hod.options import GENERAL_HOD_OPTIONS, validate_pbs_option
+from hod.rmscheduler.hodjob import PbsHodJob
+from hod.subcommands.subcommand import SubCommand
 
 
 _log = fancylogger.getLogger('create', fname=False)
@@ -43,6 +46,8 @@ _log = fancylogger.getLogger('create', fname=False)
 
 class CreateOptions(GeneralOption):
     """Option parser for 'create' subcommand."""
+    VERSION = HOD_VERSION
+
     def resource_manager_options(self):
         """Add configuration options for job being submitted."""
         opts = {
@@ -63,51 +68,37 @@ class CreateOptions(GeneralOption):
 
     def config_options(self):
         """Add general configuration options."""
-        opts = {
-            'config': ("Top level configuration file. This can be "
-                    "a comma separated list of config files with the later files taking "
-                    "precendence.", "string", "store", ''),
-            'dist': ("Prepackaged Hadoop distribution (e.g.  Hadoop/2.5.0-cdh5.3.1-native). "
-                    "This cannot be set if config is set", "string", "store", ''),
-            'workdir': ("Working directory", "string", "store", None),
-            'modules': ("Extra modules to load in each service environment", "string", "store", None),
-        }
-        descr = ["Config", "Configuration files options"]
+        opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
+        opts.update({
+            'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
+        })
+        descr = ["Create configuration", "Configuration options for the 'create' subcommand"]
 
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)
         self.add_group_parser(opts, descr)
 
 
-def validate_pbs_option(options):
-    """pbs options require a config and a workdir"""
-    if not options.options.config and not options.options.dist:
-        _log.error('Either --config or --dist must be set')
-        return False
-    if options.options.config and options.options.dist:
-        _log.error('Only one of --config or --dist can be set')
-        return False
-    if not options.options.workdir:
-        _log.error('No workdir ("--workdir") provided')
-        return False
-    return True
-
-
 class CreateSubCommand(SubCommand):
     """Implementation of 'create' subcommand."""
     CMD = 'create'
-    EXAMPLE = "--config=<hod.conf file> --workdir=<working directory>"
+    EXAMPLE = "--hodconf=<hod.conf file> --workdir=<working directory>"
     HELP = "Submit a job to spawn a cluster on a PBS job controller"
 
     def run(self, args):
         """Run 'create' subcommand."""
-        options = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix)
-        if not validate_pbs_option(options):
+        optparser = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
+        if not validate_pbs_option(optparser):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 
         try:
-            j = PbsHodJob(options)
+            # FIXME: check whether label is already in use
+            j = PbsHodJob(optparser)
+            print "Submitting HOD cluster with label '%s'..." % optparser.options.label
             j.run()
+            jobs = j.state()
+            print "Jobs submitted: %s" % [str(j) for j in jobs]
+            return 0
         except StandardError as e:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)

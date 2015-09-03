@@ -1,5 +1,5 @@
 # #
-# Copyright 2009-2013 Ghent University
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -26,22 +26,70 @@
 Implementation of the pbs resource manager
 
 @author: Stijn De Weirdt (University of Ghent)
+@author: Ewan Higgs (Ghent University)
+@author: Kenneth Hoste (Ghent University)
 """
-from vsc.utils import fancylogger
-
-
 import os
 import re
 import tempfile
-
-from PBSQuery import PBSQuery
-import pbs
+from vsc.utils import fancylogger
 
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 
 
+_log = fancylogger.getLogger(fname=False)
+
+
+try:
+    from PBSQuery import PBSQuery
+    import pbs
+    # pbs is available, no need guard against import errors
+    def pbs_is_available(fn):
+        """No-op decorator."""
+        return fn
+
+except ImportError as err:
+    def pbs_is_available(_):
+        """Decorator which raises an ImportError because pbs_python is not available."""
+        def fail(*args, **kwargs):
+            """Raise ImportError since pbs_python is not available."""
+            raise ImportError("%s; pbs_python is not available" % err)
+
+        return fail
+
+class PbsJob(object):
+    '''
+    Data type representing a job
+    '''
+    __slots__ = ['jobid', 'state', 'hosts']
+    def __init__(self, jobid, jstate, hosts):
+        self.jobid = jobid
+        self.state = jstate
+        self.hosts = hosts
+
+    def __str__(self):
+        return "Jobid  %s state %s ehosts %s" % (self.jobid, self.state, self.hosts)
+
+
+def format_state(pbsjobs):
+    '''Given a list of PbsJob objects, print them.'''
+    temp = "Id %s State %s Node %s"
+    if len(pbsjobs) == 0:
+        msg = "No jobs found."
+    elif len(pbsjobs) == 1:
+        job = pbsjobs[0]
+        msg = "Found 1 job " + temp % (job.jobid, job.state, job.hosts)
+    else:
+        msg = "Found %s jobs\n" % len(pbsjobs)
+        for j in pbsjobs:
+            msg += "    %s\n" + temp % (j.jobid, j.state, j.hosts)
+    _log.debug("msg %s", msg)
+
+    return msg
+
 class Pbs(ResourceManagerScheduler):
     """Interaction with torque"""
+    @pbs_is_available
     def __init__(self, options):
         super(Pbs, self).__init__(options)
         self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
@@ -58,6 +106,7 @@ class Pbs(ResourceManagerScheduler):
 
         self.jobid = None
 
+    @pbs_is_available
     def submit(self, txt):
         """Submit the jobscript txt, set self.jobid"""
         self.log.debug("Going to submit script %s", txt)
@@ -135,8 +184,7 @@ class Pbs(ResourceManagerScheduler):
         if jobid is None:
             jobid = self.jobid
 
-        state = self.info(
-            jobid, types=['job_state', 'exec_host'], job_filter=job_filter)
+        state = self.info(jobid, types=['job_state', 'exec_host'], job_filter=job_filter)
 
         jid = [x['id'] for x in state]
 
@@ -155,23 +203,15 @@ class Pbs(ResourceManagerScheduler):
             return res[:num]
         ehosts = [get_uniq_hosts(x.get('exec_host', '')) for x in state]
 
-        self.log.debug("Jobid  %s jid %s state %s ehosts %s (%s)",
-                       jobid, jid, jstate, ehosts, state)
+        self.log.debug("Jobid  %s jid %s state %s ehosts %s (%s)", jobid, jid, jstate, ehosts, state)
+        def _first_or_blank(x):
+            '''Only use first node (don't use [0], job in Q have empty list'''
+            return '' if len(x) == 0 else x[0]
 
-        joined = zip(jid, jstate, [''.join(x[:1]) for x in ehosts])  # only use first node (don't use [0], job in Q have empty list; use ''.join to make string)
-        temp = "Id %s State %s Node %s"
-        if len(joined) == 0:
-            msg = "No jobs found."
-        elif len(joined) == 1:
-            msg = "Found 1 job %s" % (temp % tuple(joined[0]))
-        else:
-            msg = "Found %s jobs\n" % len(joined)
-            for j in joined:
-                msg += "    %s\n" % (temp % tuple(j))
-        self.log.debug("msg %s", msg)
+        pbsjobs = [PbsJob(j, s, h) for (j, s, h) in  zip(jid, jstate, map(_first_or_blank, ehosts))]
+        return pbsjobs
 
-        return msg
-
+    @pbs_is_available
     def info(self, jobid, types=None, job_filter=None):
         """Return jobinfo"""
         # TODO restrict to current user jobs
@@ -214,8 +254,7 @@ class Pbs(ResourceManagerScheduler):
         # more then one, return value
         res = []
         for j in jobs:
-            job_details = dict(
-                [(attrib.name, attrib.value) for attrib in j.attribs])
+            job_details = dict([(attrib.name, attrib.value) for attrib in j.attribs])
             job_details['id'] = j.name  # add id
             if self.match_filter(job_details, job_filter):
                 res.append(job_details)
@@ -235,6 +274,7 @@ class Pbs(ResourceManagerScheduler):
 
         return False
 
+    @pbs_is_available
     def remove(self, jobid=None):
         """Remove the job with id jobid"""
         if jobid is None:
@@ -322,6 +362,7 @@ class Pbs(ResourceManagerScheduler):
             "Created header %s (although not used by pbs_submit)", hdr)
         return hdr
 
+    @pbs_is_available
     def get_ppn(self):
         """Guess the ppn for full node"""
         pq = PBSQuery()

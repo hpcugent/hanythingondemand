@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# #
+##
 # Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,27 +21,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-# #
+##
 """
-@author: Ewan Higgs (Universiteit Gent)
+Tests for IPython Notebook autoconfiguration.
+
+@author: Ewan Higgs (Ghent University)
 """
+
+import hod.config.autogen.ipython_notebook as hcip
 
 import unittest
-import pytest
-from mock import patch
-from ..util import capture
-from hod.subcommands.dists import DistsSubCommand
-
-
-class TestDistsSubCommand(unittest.TestCase):
-    def test_run(self):
-        app = DistsSubCommand()
-        with patch('os.listdir', return_value=['Hadoop-1.2.3']):
-            with capture(app.run, []) as (out, err):
-                self.assertTrue('Hadoop-1.2.3' in out)
-
-    def test_usage(self):
-        app = DistsSubCommand()
-        usage = app.usage()
-        self.assertTrue(isinstance(usage, basestring))
+class TestIpythonNodebook(unittest.TestCase):
+    def test_ipython_notebook_config(self):
+        cfg = hcip.ipython_notebook_config('/', {})
+        self.assertTrue(isinstance(cfg, basestring))
+        self.assertTrue(cfg.startswith("\nc = get_config()"))
 

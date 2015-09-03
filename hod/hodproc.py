@@ -74,7 +74,7 @@ def _setup_config_paths(precfg, resolver):
         dest_path = mkpath(precfg.configdir, dest_file)
         write_service_config(dest_path, cfg, config_writer, resolver)
 
-def _load_manifest_config(filenames, workdir, modules):
+def load_hod_config(filenames, workdir, modules):
     '''
     Load the manifest config (hod.conf) files.
     '''
@@ -106,9 +106,8 @@ class ConfiguredMaster(MpiService):
     def distribution(self, *master_template_args, **kwargs):
         """Master makes the distribution"""
         self.tasks = []
-        options = self.options.options
-        config_path = resolve_config_paths(options.config, options.dist)
-        m_config = _load_manifest_config(config_path, options.workdir, options.modules)
+        config_path = resolve_config_paths(self.options.hodconf, self.options.dist)
+        m_config = load_hod_config(config_path, self.options.workdir, self.options.modules)
         m_config.autogen_configs()
 
         resolver = _setup_template_resolver(m_config, master_template_args)
@@ -142,9 +141,8 @@ class ConfiguredSlave(MpiService):
 
         This only needs to run if there are more than 1 node (self.size>1)
         """
-        options = self.options.options
-        config_path = resolve_config_paths(options.config, options.dist)
-        m_config = _load_manifest_config(config_path, options.workdir, options.modules)
+        config_path = resolve_config_paths(self.options.hodconf, self.options.dist)
+        m_config = load_hod_config(config_path, self.options.workdir, self.options.modules)
         m_config.autogen_configs()
         resolver = _setup_template_resolver(m_config, master_template_args)
         _setup_config_paths(m_config, resolver)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# ##
+# #
 # Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,45 +22,37 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
+# #
 """
-Main hanythingondemand script, should be invoked in a job
+Hanythingondemand main program.
 
 @author: Ewan Higgs (Universiteit Gent)
+@author: Kenneth Hoste (Universiteit Gent)
 """
-
-from textwrap import dedent
-
-from hod.subcommands.subcommand import SubCommand
-
 from vsc.utils import fancylogger
-_log = fancylogger.getLogger(fname=False)
 
-from hod.subcommands.create import CreateOptions
-from hod.hodproc import ConfiguredSlave, ConfiguredMaster
-from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
+GENERAL_HOD_OPTIONS = {
+    'dist': ("Prepackaged Hadoop distribution (e.g.  Hadoop/2.5.0-cdh5.3.1-native). "
+             "This cannot be set if --hodconf is set", 'string', 'store', None),
+    'hodconf': ("Top level configuration file. This can be a comma separated list of config files with "
+                "the later files taking precendence.", 'string', 'store', None),
+    'label': ("Cluster label", 'string', 'store', None),
+    'workdir': ("Working directory", 'string', 'store', None),
+}
 
-from mpi4py import MPI
 
-class LocalSubCommand(SubCommand):
-    '''Run hod cluster locally.'''
-    CMD = "local"
-    HELP = "Run the hod program locally. Generally not run from the command line"
+_log = fancylogger.getLogger('create', fname=False)
 
-    def run(self, args):
-        options = CreateOptions(go_args=args)
 
-        if MPI.COMM_WORLD.rank == MASTERRANK:
-            _log.debug('Starting master process')
-            svc = ConfiguredMaster(options)
-        else:
-            _log.debug('Starting slave process')
-            svc = ConfiguredSlave(options)
-        try:
-            setup_tasks(svc)
-            run_tasks(svc)
-            svc.stop_service()
-        except Exception, e:
-            _log.error(str(e))
-            _log.exception("HanythingOnDemand failed")
-            return 1
-
+def validate_pbs_option(options):
+    """pbs options require a config and a workdir"""
+    if not options.options.hodconf and not options.options.dist:
+        _log.error('Either --hodconf or --dist must be set')
+        return False
+    if options.options.hodconf and options.options.dist:
+        _log.error('Only one of --hodconf or --dist can be set')
+        return False
+    if not options.options.workdir:
+        _log.error('No workdir ("--workdir") provided')
+        return False
+    return True

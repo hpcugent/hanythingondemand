@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-# #
-# Copyright 2009-2015 Ghent University
+###
+# Copyright 2009-2014 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -22,27 +21,29 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-# #
-"""
-@author: Ewan Higgs (Universiteit Gent)
-"""
+'''
+@author Ewan Higgs (Universiteit Gent)
+'''
 
 import unittest
-import pytest
-from mock import patch
-from ..util import capture
-from hod.subcommands.dists import DistsSubCommand
 
+from mock import patch, Mock
 
-class TestDistsSubCommand(unittest.TestCase):
-    def test_run(self):
-        app = DistsSubCommand()
-        with patch('os.listdir', return_value=['Hadoop-1.2.3']):
-            with capture(app.run, []) as (out, err):
-                self.assertTrue('Hadoop-1.2.3' in out)
+import hod.local as hl
+import hod.mpiservice as hm
 
-    def test_usage(self):
-        app = DistsSubCommand()
-        usage = app.usage()
-        self.assertTrue(isinstance(usage, basestring))
+class TestHodLocal(unittest.TestCase):
+    def test_local_no_args(self):
+        with patch('hod.local.gen_cluster_info', return_value={}):
+            with patch('hod.local.save_cluster_info', side_effect=lambda *args: None):
+                self.assertRaisesRegexp(SystemExit, '1', hl.main, [])
 
+    def test_master_rank(self):
+        with patch('mpi4py.MPI.COMM_WORLD', Mock(rank=hm.MASTERRANK)):
+            with patch('hod.local.gen_cluster_info', return_value={}):
+                with patch('hod.local.save_cluster_info', side_effect=lambda *args: None):
+                    self.assertRaisesRegexp(SystemExit, '1', hl.main, [])
+
+    def test_slave_rank(self):
+        with patch('mpi4py.MPI.COMM_WORLD', Mock(rank=hm.MASTERRANK + 1)):
+            self.assertRaisesRegexp(SystemExit, '1', hl.main, [])

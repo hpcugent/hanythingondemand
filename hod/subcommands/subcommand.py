@@ -41,6 +41,7 @@ class SubCommand(object):
     def __init__(self, *args, **kwargs):
         """Class constructor."""
         self.envvar_prefix = 'HOD_%s' % self.CMD.upper().replace('-', '_')
+        self.usage_txt = 'hod %s [options]' % self.CMD
 
     def usage(self):
         """Return usage of this subcommand."""
