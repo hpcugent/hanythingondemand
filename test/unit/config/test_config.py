@@ -33,6 +33,7 @@ from mock import patch
 from os.path import basename
 from cStringIO import StringIO
 from cPickle import dumps, loads
+from ConfigParser import NoOptionError
 
 import hod.config.config as hcc
 import hod.config.template as hct
@@ -341,7 +342,6 @@ ExecStop=stopper
 SOME_ENV=123""")
         cfg = hcc.ConfigOpts.from_file(config, hct.TemplateResolver(workdir=''))
         cfgparams = cfg.to_params('workdir', 'modules', dict(master='template_args'))
-        print cfgparams
         remade_cfg = loads(dumps(cfgparams))
         self.assertEqual(cfgparams.name, remade_cfg.name)
         self.assertEqual(cfgparams.start_script, remade_cfg.start_script)
@@ -394,6 +394,7 @@ SOME_ENV=123""")
         self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon', 'default', daemon='override'), 'override')
         self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon2', 'notfound'), 'notfound')
         self.assertEqual(hcc._cfgget(cfg, 'Service', 'daemon2', 'notfound', daemon2='override'), 'override')
+        self.assertRaises(NoOptionError, hcc._cfgget, cfg, 'Service', 'angel')
 
 
     def test_resolve_dist_path(self):
