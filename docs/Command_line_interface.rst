@@ -160,6 +160,9 @@ Create a cluster and run the script. Upon completion of the script, the cluster 
 
 .. note:: ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
 
+Configuration options for ``hod batch``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. _cmdline_batch_options_label:
 
 ``hod batch --label <label>``
