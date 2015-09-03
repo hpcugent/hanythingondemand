@@ -54,13 +54,18 @@ class HodJob(Job):
 
         self.set_type_class()
 
-        self.name_suffix = 'HOD'  # suffixed name, to lookup later
+        # HOD_<label> if label is given; HOD_job otherwise.
+        self.name_prefix = 'HOD'
         options_dict = self.options.dict_by_prefix()
-        options_dict['job']['name'] = "%s_%s" % (options_dict['job']['name'], self.name_suffix)
+        label = 'job'
+        if 'label' in options_dict and options_dict['label'] is not None:
+            label = options_dict['label']
+        options_dict['job']['name'] = "%s_%s" % (self.name_prefix, label)
+
         self.type = self.type_class(options_dict['job'])
 
         # all jobqueries are filtered on this suffix
-        self.type.job_filter = {'Job_Name': '%s$' % self.name_suffix}
+        self.type.job_filter = {'Job_Name': '%s$' % self.name_prefix}
 
         self.run_in_cwd = True
 

@@ -46,7 +46,6 @@ RESOURCE_MANAGER_OPTIONS = {
     'ppn': ("Processors per node (-1=full node)", "int", "store", -1),
     'mail': ("When to send mail (b=begin, e=end, a=abort)", "string", "extend", [], "m"),
     'mailothers': ("Other email adresses to send mail to", "string", "extend", [], "M"),
-    'name': ("Job name", "string", "store", "HanythingOnDemand_job", "N"),
     'queue': ("Queue name (empty string is default queue)", "string", "store", "", "q"),
 }
 
