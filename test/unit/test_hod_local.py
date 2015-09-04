@@ -25,25 +25,25 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
-import unittest
+from vsc.utils.testing import EnhancedTestCase
 
 from mock import patch, Mock
 
 import hod.local as hl
 import hod.mpiservice as hm
 
-class TestHodLocal(unittest.TestCase):
+class TestHodLocal(EnhancedTestCase):
     def test_local_no_args(self):
         with patch('hod.local.gen_cluster_info', return_value={}):
             with patch('hod.local.save_cluster_info', side_effect=lambda *args: None):
-                self.assertRaisesRegexp(SystemExit, '1', hl.main, [])
+                self.assertErrorRegex(SystemExit, '1', hl.main, [])
 
     def test_master_rank(self):
         with patch('mpi4py.MPI.COMM_WORLD', Mock(rank=hm.MASTERRANK)):
             with patch('hod.local.gen_cluster_info', return_value={}):
                 with patch('hod.local.save_cluster_info', side_effect=lambda *args: None):
-                    self.assertRaisesRegexp(SystemExit, '1', hl.main, [])
+                    self.assertErrorRegex(SystemExit, '1', hl.main, [])
 
     def test_slave_rank(self):
         with patch('mpi4py.MPI.COMM_WORLD', Mock(rank=hm.MASTERRANK + 1)):
-            self.assertRaisesRegexp(SystemExit, '1', hl.main, [])
+            self.assertErrorRegex(SystemExit, '1', hl.main, [])
