@@ -25,10 +25,11 @@
 # #
 """
 @author: Ewan Higgs (Universiteit Gent)
+@author: Kenneth Hoste (Universiteit Gent)
 """
 
-import unittest
 import pytest
+from vsc.utils.testing import EnhancedTestCase
 
 import hod.rmscheduler.rm_pbs as rm_pbs
 import hod.subcommands.connect as hsc
@@ -51,32 +52,32 @@ CLUSTERS = ['1234', 'old-finished-job']
 def mock_listdir(path):
     return CLUSTERS
 
-class TestCreateSubCommand(unittest.TestCase):
+class TestCreateSubCommand(EnhancedTestCase):
     @pytest.mark.xfail(reason="Requires easybuild environment")
     def test_run_no_args(self):
         app = hsc.ConnectSubCommand()
-        self.assertRaisesRegexp(SystemExit, '1', app.run, [])
+        self.assertErrorRegex(SystemExit, '1', app.run, [])
 
     def test_run_with_bad_jobid_arg(self):
         with patch('hod.rmscheduler.rm_pbs.Pbs', MockPbs):
             with patch('os.getenv', mock_getenv):
                 with patch('os.listdir', mock_listdir):
                     app = hsc.ConnectSubCommand()
-                    self.assertRaisesRegexp(SystemExit, '1', app.run, ['connect', 'not-a-job-id'])
+                    self.assertErrorRegex(SystemExit, '1', app.run, ['connect', 'not-a-job-id'])
 
     def test_run_with_queued_jobid_arg(self):
         with patch('hod.rmscheduler.rm_pbs.Pbs', MockPbs):
             with patch('os.getenv', mock_getenv):
                 with patch('os.listdir', mock_listdir):
                     app = hsc.ConnectSubCommand()
-                    self.assertRaisesRegexp(SystemExit, '1', app.run, ['connect', 'q123'])
+                    self.assertErrorRegex(SystemExit, '1', app.run, ['connect', 'q123'])
 
     def test_run_with_held_jobid_arg(self):
         with patch('hod.rmscheduler.rm_pbs.Pbs', MockPbs):
             with patch('os.getenv', mock_getenv):
                 with patch('os.listdir', mock_listdir):
                     app = hsc.ConnectSubCommand()
-                    self.assertRaisesRegexp(SystemExit, '1', app.run, ['connect', 'h123'])
+                    self.assertErrorRegex(SystemExit, '1', app.run, ['connect', 'h123'])
 
 
     @pytest.mark.xfail
