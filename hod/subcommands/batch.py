@@ -96,6 +96,8 @@ class BatchSubCommand(SubCommand):
         try:
             j = PbsHodJob(optparser)
             j.run()
+            jobs = j.state()
+            print "Jobs submitted: %s" % [str(j) for j in jobs]
             return 0
         except StandardError as e:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
