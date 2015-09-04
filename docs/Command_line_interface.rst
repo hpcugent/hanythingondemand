@@ -177,8 +177,20 @@ The label can be used to later connect to the cluster while it is running (see :
 ``hod batch --job-*``
 ++++++++++++++++++++++
 
-The resources being requested for the job that is submitted can be controlled via the available ``--job`` options,
-see :ref:`cmdline_job_options`.
+The resources being requested for the job that is submitted can be controlled via the available ``--job`` options.
+
+See :ref:`cmdline_job_options`.
+
+
+.. _cmdline_batch_options_modules:
+
+``hod batch --modules <module names>``
+++++++++++++++++++++++++++++++++++++++
+
+This acts the same as ``--modules`` for the ``create`` subcommand.
+
+See :ref:`cmdline_create_options_modules`
+
 
 .. _cmdline_list:
 
