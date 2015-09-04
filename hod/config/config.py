@@ -31,7 +31,6 @@ import os
 from ConfigParser import NoOptionError, NoSectionError, SafeConfigParser
 from collections import Mapping, namedtuple
 from copy import deepcopy
-from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
 from pkg_resources import Requirement, resource_filename, resource_listdir
 
@@ -423,7 +422,7 @@ def autogen_fn(name):
     Function taking a working directory (for detecting block sizes and so on)
     and a dict of config settings.
     """
-    module = import_module('hod.config.autogen.%s' % name)
+    module = __import__('hod.config.autogen.%s' % name, fromlist=['hod.config.autogen'])
     return getattr(module, 'autogen_config')
 
 
@@ -442,9 +441,10 @@ def service_config_fn(policy_path):
     function taking dict and TemplateResolver
     """
     policy_path_list = policy_path.split('.')
-    module_path = '.'.join(policy_path_list[0:-1])
+    module_name = '.'.join(policy_path_list[:-1])
+    parent_pkg = '.'.join(policy_path_list[:-2])
     fn = policy_path_list[-1]
-    module = import_module(module_path)
+    module = __import__(module_name, fromlist=[parent_pkg])
     return getattr(module, fn)
 
 

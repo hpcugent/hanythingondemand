@@ -24,9 +24,9 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 
-# Python 2.7 or more recent 2.x required
+# Python 2.6 or more recent 2.x required
 REQ_MAJ_PYVER=2
-REQ_MIN_PYVER=7
+REQ_MIN_PYVER=6
 REQ_PYVER=${REQ_MAJ_PYVER}.${REQ_MIN_PYVER}
 
 # make sure Python version being used is compatible
