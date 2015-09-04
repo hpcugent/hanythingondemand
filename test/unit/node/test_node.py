@@ -197,8 +197,8 @@ class HodNodeTestCase(unittest.TestCase):
         '''test node get memory'''
         ulimit = hn._get_memory_ulimit_v()
         print ulimit , type(ulimit)
-        self.assertTrue(isinstance(ulimit, basestring))
-        self.assertTrue(ulimit > 0)
+        self.assertTrue(isinstance(ulimit, (basestring, int)))
+        self.assertTrue(ulimit == 'unlimited' or ulimit > 0)
 
     def test_node_get_memory(self):
         memory = hn.get_memory()
