@@ -57,9 +57,9 @@ class HodJob(Job):
         # HOD_<label> if label is given; HOD_job otherwise.
         self.name_prefix = 'HOD'
         options_dict = self.options.dict_by_prefix()
-        label = 'job'
-        if 'label' in options_dict[''] and not options_dict['']['label'] is None:
-            label = options_dict['']['label']
+        label = self.options.label
+        if self.options.label is None:
+            label = 'job'
         options_dict['job']['name'] = "%s_%s" % (self.name_prefix, label)
 
         self.type = self.type_class(options_dict['job'])
