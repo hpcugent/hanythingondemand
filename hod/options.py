@@ -42,7 +42,7 @@ GENERAL_HOD_OPTIONS = {
 
 RESOURCE_MANAGER_OPTIONS = {
     'walltime': ("Job walltime in hours", 'float', 'store', 48, 'l'),
-    'nodes': ("Full nodes for the job", "int", "store", 5, "n"),
+    'nodes': ("Full nodes for the job", "int", "store", 1, "n"),
     'ppn': ("Processors per node (-1=full node)", "int", "store", -1),
     'mail': ("When to send mail (b=begin, e=end, a=abort)", "string", "extend", [], "m"),
     'mailothers': ("Other email adresses to send mail to", "string", "extend", [], "M"),
