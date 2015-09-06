@@ -35,7 +35,7 @@ from hod.rmscheduler.job import Job
 from hod.rmscheduler.rm_pbs import Pbs
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
 from hod.config.config import (parse_comma_delim_list,
-        preserviceconfigopts_from_file_list, resolve_config_paths)
+        PreServiceConfigOpts, resolve_config_paths)
 
 
 class HodJob(Job):
@@ -54,14 +54,18 @@ class HodJob(Job):
 
         self.set_type_class()
 
-        self.name_suffix = 'HOD'  # suffixed name, to lookup later
+        # HOD_<label> if label is given; HOD_job otherwise.
+        self.name_prefix = 'HOD'
         options_dict = self.options.dict_by_prefix()
-        options_dict['job']['name'] = "%s_%s" % (options_dict['job']['name'],
-                                                self.name_suffix)
+        label = self.options.options.label
+        if label is None:
+            label = 'job'
+        options_dict['job']['name'] = "%s_%s" % (self.name_prefix, label)
+
         self.type = self.type_class(options_dict['job'])
 
         # all jobqueries are filtered on this suffix
-        self.type.job_filter = {'Job_Name': '%s$' % self.name_suffix}
+        self.type.job_filter = {'Job_Name': '^%s' % self.name_prefix}
 
         self.run_in_cwd = True
 
@@ -143,7 +147,7 @@ class PbsHodJob(MympirunHod):
         self.log.info('Loading "%s" manifest config', config_filenames)
         # If the user mistypes the --dist argument (e.g. Haddoop-...) then this will
         # raise; TODO: cleanup the error reporting. 
-        precfg = preserviceconfigopts_from_file_list(config_filenames, workdir=options.options.workdir)
+        precfg = PreServiceConfigOpts.from_file_list(config_filenames, workdir=options.options.workdir)
         for module in precfg.modules:
             self.log.debug("Adding '%s' module to startup script.", module)
             self.modules.append(module)

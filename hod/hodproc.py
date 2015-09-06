@@ -29,11 +29,10 @@
 import os
 from errno import EEXIST
 from os.path import join as mkpath
-from hod.mpiservice import MpiService, Task, MASTERRANK, ConfigOptsParams
-from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
-        env2str, service_config_fn, write_service_config,
-        preserviceconfigopts_from_file_list, parse_comma_delim_list,
-        resolve_config_paths)
+from hod.mpiservice import MpiService, Task, MASTERRANK
+from hod.config.config import (PreServiceConfigOpts, ConfigOpts, 
+        ConfigOptsParams, env2str, service_config_fn, write_service_config,
+        parse_comma_delim_list, resolve_config_paths, RUNS_ON_MASTER)
 from hod.config.template import (TemplateRegistry, TemplateResolver,
         register_templates)
 from hod.work.config_service import ConfiguredService
@@ -80,7 +79,7 @@ def load_hod_config(filenames, workdir, modules):
     '''
     m_config_filenames = parse_comma_delim_list(filenames)
     _log.info('Loading "%s" manifest config', m_config_filenames)
-    m_config = preserviceconfigopts_from_file_list(m_config_filenames,
+    m_config = PreServiceConfigOpts.from_file_list(m_config_filenames,
             workdir=workdir, modules=modules)
     _log.debug('Loaded manifest config: %s', str(m_config))
     return m_config
@@ -120,12 +119,20 @@ class ConfiguredMaster(MpiService):
         self.log.info('Loading %d service configs.', len(svc_cfgs))
         for config_filename in svc_cfgs:
             self.log.info('Loading "%s" service config', config_filename)
-            config = ConfigOpts(open(config_filename, 'r'), resolver)
+            config = ConfigOpts.from_file(open(config_filename, 'r'), resolver)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
-            self.log.debug('Adding ConfiguredService Task to work with config: %s',
-                    str(config))
-            cfg_opts = ConfigOptsParams(config_filename, m_config.workdir, m_config.modules, master_template_args)
+            self.log.debug('Adding ConfiguredService Task to work with config: %s', str(config))
+            cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
+
+        if hasattr(self.options, 'script') and self.options.script is not None:
+            script = self.options.script + '; qdel $PBS_JOBID'
+            # TODO: How can we test this?
+            config = ConfigOpts(script, RUNS_ON_MASTER, '', script, '', master_env, resolver)
+            ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
+            cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
+            self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
+
 
 class ConfiguredSlave(MpiService):
     """

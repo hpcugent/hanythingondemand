@@ -32,11 +32,12 @@ Hanythingondemand main program.
 import sys
 
 import hod
-from hod.subcommands import connect, create, dists, genconfig, helptemplate, listcmd
+from hod.subcommands import batch, connect, create, dists, genconfig, helptemplate, listcmd
 
 
 SUBCOMMANDS = [
     create.CreateSubCommand,
+    batch.BatchSubCommand,
     listcmd.ListSubCommand,
     dists.DistsSubCommand,
     helptemplate.HelpTemplateSubCommand,
@@ -74,7 +75,7 @@ def main(args):
         return subcmd.run(args)
 
     elif len([arg for arg in args if not arg.startswith('-')]) > 1:
-        sys.stderr.write("ERROR: No known subcommand specified")
+        sys.stderr.write("ERROR: No known subcommand specified\n")
         sys.stderr.write(usage())
         return 1
     else:

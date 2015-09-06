@@ -201,9 +201,11 @@ class Pbs(ResourceManagerScheduler):
                     continue
                 res.append(h)
             return res[:num]
+
         ehosts = [get_uniq_hosts(x.get('exec_host', '')) for x in state]
 
         self.log.debug("Jobid  %s jid %s state %s ehosts %s (%s)", jobid, jid, jstate, ehosts, state)
+
         def _first_or_blank(x):
             '''Only use first node (don't use [0], job in Q have empty list'''
             return '' if len(x) == 0 else x[0]
