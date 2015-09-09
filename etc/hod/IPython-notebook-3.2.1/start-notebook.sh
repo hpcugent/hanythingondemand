@@ -44,4 +44,4 @@ export PYTHONPATH=$PYTHONPATH:$EBROOTPYTHON/lib/python2.7/site-packages/
 export PYSPARK_DRIVER_PYTHON=ipython 
 export PYSPARK_DRIVER_PYTHON_OPTS="notebook --profile-dir=${config_dir}" 
 export PYSPARK_SUBMIT_ARGS="--master yarn --deploy-mode client"
-pyspark --master yarn >"$log_dir/pyspark.stdout" 2>"$log_dir/pyspark.stderr"
+nohup pyspark --master yarn >"$log_dir/pyspark.stdout" 2>"$log_dir/pyspark.stderr" &
