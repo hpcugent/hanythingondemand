@@ -25,6 +25,7 @@ Introductory topics
     What_is_HOD
     Administration
     Configuration
+    Command_line_interface
     Logging
     Connecting_to_web_UIs
     Spark

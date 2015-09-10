@@ -27,12 +27,10 @@
 """
 
 import os
-import sys
 
 from ConfigParser import NoOptionError, NoSectionError, SafeConfigParser
-from collections import Mapping
+from collections import Mapping, namedtuple
 from copy import deepcopy
-from importlib import import_module
 from os.path import join as mkpath, dirname, realpath
 from pkg_resources import Requirement, resource_filename, resource_listdir
 
@@ -127,7 +125,7 @@ def parse_comma_delim_list(s):
     with no spaces on the end or beginning.
     Blanks are also removed. e.g. 'a,,b' results in ['a', 'b']
     '''
-    return [x.strip() for x in filter(lambda x: x.strip(), s.split(','))]
+    return [tok.strip() for tok in [el for el in s.split(',') if el.strip()]]
 
 
 class PreServiceConfigOpts(object):
@@ -135,21 +133,36 @@ class PreServiceConfigOpts(object):
     Manifest file for the group of services responsible for defining service
     level configs which need to be run through the template before any services
     can begin.
+
+    aka hod.conf or hodconf.
     """
     __slots__ = ['version', 'workdir', 'config_writer', 'directories',
-                 'autogen', 'modules', 'service_configs', 'service_files', 'master_env']
+                 'autogen', 'modules', 'service_configs', 'service_files', 
+                 'master_env', '_hodconfdir'
+                ]
 
-    OPTIONAL_FIELDS=['master_env', 'modules', 'service_configs', 'directories', 'autogen']
+    OPTIONAL_FIELDS = ['master_env', 'modules', 'service_configs', 'directories', 'autogen']
+
+    @staticmethod
+    def from_file_list(filenames, **kwargs):
+        """Create and merge PreServiceConfigOpts from a list of filenames."""
+        precfgs = [PreServiceConfigOpts(open(f, 'r'), **kwargs) for f in filenames]
+        precfg = reduce(merge, precfgs)
+        bad_fields = invalid_fields(precfg)
+        if bad_fields:
+            raise RuntimeError("A valid configuration could not be generated from the files: %s: missing fields: %s" %
+                               (filenames, bad_fields))
+        return precfg
 
     def __init__(self, fileobj, **kwargs):
         _config = load_service_config(fileobj)
         self.version = _cfgget(_config, _META_SECTION, 'version', '', **kwargs)
 
         self.workdir = _cfgget(_config, _CONFIG_SECTION, 'workdir', '', **kwargs)
-        fileobj_dir = _fileobj_dir(fileobj)
+        self._hodconfdir = _fileobj_dir(fileobj)
 
         def _fixup_path(cfg):
-            return _abspath(cfg, fileobj_dir)
+            return _abspath(cfg, self._hodconfdir)
 
         def _get_list(name):
             '''
@@ -178,6 +191,10 @@ class PreServiceConfigOpts(object):
     @property
     def configdir(self):
         return mkpath(self.localworkdir, 'conf')
+
+    @property
+    def hodconfdir(self):
+        return self._hodconfdir
 
     def autogen_configs(self):
         '''
@@ -208,16 +225,6 @@ class PreServiceConfigOpts(object):
                         self.config_writer, self.service_configs)
 
 
-def preserviceconfigopts_from_file_list(filenames, **kwargs):
-    """Create and merge PreServiceConfigOpts from a list of filenames."""
-    precfgs = [PreServiceConfigOpts(open(f, 'r'), **kwargs) for f in filenames]
-    precfg = reduce(merge, precfgs)
-    bad_fields = invalid_fields(precfg)
-    if bad_fields:
-        raise RuntimeError("A valid configuration could not be generated from the files: %s: missing fields: %s" % (filenames, bad_fields))
-    return precfg
-
-
 def merge(lhs, rhs):
     """
     Merge two objects of the same type based on their __slot__ list. This
@@ -225,7 +232,7 @@ def merge(lhs, rhs):
     Rules:
         List types are concatenated.
         Dict types are merged using a deep merge.
-        String types are overwritten. 
+        String types are overwritten.
     """
     if type(lhs) != type(rhs):
         raise RuntimeError('merge can only use two of the same type')
@@ -260,7 +267,8 @@ def invalid_fields(obj):
     """Return list of fields which are empty."""
     bad_fields = []
     for attr in obj.__slots__:
-        if attr not in obj.OPTIONAL_FIELDS and not getattr(obj, attr):
+        if not (attr in obj.OPTIONAL_FIELDS or getattr(obj, attr) or
+                attr.startswith('_')):
             bad_fields.append(attr)
     return bad_fields
 
@@ -300,23 +308,52 @@ class ConfigOpts(object):
     Some of the slots are computed on call so that they can run on the Slave
     nodes as opposed to the Master nodes.
     """
-    def __init__(self, fileobj, template_resolver):
-        self._config = load_service_config(fileobj)
-        self.name = _cfgget(self._config, _UNIT_SECTION, 'Name')
-        self._runs_on = _parse_runs_on(_cfgget(self._config, _UNIT_SECTION, 'RunsOn'))
+
+    @staticmethod
+    def from_file(fileobj, template_resolver):
+        """Load a ConfigOpts from a configuration file."""
+        config = load_service_config(fileobj)
+
+        name = _cfgget(config, _UNIT_SECTION, 'Name')
+        runs_on = _parse_runs_on(_cfgget(config, _UNIT_SECTION, 'RunsOn'))
+        pre_start_script = _cfgget(config, _SERVICE_SECTION, 'ExecStartPre', '')
+        start_script = _cfgget(config, _SERVICE_SECTION, 'ExecStart')
+        stop_script = _cfgget(config, _SERVICE_SECTION, 'ExecStop')
+        env = dict(config.items(_ENVIRONMENT_SECTION))
+
+        return ConfigOpts(name, runs_on, pre_start_script, start_script, stop_script, env, template_resolver)
+
+    def to_params(self, workdir, modules, master_template_args):
+        """Create a ConfigOptsParams object from the ConfigOpts instance"""
+        return ConfigOptsParams(self.name, self._runs_on, self._pre_start_script, self._start_script, 
+                                self._stop_script, self._env, workdir, modules, master_template_args)
+
+    @staticmethod
+    def from_params(params, template_resolver):
+        """Create a ConfigOpts instance from a ConfigOptsParams instance"""
+        return ConfigOpts(params.name, params.runs_on, params.pre_start_script, params.start_script,
+                          params.stop_script, params.env, template_resolver)
+
+    def __init__(self, name, runs_on, pre_start_script, start_script, stop_script, env, template_resolver):
+        self.name = name
+        self._runs_on = runs_on
         self._tr = template_resolver
+        self._pre_start_script = pre_start_script
+        self._start_script = start_script
+        self._stop_script = stop_script
+        self._env = env
 
     @property
     def pre_start_script(self):
-        return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStartPre', ''))
+        return self._tr(self._pre_start_script)
 
     @property
     def start_script(self):
-        return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStart'))
+        return self._tr(self._start_script)
 
     @property
     def stop_script(self):
-        return self._tr(_cfgget(self._config, _SERVICE_SECTION, 'ExecStop'))
+        return self._tr(self._stop_script)
 
     @property
     def workdir(self):
@@ -332,7 +369,7 @@ class ConfigOpts(object):
 
     @property
     def env(self):
-        return dict([(k, self._tr(v)) for k, v in self._config.items(_ENVIRONMENT_SECTION)])
+        return dict([(k, self._tr(v)) for k, v in self._env.items()])
 
     def __str__(self):
         return 'ConfigOpts(name=%s, runs_on=%d, pre_start_script=%s, ' \
@@ -363,6 +400,19 @@ class ConfigOpts(object):
         else:
             raise ValueError('ConfigOpts.runs_on has invalid value: %s' % self._runs_on)
 
+# Parameters to send over the network to allow slaves to construct hod.config.ConfigOpts
+# objects
+ConfigOptsParams = namedtuple('ConfigOptsParams', [
+    'name',
+    'runs_on',
+    'pre_start_script',
+    'start_script',
+    'stop_script',
+    'env',
+    'workdir',
+    'modules',
+    'master_template_kwargs'
+])
 
 def autogen_fn(name):
     """
@@ -379,7 +429,7 @@ def autogen_fn(name):
     Function taking a working directory (for detecting block sizes and so on)
     and a dict of config settings.
     """
-    module = import_module('hod.config.autogen.%s' % name)
+    module = __import__('hod.config.autogen.%s' % name, fromlist=['hod.config.autogen'])
     return getattr(module, 'autogen_config')
 
 
@@ -398,9 +448,10 @@ def service_config_fn(policy_path):
     function taking dict and TemplateResolver
     """
     policy_path_list = policy_path.split('.')
-    module_path = '.'.join(policy_path_list[0:-1])
+    module_name = '.'.join(policy_path_list[:-1])
+    parent_pkg = '.'.join(policy_path_list[:-2])
     fn = policy_path_list[-1]
-    module = import_module(module_path)
+    module = __import__(module_name, fromlist=[parent_pkg])
     return getattr(module, fn)
 
 

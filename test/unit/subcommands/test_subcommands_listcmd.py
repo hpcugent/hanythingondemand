@@ -39,10 +39,12 @@ class TestListSubCommand(unittest.TestCase):
         app.run([])
 
     def test_run_good(self):
-        with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: 'good')):
+        import hod.rmscheduler.rm_pbs as rm_pbs
+        job = rm_pbs.PbsJob('good-jobid', 'good-state', 'good-host')
+        with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [job])):
             app = ListSubCommand()
-            with capture(app.run, []) as output:
-                self.assertEqual(output, 'good\n')
+            with capture(app.run, []) as (out, err):
+                self.assertEqual(out, 'Found 1 job Id good-jobid State good-state Node good-host\n')
 
     def test_usage(self):
         app = ListSubCommand()

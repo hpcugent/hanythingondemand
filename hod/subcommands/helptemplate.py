@@ -28,13 +28,13 @@ Print out template parameters used by hod.
 @author: Ewan Higgs (Ghent University)
 @author: Kenneth Hoste (Ghent University)
 """
-import copy
 from vsc.utils.generaloption import GeneralOption
 
 import hod.config.template as hct
 from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
-from hod.mpiservice import ConfigOptsParams, master_template_opts
+from hod.mpiservice import master_template_opts
+from hod.config.config import ConfigOptsParams
 
 
 class HelpTemplateOptions(GeneralOption):
@@ -44,8 +44,8 @@ class HelpTemplateOptions(GeneralOption):
 
 def mk_registry():
     """Make a TemplateRegistry and register basic items"""
-    config_opts = ConfigOptsParams(filename='hod.conf', workdir='WORKDIR',
-        modules=['MODULES'], master_template_kwargs=[])
+    config_opts = ConfigOptsParams('svc-name', 'MASTER', 'ExecPreStart', 'ExecStart', 'ExecStop',
+                                   dict(), workdir='WORKDIR', modules=['MODULES'], master_template_kwargs=[])
     reg = hct.TemplateRegistry()
     hct.register_templates(reg, config_opts)
     master_template_kwargs = master_template_opts(reg.fields.values())

@@ -29,11 +29,10 @@
 import os
 from errno import EEXIST
 from os.path import join as mkpath
-from hod.mpiservice import MpiService, Task, MASTERRANK, ConfigOptsParams
-from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
-        env2str, service_config_fn, write_service_config,
-        preserviceconfigopts_from_file_list, parse_comma_delim_list,
-        resolve_config_paths)
+from hod.mpiservice import MpiService, Task, MASTERRANK
+from hod.config.config import (PreServiceConfigOpts, ConfigOpts, 
+        ConfigOptsParams, env2str, service_config_fn, write_service_config,
+        parse_comma_delim_list, resolve_config_paths, RUNS_ON_MASTER)
 from hod.config.template import (TemplateRegistry, TemplateResolver,
         register_templates)
 from hod.work.config_service import ConfiguredService
@@ -74,13 +73,13 @@ def _setup_config_paths(precfg, resolver):
         dest_path = mkpath(precfg.configdir, dest_file)
         write_service_config(dest_path, cfg, config_writer, resolver)
 
-def _load_manifest_config(filenames, workdir, modules):
+def load_hod_config(filenames, workdir, modules):
     '''
     Load the manifest config (hod.conf) files.
     '''
     m_config_filenames = parse_comma_delim_list(filenames)
     _log.info('Loading "%s" manifest config', m_config_filenames)
-    m_config = preserviceconfigopts_from_file_list(m_config_filenames,
+    m_config = PreServiceConfigOpts.from_file_list(m_config_filenames,
             workdir=workdir, modules=modules)
     _log.debug('Loaded manifest config: %s', str(m_config))
     return m_config
@@ -106,27 +105,37 @@ class ConfiguredMaster(MpiService):
     def distribution(self, *master_template_args, **kwargs):
         """Master makes the distribution"""
         self.tasks = []
-        options = self.options.options
-        config_path = resolve_config_paths(options.hodconf, options.dist)
-        m_config = _load_manifest_config(config_path, options.workdir, options.modules)
+        config_path = resolve_config_paths(self.options.hodconf, self.options.dist)
+        m_config = load_hod_config(config_path, self.options.workdir, self.options.modules)
         m_config.autogen_configs()
 
         resolver = _setup_template_resolver(m_config, master_template_args)
         _setup_config_paths(m_config, resolver)
 
         master_env = dict([(v, os.getenv(v)) for v in m_config.master_env])
+        # There may be scripts in the hod.conf dir so add it to the PATH
+        master_env['PATH'] = master_env.get('PATH', os.getenv('PATH')) + os.pathsep + m_config.hodconfdir
+
         self.log.debug('MasterEnv is: %s', env2str(master_env))
 
         svc_cfgs = m_config.service_files
         self.log.info('Loading %d service configs.', len(svc_cfgs))
         for config_filename in svc_cfgs:
             self.log.info('Loading "%s" service config', config_filename)
-            config = ConfigOpts(open(config_filename, 'r'), resolver)
+            config = ConfigOpts.from_file(open(config_filename, 'r'), resolver)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
-            self.log.debug('Adding ConfiguredService Task to work with config: %s',
-                    str(config))
-            cfg_opts = ConfigOptsParams(config_filename, m_config.workdir, m_config.modules, master_template_args)
+            self.log.debug('Adding ConfiguredService Task to work with config: %s', str(config))
+            cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
+
+        if hasattr(self.options, 'script') and self.options.script is not None:
+            script = self.options.script + '; qdel $PBS_JOBID'
+            # TODO: How can we test this?
+            config = ConfigOpts(script, RUNS_ON_MASTER, '', script, '', master_env, resolver)
+            ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
+            cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
+            self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
+
 
 class ConfiguredSlave(MpiService):
     """
@@ -142,9 +151,8 @@ class ConfiguredSlave(MpiService):
 
         This only needs to run if there are more than 1 node (self.size>1)
         """
-        options = self.options.options
-        config_path = resolve_config_paths(options.hodconf, options.dist)
-        m_config = _load_manifest_config(config_path, options.workdir, options.modules)
+        config_path = resolve_config_paths(self.options.hodconf, self.options.dist)
+        m_config = load_hod_config(config_path, self.options.workdir, self.options.modules)
         m_config.autogen_configs()
         resolver = _setup_template_resolver(m_config, master_template_args)
         _setup_config_paths(m_config, resolver)

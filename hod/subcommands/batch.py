@@ -24,9 +24,10 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-Generate a PBS job script using pbs_python. Will use mympirun to get the all started
+Generate a PBS job script using pbs_python. Will use mympirun to get the cluster
+all started, run a job, and tear down the cluster when it's done.
 
-@author: Stijn De Weirdt (Universiteit Gent)
+@author: Kenneth Hoste (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
 import copy
@@ -39,13 +40,11 @@ from hod import VERSION as HOD_VERSION
 from hod.options import GENERAL_HOD_OPTIONS, RESOURCE_MANAGER_OPTIONS, validate_pbs_option
 from hod.rmscheduler.hodjob import PbsHodJob
 from hod.subcommands.subcommand import SubCommand
+from hod.subcommands.create import CreateOptions
 
+_log = fancylogger.getLogger('batch', fname=False)
 
-_log = fancylogger.getLogger('create', fname=False)
-
-
-class CreateOptions(GeneralOption):
-    """Option parser for 'create' subcommand."""
+class BatchOptions(GeneralOption):
     VERSION = HOD_VERSION
 
     def resource_manager_options(self):
@@ -54,9 +53,16 @@ class CreateOptions(GeneralOption):
         descr = ["Resource manager / Scheduler",
                  "Provide resource manager/scheduler related options (eg number of nodes)"]
         prefix = 'job'
-
-        self.log.debug("Add resourcemanager option parser prefix %s descr %s opts %s", prefix, descr, opts)
         self.add_group_parser(opts, descr, prefix=prefix)
+
+    def batch_options(self):
+        """Add batch configuration options"""
+        opts = {
+            'script': ("Script to run on the cluster", "string", "store", None),
+        }
+        descr = ["Batch options", "Configuration options for the 'batch' subcommand"]
+        self.log.debug("Add config option parser descr %s opts %s", descr, opts)
+        self.add_group_parser(opts, descr)
 
     def config_options(self):
         """Add general configuration options."""
@@ -64,29 +70,31 @@ class CreateOptions(GeneralOption):
         opts.update({
             'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
         })
-        descr = ["Create configuration", "Configuration options for the 'create' subcommand"]
+        descr = ["Batch job creation configuration", "Configuration options for the 'batch' subcommand"]
 
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)
         self.add_group_parser(opts, descr)
 
 
-class CreateSubCommand(SubCommand):
-    """Implementation of 'create' subcommand."""
-    CMD = 'create'
-    EXAMPLE = "--hodconf=<hod.conf file> --workdir=<working directory>"
-    HELP = "Submit a job to spawn a cluster on a PBS job controller"
+class BatchSubCommand(SubCommand):
+    """Implementation of 'batch' subcommand."""
+    CMD = 'batch'
+    EXAMPLE = "--hodconf=<hod.conf file> --workdir=<working directory> --script=<jobscript>"
+    HELP = "Submit a job to spawn a cluster on a PBS job controller, run a job script, and tear down the cluster when it's done"
 
     def run(self, args):
-        """Run 'create' subcommand."""
-        optparser = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
+        """Run 'batch' subcommand."""
+        optparser = BatchOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         if not validate_pbs_option(optparser):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 
+        if optparser.options.script is None:
+            sys.stderr.write('Missing script. Exiting.\n')
+            return 1
+
         try:
-            # FIXME: check whether label is already in use
             j = PbsHodJob(optparser)
-            print "Submitting HOD cluster with label '%s'..." % optparser.options.label
             j.run()
             jobs = j.state()
             print "Jobs submitted: %s" % [str(j) for j in jobs]
