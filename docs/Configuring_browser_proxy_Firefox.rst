@@ -16,3 +16,4 @@ Browser proxy configuration for Firefox
    Click ``OK`` to save the configuration.
 
 .. image:: img/browser_proxy_cfg/firefox/02_network_settings.png
+    :scale: 50 %
