@@ -37,9 +37,8 @@ Running ``hod`` without arguments is equivalent to ``hod --help``, and results i
 
 .. _cmdline_hod_options:
 
-Configuration options for ``hod``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+General ``hod`` command line options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _cmdline_hod_help:
 
@@ -48,27 +47,6 @@ Configuration options for ``hod``
 
 Print usage information and supported subcommands along with a short help message for each of them, or usage information
 and available options for the specified subcommand.
-
-``hod --hodconf <path>``
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Specify location of cluster configuration file.
-
-Can also be specified using ``$HOD_HODCONF``.
-
-``hod --dist <dist label>``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Specify one of the included cluster configuration file to be used (see also :ref:`cmdline_dists`).
-
-Can also be specified using ``$HOD_DIST``.
-
-``hod --workdir <path>``
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Specify the top-level working directory to use.
-
-Can also be specified using ``$HOD_WORKDIR``.
 
 
 .. .. _cmdline_hod_scheduler:
@@ -117,12 +95,61 @@ Create a hanythingondemand cluster, with the specified label (optional) and clus
 
 The configuration file can be a filepath, or one of the included cluster configuration files (see :ref:`cmdline_dists`).
 
-.. note:: ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
+.. note:: ``--hod-module``, ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
+
 
 .. _cmdline_create_options:
 
 Configuration options for ``hod create``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. _cmdline_create_options_hod_module:
+
+``hod create --hod-module <module name>``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*required*
+
+Specify the ``hanythingondemand`` module that must be loaded in the job that is submitted for the HOD cluster.
+
+Can also be specified via ``$HOD_CREATE_HOD_MODULE``.
+
+
+.. _cmdline_create_options_workdir:
+
+``hod create --workdir <path>``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*required*
+
+Specify the top-level working directory to use.
+
+Can also be specified via ``$HOD_CREATE_WORKDIR``.
+
+
+.. _cmdline_create_options_hodconf:
+
+``hod create --hodconf <path>``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*either* ``--dist`` *or this must be specified*
+
+Specify location of cluster configuration file.
+
+Can also be specified via ``$HOD_CREATE_HODCONF``.
+
+
+.. _cmdline_create_options_dist:
+
+``hod create --dist <dist>``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*either* ``--hodconf`` *or this must be specified*
+
+Specify one of the included cluster configuration file to be used (see also :ref:`cmdline_dists`).
+
+Can also be specified via ``$HOD_CREATE_DIST``.
+
 
 .. _cmdline_create_options_label:
 
@@ -132,6 +159,9 @@ Configuration options for ``hod create``
 Specify label for this cluster. If not label is specified, the job ID will be used as a label.
 
 The label can be used to later connect to the cluster while it is running (see :ref:`cmdline_connect`).
+
+Can also be specified via ``$HOD_CREATE_LABEL``.
+
 
 .. _cmdline_create_options_modules:
 
@@ -143,6 +173,9 @@ the cluster requires a particular module, it should be added with this option.
 For example, if an IPython notebook plans to use Python modules on the worker
 kernels (or through Spark) they will need to be added here.
 
+Can also be specified via ``$HOD_CREATE_MODULES``.
+
+
 .. _cmdline_create_options_job:
 
 ``hod create --job-*``
@@ -151,6 +184,9 @@ kernels (or through Spark) they will need to be added here.
 The resources being requested for the job that is submitted can be controlled via the available ``--job`` options,
 see :ref:`cmdline_job_options`.
 
+Can also be specified via ``$HOD_CREATE_JOB_*``.
+
+
 .. _cmdline_batch:
 
 ``hod batch --script=<script-name>``
@@ -158,38 +194,10 @@ see :ref:`cmdline_job_options`.
 
 Create a cluster and run the script. Upon completion of the script, the cluster will be stopped.
 
-.. note:: ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
+All configuration options supported for ``create`` are also supported for ``batch``, see :ref:`cmdline_create_options`.
+When used with ``batch``, they can also be specified via ``$HOD_BATCH_*``.
 
-Configuration options for ``hod batch``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. _cmdline_batch_options_label:
-
-``hod batch --label <label>``
-+++++++++++++++++++++++++++++
-
-Specify label for this cluster. If not label is specified, the job ID will be used as a label.
-
-The label can be used to later connect to the cluster while it is running (see :ref:`cmdline_connect`).
-
-.. _cmdline_batch_options_job:
-
-``hod batch --job-*``
-++++++++++++++++++++++
-
-The resources being requested for the job that is submitted can be controlled via the available ``--job`` options.
-
-See :ref:`cmdline_job_options`.
-
-
-.. _cmdline_batch_options_modules:
-
-``hod batch --modules <module names>``
-++++++++++++++++++++++++++++++++++++++
-
-This acts the same as ``--modules`` for the ``create`` subcommand.
-
-See :ref:`cmdline_create_options_modules`
+.. note:: `--hod-module``, ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
 
 
 .. _cmdline_list:
