@@ -119,11 +119,12 @@ class PbsHodJob(MympirunHod):
     def __init__(self, options):
         super(PbsHodJob, self).__init__(options)
 
-        if options.hod_module:
+        if options.options.hod_module:
             self.modules = [options.options.hod_module]
         else:
             sys.stderr.write("HOD module to load in job is not specified (--hod-module).\n")
             sys.exit(1)
+
 
         config_filenames = resolve_config_paths(options.options.hodconf, options.options.dist)
         self.log.debug('Manifest config paths resolved to: %s', config_filenames)
