@@ -67,12 +67,12 @@ class GenConfigSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'genconfig' subcommand."""
-        options = GenConfigOptions(go_args=args, usage=self.usage_txt)
-        if not validate_pbs_option(options):
+        optparser = GenConfigOptions(go_args=args, usage=self.usage_txt)
+        if not validate_pbs_option(optparser.options):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 
-        svc = ConfiguredMaster(options)
+        svc = ConfiguredMaster(optparser.options)
         try:
             setup_tasks(svc)
             return 0

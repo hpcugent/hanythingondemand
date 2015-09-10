@@ -79,8 +79,12 @@ class CreateSubCommand(SubCommand):
     def run(self, args):
         """Run 'create' subcommand."""
         optparser = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
-        if not validate_pbs_option(optparser):
+        if not validate_pbs_option(optparser.options):
             sys.stderr.write('Missing config options. Exiting.\n')
+            return 1
+
+        if optparser.options.hod_module is None:
+            sys.stderr.write("HOD module to load in job is not specified (--hod-module).\n")
             return 1
 
         try:

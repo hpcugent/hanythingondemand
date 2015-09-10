@@ -36,6 +36,7 @@ GENERAL_HOD_OPTIONS = {
              "This cannot be set if --hodconf is set", 'string', 'store', None),
     'hodconf': ("Top level configuration file. This can be a comma separated list of config files with "
                 "the later files taking precendence.", 'string', 'store', None),
+    'hod-module': ("Module to load for hanythingondemand in submitted job", 'string', 'store', None),
     'label': ("Cluster label", 'string', 'store', None),
     'workdir': ("Working directory", 'string', 'store', None),
 }
@@ -54,13 +55,13 @@ _log = fancylogger.getLogger('create', fname=False)
 
 def validate_pbs_option(options):
     """pbs options require a config and a workdir"""
-    if not options.options.hodconf and not options.options.dist:
+    if not options.hodconf and not options.dist:
         _log.error('Either --hodconf or --dist must be set')
         return False
-    if options.options.hodconf and options.options.dist:
+    if options.hodconf and options.dist:
         _log.error('Only one of --hodconf or --dist can be set')
         return False
-    if not options.options.workdir:
+    if not options.workdir:
         _log.error('No workdir ("--workdir") provided')
         return False
     return True

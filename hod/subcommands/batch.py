@@ -85,7 +85,7 @@ class BatchSubCommand(SubCommand):
     def run(self, args):
         """Run 'batch' subcommand."""
         optparser = BatchOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
-        if not validate_pbs_option(optparser):
+        if not validate_pbs_option(optparser.options):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 

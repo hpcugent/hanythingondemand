@@ -118,28 +118,8 @@ class PbsHodJob(MympirunHod):
     """
     def __init__(self, options):
         super(PbsHodJob, self).__init__(options)
-        self.modules = []
 
-        modname = hod.NAME
-        # TODO this is undefined, module should be provided via E, eg EBMODULENAME
-        ebmodname_envvar = 'EBMODNAME%s' % modname.upper()
-
-        ebmodname = os.environ.get(ebmodname_envvar, None)
-        if ebmodname is None:
-            # TODO: is this environment modules specific?
-            env_list = 'LOADEDMODULES'
-            self.log.debug('Missing environment variable %s, going to guess it via %s and modname %s.',
-                    ebmodname_envvar, env_list, modname)
-            candidates = [x for x in os.environ.get(env_list, '').split(':') if x.startswith(modname)]
-            if candidates:
-                ebmodname = candidates[-1]
-                self.log.debug("Using guessed modulename %s", ebmodname)
-            else:
-                self.log.raiseException('Failed to guess modulename and no EB environment variable %s set.' %
-                        ebmodname_envvar)
-
-        # FIXME
-        self.modules.append(ebmodname)
+        self.modules = [options.options.hod_module]
 
         config_filenames = resolve_config_paths(options.options.hodconf, options.options.dist)
         self.log.debug('Manifest config paths resolved to: %s', config_filenames)
