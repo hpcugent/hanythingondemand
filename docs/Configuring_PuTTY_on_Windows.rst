@@ -12,8 +12,8 @@ To configure PuTTY on Windows we need to do the following tasks:
 Download the required software
 ------------------------------
 
-To work with Hanythingondemand from Windows, we need to download some software
-to begin. All of the following is available from the PuTTY website:
+To work with Hanythingondemand from Windows, you need to download and install a couple of tools.
+All of the following are available from the PuTTY website:
 http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html
 
 1. PuTTy - The ssh client.
@@ -53,6 +53,7 @@ Set your username.
 
 Under ``Telnet command, or local proxy command``, enter the following command: 
 
+.. code::
     plink -agent -l %user %proxyhost -nc %host %port
 
 .. image:: img/06-putty-proxy.png
@@ -61,10 +62,14 @@ Configure ``Connection -> SSH -> Tunnel``
 +++++++++++++++++++++++++++++++++++++++++
 
 Make a connection that uses ``Auto`` and ``Dynamic``. Select a port number which
-will later be used in your browser. I use ``12345`` in the following exmaple but
+will later be used in your browser. In the screenshots, ``12345`` is used, but
 it can be any unpriveleged port.
 
 .. image:: img/07.1-putty-tunnel.png
+
+Click ``Add`` to put the configuration in place, which should make the port number appear
+in the list of forwarded ports:
+
 .. image:: img/07-putty-tunnel.png
 
 Configure ``Connection -> Data``
@@ -73,8 +78,8 @@ Configure ``Connection -> Data``
 
 .. image:: img/08-putty-data.png
 
-Saving Your Work
-++++++++++++++++
+Saving the configuration
+++++++++++++++++++++++++
 
 There are a lof of things to change here, so be sure to go back to ``Session``
-and give your proxy a name and save it so you can reuse it in the future.
+and give your configuration a name and ``Save`` it so you can reuse it via ``Load`` in the future.

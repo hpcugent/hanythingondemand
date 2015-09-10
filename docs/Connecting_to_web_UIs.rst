@@ -50,13 +50,6 @@ of our HOD cluster.
 Configuring your SSH client to use an SSH tunnel
 ************************************************
 
-.. _ssh_tunnel_client_configuration_windows:
-
-Configuring PuTTY in Windows
-++++++++++++++++++++++++++++
-
-:ref:`configuring_putty_on_windows` is more involved than Linux or OS X so it has its own page.
-
 .. _ssh_tunnel_client_configuration_osx_linux:
 
 Configuring SSH in Mac OS X or Linux
@@ -73,6 +66,13 @@ that start with ``node`` and end with ``.gent.vsc``, using ``vsc40000`` as a use
       User vsc40000
 
 
+.. _ssh_tunnel_client_configuration_windows:
+
+Configuring PuTTY in Windows
+++++++++++++++++++++++++++++
+
+:ref:`configuring_putty_on_windows` is more involved than Linux or OS X so it has its own page.
+
 .. _start_SSH_tunnel:
 
 Starting the SSH tunnel
@@ -81,17 +81,10 @@ Starting the SSH tunnel
 To start the SSH tunnel, simply set up an SSH connection to that head node of your HOD cluster, while specifying
 a `local port` that can be used to set up a SOCKS proxy to that workernode.
 
-You can choose a port number yourself, but stick to numbers **lower than 1024** (lower ports are priveledged ports,
+You can choose a port number yourself, but stick to numbers **higher than 1024** (lower ports are priveledged ports,
 and thus require adminstration rights).
 
 We will use port number ``10000`` (`ten thousand`) as an example below (and you should be able to use it too).
-
-.. _start_SSH_tunnel_windows:
-
-Starting the SSH tunnel using PuTTy in Windows
-++++++++++++++++++++++++++++++++++++++++++++++
-
-With your saved session configured, open the proxy session.
 
 .. _start_SSH_tunnel_osx_linux:
 
@@ -118,12 +111,12 @@ For example, to connect to ``node2001.delcatty.gent.vsc`` using port ``10000``::
             Are you sure you want to continue connecting (yes/no)? yes
             Warning: Permanently added 'node2001.delcatty.gent.vsc' (RSA) to the list of known hosts.
 
-.. _setting_up_ssh_tunnel_windows:
+.. _start_SSH_tunnel_windows:
 
-Setting up an SSH tunnel in Windows using PuTTy
-***********************************************
+Starting the SSH tunnel using PuTTy in Windows
+++++++++++++++++++++++++++++++++++++++++++++++
 
-http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html
+With your saved session configured, open the proxy session.
 
 
 .. _browser_proxy_configuration:
