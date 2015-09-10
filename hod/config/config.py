@@ -137,7 +137,9 @@ class PreServiceConfigOpts(object):
     aka hod.conf or hodconf.
     """
     __slots__ = ['version', 'workdir', 'config_writer', 'directories',
-                 'autogen', 'modules', 'service_configs', 'service_files', 'master_env']
+                 'autogen', 'modules', 'service_configs', 'service_files', 
+                 'master_env', '_hodconfdir'
+                ]
 
     OPTIONAL_FIELDS = ['master_env', 'modules', 'service_configs', 'directories', 'autogen']
 
@@ -157,10 +159,10 @@ class PreServiceConfigOpts(object):
         self.version = _cfgget(_config, _META_SECTION, 'version', '', **kwargs)
 
         self.workdir = _cfgget(_config, _CONFIG_SECTION, 'workdir', '', **kwargs)
-        fileobj_dir = _fileobj_dir(fileobj)
+        self._hodconfdir = _fileobj_dir(fileobj)
 
         def _fixup_path(cfg):
-            return _abspath(cfg, fileobj_dir)
+            return _abspath(cfg, self._hodconfdir)
 
         def _get_list(name):
             '''
@@ -189,6 +191,10 @@ class PreServiceConfigOpts(object):
     @property
     def configdir(self):
         return mkpath(self.localworkdir, 'conf')
+
+    @property
+    def hodconfdir(self):
+        return self._hodconfdir
 
     def autogen_configs(self):
         '''
@@ -261,7 +267,8 @@ def invalid_fields(obj):
     """Return list of fields which are empty."""
     bad_fields = []
     for attr in obj.__slots__:
-        if attr not in obj.OPTIONAL_FIELDS and not getattr(obj, attr):
+        if not (attr in obj.OPTIONAL_FIELDS or getattr(obj, attr) or
+                attr.startswith('_')):
             bad_fields.append(attr)
     return bad_fields
 
