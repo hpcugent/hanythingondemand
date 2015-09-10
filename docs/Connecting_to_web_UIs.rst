@@ -153,7 +153,7 @@ browsers:
 Ports for web user interfaces
 -----------------------------
 
-Once you have set up an SSH tunnel (see :ref:`setting_up_ssh_tunnel`) and have configured your browsers to use it as
+Once you have set up an SSH tunnel (see :ref:`ssh_tunnel`) and have configured your browsers to use it as
 a SOCKS proxy (see :ref:`browser_proxy_configuration`), you can connect to the web user interfaces available in your
 running HOD cluster via::
 
