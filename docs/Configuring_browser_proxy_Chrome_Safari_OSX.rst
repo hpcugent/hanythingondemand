@@ -16,6 +16,7 @@ Browser proxy configuration for Chrome/Safari on OS X
   * via Chrome: ``Settings`` (or ``Preferences...``), ``Change proxy settings`` (enter ``proxy`` in ``Search settings``)
 
 .. image:: img/browser_proxy_cfg/chrome_safari_osx /01_osx_network_proxies.png
+    :scale: 50 %
 
 2. Select ``SOCKS proxy``, enter ``localhost`` and port number that was used to set up the SSH tunnel (e.g., ``10000``)
 
@@ -24,4 +25,5 @@ Browser proxy configuration for Chrome/Safari on OS X
    Click ``OK`` to save the configuration.
 
 .. image:: img/browser_proxy_cfg/chrome_safari_osx /02_socks_proxy.png
+    :scale: 50 %
 
