@@ -95,7 +95,7 @@ Create a hanythingondemand cluster, with the specified label (optional) and clus
 
 The configuration file can be a filepath, or one of the included cluster configuration files (see :ref:`cmdline_dists`).
 
-.. note:: ``--hod-module``, ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
+.. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
 
 
 .. _cmdline_create_options:
@@ -189,7 +189,7 @@ Next to ``--script`` (which is mandatory with ``batch``), all configuration opti
 also supported for ``batch``, see :ref:`cmdline_create_options`.
 When used with ``batch``, these options can also be specified via ``$HOD_BATCH_*``.
 
-.. note:: ``--hod-module``, ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
+.. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
 
 
 .. _cmdline_list:
