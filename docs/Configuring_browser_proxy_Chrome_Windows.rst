@@ -3,6 +3,12 @@
 Browser proxy configuration for Chrome on Windows
 =================================================
 
+.. note::
+  Keep in mind that using the proxy will only work while you have access to the workernode for which the SSH tunnel
+  was set up, i.e. while the HOD cluster is running, and while you are able to connect to the HPC infrastructure.
+
+  To reset your browser configuration back to normal, simply disable the proxy in your browser configuration.
+
 1. Open ``Settings`` in Chrome, search for ``Change proxy settings`` button (and click it)
 
 .. image:: img/browser_proxy_cfg/chrome-settings.png 
