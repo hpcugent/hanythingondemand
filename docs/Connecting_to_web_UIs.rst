@@ -124,25 +124,23 @@ With your saved session configured, open the proxy session.
 Browser SOCKS proxy configuration
 ---------------------------------
 
-.. _browser_proxy_configuration_chrome:
+To access the web user interface(s) of your running HOD cluster, you need to configure your browser
+to use the SSH tunnel as a proxy.
 
-Chrome SOCKS proxy configuration
-********************************
+Basically, you need to:
 
-.. _browser_proxy_configuration_firefox:
+* define ``localhost`` (i.e., your own system) as a proxy in your browser, using the port that you used
+  when setting up the SSH tunnel (e.g., ``10000``)
+* make sure that the proxy will also be used when entering ``https://localhost:<port>`` as a URL in your browser
+* enter ``https://localhost:<port>`` as a URL in your browser, with ``<port>`` the port number for the web UI
+  you want to connect to (see :ref:`web_ui_ports`)
 
-Firefox SOCKS proxy configuration
-*********************************
+The pages linked below provide a detailed walkthrough with screenshots on how to configure some commonly used
+browsers:
 
-.. _browser_proxy_configuration_ie:
-
-Internet Explorer SOCKS proxy configuration
-*******************************************
-
-.. _browser_proxy_configuration_safari:
-
-Safari SOCKS proxy configuration
-********************************
+* :ref:`Firefox (Windows, OS X, Linux) <browser_proxy_firefox>`
+* :ref:`Chrome, Safari (OS X) <browser_proxy_chrome_safari_osx>`
+* :ref:`Chrome (Windows) <<browser_proxy_chrome_windows>`
 
 
 .. _web_ui_ports:
