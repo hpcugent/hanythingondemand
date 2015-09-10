@@ -129,7 +129,7 @@ to use the SSH tunnel as a proxy.
 
 Basically, you need to:
 
-* define ``localhost`` (i.e., your own system) as a proxy in your browser, using the port that you used
+* define ``localhost`` (i.e., your own system) as a SOCKS proxy in your browser, using the port that you used
   when setting up the SSH tunnel (e.g., ``10000``)
 * make sure that the proxy will also be used when entering ``https://localhost:<port>`` as a URL in your browser
 * enter ``https://localhost:<port>`` as a URL in your browser, with ``<port>`` the port number for the web UI
@@ -140,8 +140,13 @@ browsers:
 
 * :ref:`Firefox (Windows, OS X, Linux) <browser_proxy_firefox>`
 * :ref:`Chrome, Safari (OS X) <browser_proxy_chrome_safari_osx>`
-* :ref:`Chrome (Windows) <<browser_proxy_chrome_windows>`
+* :ref:`Chrome (Windows) <browser_proxy_chrome_windows>`
 
+.. note::
+  Keep in mind that using the proxy will only work while you have access to the workernode for which the SSH tunnel
+  was set up, i.e. while the HOD cluster is running, and while you are able to connect to the HPC infrastructure.
+
+  To reset your browser configuration back to normal, simply disable the proxy in your browser configuration.
 
 .. _web_ui_ports:
 
