@@ -39,8 +39,8 @@ from hod import VERSION as HOD_VERSION
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
-from hod.config.config import resolve_config_paths
-from hod.hodproc import ConfiguredSlave, ConfiguredMaster, load_hod_config
+from hod.cluster import gen_cluster_info, save_cluster_info
+from hod.hodproc import ConfiguredSlave, ConfiguredMaster
 from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
 from hod.options import GENERAL_HOD_OPTIONS
 
@@ -61,26 +61,6 @@ except ImportError as err:
         return fail
 
 
-CLUSTER_ENV_TEMPLATE = """
-# make sure session is properly set up (e.g., that 'module' command is defined)
-source /etc/profile
-
-# set up environment
-export HADOOP_CONF_DIR='%(hadoop_conf_dir)s'
-export HOD_LOCALWORKDIR='%(hod_localworkdir)s'
-# TODO: HADOOP_LOG_DIR?
-module load %(modules)s
-
-echo "Welcome to your hanythingondemand cluster (label: %(label)s)"
-echo
-echo "Relevant environment variables:"
-env | egrep '^HADOOP_|^HOD_|PBS_JOBID' | sort
-echo
-echo "List of loaded modules:"
-module list 2>&1
-"""
-
-
 _log = fancylogger.getLogger(fname=False)
 
 
@@ -99,99 +79,6 @@ class LocalOptions(GeneralOption):
 
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)
         self.add_group_parser(opts, descr)
-
-
-def cluster_info_dir():
-    """
-    Determine cluster info directory.
-    Returns $XDG_CONFIG_HOME/hod.d or $HOME/.config/hod.d
-    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
-    """
-    dflt = os.path.join(os.getenv('HOME', ''), '.config')
-    return os.path.join(os.getenv('XDG_CONFIG_HOME', dflt), 'hod.d')
-
-
-def known_cluster_labels():
-    """
-    Return list of known cluster labels.
-    """
-    path = cluster_info_dir()
-    if os.path.exists(path):
-        return os.listdir(path)
-    else:
-        _log.warning("No cluster config directory '%s' (yet)", path)
-        return []
-
-
-def _cluster_info(label, info_file):
-    """
-    Return path to specified cluster info file for cluster with specified label.
-    @param label: cluster label
-    @param info_file: type of info to return (env, jobid, ...)
-    """
-    labels = known_cluster_labels()
-    if label in labels:
-        info_file = os.path.join(cluster_info_dir(), label, info_file)
-        if os.path.exists(info_file):
-            return info_file
-        else:
-            raise ValueError("No 'env' file found for cluster with label '%s'" % label)
-    else:
-        raise ValueError("Unknown cluster label '%s': %s" % (label, labels))
-
-
-def cluster_jobid(label):
-    """Return job ID for cluster with specified label."""
-    return open(_cluster_info(label, 'jobid')).read()
-
-
-def cluster_env_file(label):
-    """
-    Return path to env file for cluster with specified label.
-    """
-    return _cluster_info(label, 'env')
-
-
-def generate_cluster_env_script(cluster_info):
-    """
-    Generate the env script for this cluster.
-    """
-    return CLUSTER_ENV_TEMPLATE % cluster_info
-
-
-def gen_cluster_info(label, options):
-    """Generate cluster info as a dict, intended to use as template values for CLUSTER_ENV_TEMPLATE."""
-    # list of modules that should be loaded: modules for selected service + extra modules specified via --modules
-    config_path = resolve_config_paths(options.hodconf, options.dist)
-    hodconf = load_hod_config(config_path, options.workdir, options.modules)
-    cluster_info = {
-        'hadoop_conf_dir': hodconf.configdir,
-        'hod_localworkdir': hodconf.localworkdir,
-        'label': label,
-        'modules': ' '.join(hodconf.modules),
-    }
-    return cluster_info
-
-
-def save_cluster_info(cluster_info):
-    """Save info (job ID, env script, ...) for this cluster in the cluster info dir."""
-    info_dir = os.path.join(cluster_info_dir(), cluster_info['label'])
-    try:
-        if not os.path.exists(info_dir):
-            os.makedirs(info_dir)
-    except OSError as err:
-        _log.error("Failed to create cluster info dir '%s': %s", info_dir, err)
-
-    try:
-        with open(os.path.join(info_dir, 'jobid'), 'w') as jobid:
-            jobid.write(os.getenv('PBS_JOBID', 'PBS_JOBID_NOT_DEFINED'))
-
-        env_script_txt = generate_cluster_env_script(cluster_info)
-
-        with open(os.path.join(info_dir, 'env'), 'w') as env_script:
-            env_script.write(env_script_txt)
-    except IOError as err:
-        _log.error("Failed to write cluster info files: %s", err)
 
 
 @mpi4py_is_available

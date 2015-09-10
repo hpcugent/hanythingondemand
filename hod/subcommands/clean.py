@@ -24,13 +24,12 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-List the running applications.
+Remove stale .hod.d/* files.
 
 @author: Ewan Higgs (Universiteit Gent)
 """
 
 import os
-import sys
 from itertools import chain
 
 from vsc.utils import fancylogger
@@ -38,59 +37,34 @@ from vsc.utils.generaloption import GeneralOption
 
 from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
-from hod.cluster import mk_cluster_info, known_cluster_labels
+from hod.cluster import clean_cluster_info, known_cluster_labels, mk_cluster_info
 import hod.rmscheduler.rm_pbs as rm_pbs
 
 
 _log = fancylogger.getLogger(fname=False)
 
 
-class ListOptions(GeneralOption):
+class CleanOptions(GeneralOption):
     """Option parser for 'list' subcommand."""
     VERSION = HOD_VERSION
 
-def mk_fmt_str(labels, header):
-    """Calculate the format string for printing the template parameters."""
-    max_label_len = max(map(len, chain(labels, [header])))
-    return '%%-%ds\t%%s' % max_label_len
 
-
-def format_cluster_info(cluster_info):
-    """Turn a list of 'ClusterInfo' objects into a 2-tuple of strings."""
-    ret = []
-    for info in cluster_info:
-        label = info.label if info.label is not None else '<no-label>'
-        job = str(info.pbsjob) if info.pbsjob is not None else 'Job not found on cluster.'
-        ret.append((label, job))
-    return ret
-
-
-class ListSubCommand(SubCommand):
-    """Implementation of HOD 'list' subcommand."""
-    CMD = 'list'
-    HELP = "List submitted/running clusters"
+class CleanSubCommand(SubCommand):
+    """Implementation of HOD 'clean' subcommand."""
+    CMD = 'clean'
+    HELP = "Remove stale cluster files"
 
     def run(self, args):
-        """Run 'list' subcommand."""
-        optparser = ListOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
+        """Run 'clean' subcommand."""
+        optparser = CleanOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
             pbs = rm_pbs.Pbs(optparser)
             state = pbs.state()
             labels = known_cluster_labels()
             pbs_master = os.getenv('PBS_DEFAULT')
-            info = mk_cluster_info(labels, state, pbs_master)
-            if len(info) == 0:
-                print 'No jobs found'
-                sys.exit(1)
-
-            info = format_cluster_info(info)
-            CLUSTER_LABEL = 'Cluster label'
-            fmt_str = mk_fmt_str([label for label, job in info], CLUSTER_LABEL)
-            print fmt_str % (CLUSTER_LABEL, 'job ID')
-            for label, job in info:
-                print fmt_str % (label, job)
+            info = mk_cluster_info(labels, state, master=pbs_master)
+            clean_cluster_info(pbs_master, info)
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
             _log.raiseException(err.message)
-        return 0
