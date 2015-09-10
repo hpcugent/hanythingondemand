@@ -83,10 +83,6 @@ class CreateSubCommand(SubCommand):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 
-        if optparser.options.hod_module is None:
-            sys.stderr.write("HOD module to load in job is not specified (--hod-module).\n")
-            return 1
-
         try:
             # FIXME: check whether label is already in use
             j = PbsHodJob(optparser)
