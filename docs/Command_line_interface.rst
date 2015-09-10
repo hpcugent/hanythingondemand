@@ -108,11 +108,10 @@ Configuration options for ``hod create``
 ``hod create --hod-module <module name>``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*required*
+**must be specified**
 
-Specify the ``hanythingondemand`` module that must be loaded in the job that is submitted for the HOD cluster.
-
-Can also be specified via ``$HOD_CREATE_HOD_MODULE``.
+Specify the ``hanythingondemand`` module that must be loaded in the job that is submitted for the HOD cluster;
+can also be specified via ``$HOD_CREATE_HOD_MODULE``.
 
 
 .. _cmdline_create_options_workdir:
@@ -120,11 +119,9 @@ Can also be specified via ``$HOD_CREATE_HOD_MODULE``.
 ``hod create --workdir <path>``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*required*
+**must be specified**
 
-Specify the top-level working directory to use.
-
-Can also be specified via ``$HOD_CREATE_WORKDIR``.
+Specify the top-level working directory to use; can also be specified via ``$HOD_CREATE_WORKDIR``.
 
 
 .. _cmdline_create_options_hodconf:
@@ -132,11 +129,9 @@ Can also be specified via ``$HOD_CREATE_WORKDIR``.
 ``hod create --hodconf <path>``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*either* ``--dist`` *or this must be specified*
+**either** ``--dist`` **or this must be specified**
 
-Specify location of cluster configuration file.
-
-Can also be specified via ``$HOD_CREATE_HODCONF``.
+Specify location of cluster configuration file; can also be specified via ``$HOD_CREATE_HODCONF``.
 
 
 .. _cmdline_create_options_dist:
@@ -144,11 +139,10 @@ Can also be specified via ``$HOD_CREATE_HODCONF``.
 ``hod create --dist <dist>``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-*either* ``--hodconf`` *or this must be specified*
+**either** ``--hodconf`` **or this must be specified**
 
-Specify one of the included cluster configuration file to be used (see also :ref:`cmdline_dists`).
-
-Can also be specified via ``$HOD_CREATE_DIST``.
+Specify one of the included cluster configuration file to be used (see also :ref:`cmdline_dists`);
+can also be specified via ``$HOD_CREATE_DIST``.
 
 
 .. _cmdline_create_options_label:
@@ -156,11 +150,10 @@ Can also be specified via ``$HOD_CREATE_DIST``.
 ``hod create --label <label>``
 ++++++++++++++++++++++++++++++
 
-Specify label for this cluster. If not label is specified, the job ID will be used as a label.
+Specify label for this cluster. If not label is specified, the job ID will be used as a label;
+can also be specified via ``$HOD_CREATE_LABEL``.
 
 The label can be used to later connect to the cluster while it is running (see :ref:`cmdline_connect`).
-
-Can also be specified via ``$HOD_CREATE_LABEL``.
 
 
 .. _cmdline_create_options_modules:
@@ -182,9 +175,7 @@ Can also be specified via ``$HOD_CREATE_MODULES``.
 ++++++++++++++++++++++
 
 The resources being requested for the job that is submitted can be controlled via the available ``--job`` options,
-see :ref:`cmdline_job_options`.
-
-Can also be specified via ``$HOD_CREATE_JOB_*``.
+see :ref:`cmdline_job_options`; can also be specified via ``$HOD_CREATE_JOB_*``.
 
 
 .. _cmdline_batch:
@@ -194,10 +185,11 @@ Can also be specified via ``$HOD_CREATE_JOB_*``.
 
 Create a cluster and run the script. Upon completion of the script, the cluster will be stopped.
 
-All configuration options supported for ``create`` are also supported for ``batch``, see :ref:`cmdline_create_options`.
-When used with ``batch``, they can also be specified via ``$HOD_BATCH_*``.
+Next to ``--script`` (which is mandatory with ``batch``), all configuration options supported for ``create`` are
+also supported for ``batch``, see :ref:`cmdline_create_options`.
+When used with ``batch``, these options can also be specified via ``$HOD_BATCH_*``.
 
-.. note:: `--hod-module``, ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
+.. note:: ``--hod-module``, ``--workdir`` *and* either ``--hodconf`` or ``--dist`` must be specified.
 
 
 .. _cmdline_list:
@@ -234,6 +226,8 @@ Print the values for the configuration templates based on the current machine.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Generate hanythingondemand cluster configuration files to the working directory for diagnostic purposes.
+
+The working directory can be specified using ``--workdir`` or via ``$HOD_GENCONFIG_WORKDIR``.
 
 
 .. _cmdline_connect:
