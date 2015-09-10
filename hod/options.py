@@ -64,4 +64,8 @@ def validate_pbs_option(options):
     if not options.workdir:
         _log.error('No workdir ("--workdir") provided')
         return False
+    if not options.hod_module:
+        _log.error('No hod-module ("--hod-module") provided')
+        return False
+
     return True
