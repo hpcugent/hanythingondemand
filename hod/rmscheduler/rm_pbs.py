@@ -239,10 +239,7 @@ class Pbs(ResourceManagerScheduler):
             self.log.debug("No job found. Wrong id %s or job finished? Returning %s",
                     jobid, res)
             return res
-        elif len(jobs) == 1:
-            self.log.debug("Request for jobid %s returned one result %s", jobid, jobs)
-        else:
-            self.log.error("Request for jobid %s returned more then one result %s", jobid, jobs)
+        self.log.debug("Request for jobid %s returned %d result(s) %s", jobid, len(jobs), jobs)
 
         # more then one, return value
         res = []
