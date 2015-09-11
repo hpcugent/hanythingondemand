@@ -108,7 +108,7 @@ def _find_pbsjob(jobid, pbsjobs):
     for job in pbsjobs:
         if jobid == job.jobid:
             return job
-        return None
+    return None
 
 
 def mk_cluster_info(labels, pbsjobs, master=None):
@@ -128,7 +128,8 @@ def mk_cluster_info(labels, pbsjobs, master=None):
             job = _find_pbsjob(jobid, pbsjobs)
             if job is not None:
                 seen_jobs.add(jobid)
-        except ValueError:
+        except ValueError, e:
+            print e
             job = None
         info.append(ClusterInfo(label, jobid, job))
 
