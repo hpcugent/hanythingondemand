@@ -43,22 +43,13 @@ from hod.config.config import resolve_config_paths
 from hod.hodproc import ConfiguredSlave, ConfiguredMaster, load_hod_config
 from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
 from hod.options import GENERAL_HOD_OPTIONS
+from hod.utils import only_if_module_is_available
 
+# optional packages, not always required
 try:
     from mpi4py import MPI
-    # mpi4py is available, no need guard against import errors
-    def mpi4py_is_available(fn):
-        """No-op decorator."""
-        return fn
-
-except ImportError as err:
-    def mpi4py_is_available(_):
-        """Decorator which raises an ImportError because mpi4py is not available."""
-        def fail(*args, **kwargs):
-            """Raise ImportError since mpi4py is not available."""
-            raise ImportError("%s; is there an environment module providing MPI support loaded?" % err)
-
-        return fail
+except ImportError:
+    pass
 
 
 CLUSTER_ENV_TEMPLATE = """
@@ -194,7 +185,7 @@ def save_cluster_info(cluster_info):
         _log.error("Failed to write cluster info files: %s", err)
 
 
-@mpi4py_is_available
+@only_if_module_is_available('mpi4py')
 def main(args):
     """Run HOD cluster."""
     optparser = LocalOptions(go_args=args)
