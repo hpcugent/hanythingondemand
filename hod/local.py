@@ -157,7 +157,7 @@ def gen_cluster_info(label, options):
     hodconf = load_hod_config(config_path, options.workdir, options.modules)
     cluster_info = {
         'hadoop_conf_dir': hodconf.configdir,
-        'hod_localworkdir': hodconf.localworkdir,
+        'hod_localworkdir': hodconf.localworkdir(label=label),
         'label': label,
         'modules': ' '.join(hodconf.modules),
     }
