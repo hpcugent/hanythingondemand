@@ -35,26 +35,26 @@ class TestOption(unittest.TestCase):
         options = MagicMock(workdir='/', dist='Hadoop', hod_module='hod', hodconf=None)
         self.assertTrue(ho.validate_pbs_option(options))
 
-    def test_validate_genconfig_option_fails_with_config_and_dist(self):
+    def test_validate_required_option_fails_with_config_and_dist(self):
         options = MagicMock(workdir='/', dist='Hadoop', hod_module='hod', hodconf='hod.conf')
         self.assertFalse(ho.validate_pbs_option(options))
 
-    def test_validate_genconfig_option_fails_missing_dist_or_config(self):
+    def test_validate_required_option_fails_missing_dist_or_config(self):
         options = MagicMock(workdir='/', hod_module='')
         self.assertFalse(ho.validate_pbs_option(options))
 
-    def test_validate_genconfig_option_fails_missing_workdir(self):
+    def test_validate_required_option_fails_missing_workdir(self):
         options = MagicMock(dist='Hadoop', hod_module='hod')
         self.assertFalse(ho.validate_pbs_option(options))
 
-    def test_validate_genconfig_option_fails_missing_hod_module(self):
+    def test_validate_required_option_fails_missing_hod_module(self):
         options = MagicMock(workdir='/', dist='Hadoop')
         self.assertFalse(ho.validate_pbs_option(options))
 
-    def test_validate_genconfig_option(self):
+    def test_validate_required_option(self):
         options = MagicMock(workdir='/', dist='Hadoop', hod_module='hod', hodconf=None)
-        self.assertTrue(ho.validate_genconfig_option(options))
+        self.assertTrue(ho.validate_required_option(options))
 
     def test_validate_fails_missing_dist_or_config(self):
         options = MagicMock(workdir='/')
-        self.assertFalse(ho.validate_genconfig_option(options))
+        self.assertFalse(ho.validate_required_option(options))

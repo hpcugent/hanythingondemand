@@ -52,8 +52,7 @@ RESOURCE_MANAGER_OPTIONS = {
 
 _log = fancylogger.getLogger('create', fname=False)
 
-
-def validate_pbs_option(options):
+def validate_required_option(options):
     """pbs options require a config and a workdir"""
     if not options.hodconf and not options.dist:
         _log.error('Either --hodconf or --dist must be set')
@@ -63,23 +62,16 @@ def validate_pbs_option(options):
         return False
     if not options.workdir:
         _log.error('No workdir ("--workdir") provided')
-        return False
-    if not options.hod_module:
-        _log.error('No hod-module ("--hod-module") provided')
         return False
 
     return True
 
-def validate_genconfig_option(options):
+def validate_pbs_option(options):
     """pbs options require a config and a workdir"""
-    if not options.hodconf and not options.dist:
-        _log.error('Either --hodconf or --dist must be set')
+    if not validate_required_option(options):
         return False
-    if options.hodconf and options.dist:
-        _log.error('Only one of --hodconf or --dist can be set')
-        return False
-    if not options.workdir:
-        _log.error('No workdir ("--workdir") provided')
+    if not options.hod_module:
+        _log.error('No hod-module ("--hod-module") provided')
         return False
 
     return True
