@@ -50,6 +50,8 @@ of our HOD cluster.
 Configuring your SSH client to use an SSH tunnel
 ************************************************
 
+See the sections below how to configure your SSH client.
+
 .. _ssh_tunnel_client_configuration_osx_linux:
 
 Configuring SSH in Mac OS X or Linux
