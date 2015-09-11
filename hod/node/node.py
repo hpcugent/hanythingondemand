@@ -38,50 +38,28 @@ from vsc.utils import fancylogger
 from vsc.utils.affinity import sched_getaffinity
 
 from hod.commands.command import ULimit
+from hod.utils import only_if_module_is_available
 
+# optional packages, not always required
 try:
     import netifaces
-    def netifaces_is_available(fn):
-        """No-op decorator."""
-        return fn
-
-except ImportError as err:
-    def netifaces_is_available(_):
-        """Decorator which raises an ImportError because netifaces is not available."""
-        def fail(*args, **kwargs):
-            """Raise ImportError since netifaces is not available."""
-            raise ImportError("%s; netifaces is not available")
-
-        return fail
-
-try:
     import netaddr
-    def netaddr_is_available(fn):
-        """No-op decorator."""
-        return fn
-
-except ImportError as err:
-    def netaddr_is_available(_):
-        """Decorator which raises an ImportError because netaddr is not available."""
-        def fail(*args, **kwargs):
-            """Raise ImportError since netaddr is not available."""
-            raise ImportError("%s; netaddr is not available")
-
-        return fail
+except ImportError:
+    pass
 
 
 NetworkInterface = namedtuple('NetworkInterface', 'hostname,addr,device,mask_bits')
 _log = fancylogger.getLogger(fname=False)
 
 
-@netaddr_is_available
+@only_if_module_is_available('netaddr')
 def netmask2maskbits(netmask):
     """Find the number of bits in a netmask."""
     mask_as_int = netaddr.IPAddress(netmask).value
     return bin(mask_as_int).count('1')
 
 
-@netifaces_is_available
+@only_if_module_is_available('netifaces')
 def get_networks():
     """
     Returns list of NetworkInterface tuples by interface.
@@ -100,7 +78,7 @@ def get_networks():
     return networks
 
 
-@netaddr_is_available
+@only_if_module_is_available('netaddr')
 def address_in_network(ip, net):
     """
     Determine if an ip is in a network.

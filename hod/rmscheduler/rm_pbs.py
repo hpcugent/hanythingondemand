@@ -35,27 +35,18 @@ import tempfile
 from vsc.utils import fancylogger
 
 from hod.rmscheduler.resourcemanagerscheduler import ResourceManagerScheduler
+from hod.utils import only_if_module_is_available
+
+# optional packages, not always required
+try:
+    import pbs
+    from PBSQuery import PBSQuery
+except ImportError:
+    pass
 
 
 _log = fancylogger.getLogger(fname=False)
 
-
-try:
-    from PBSQuery import PBSQuery
-    import pbs
-    # pbs is available, no need guard against import errors
-    def pbs_is_available(fn):
-        """No-op decorator."""
-        return fn
-
-except ImportError as err:
-    def pbs_is_available(_):
-        """Decorator which raises an ImportError because pbs_python is not available."""
-        def fail(*args, **kwargs):
-            """Raise ImportError since pbs_python is not available."""
-            raise ImportError("%s; pbs_python is not available" % err)
-
-        return fail
 
 class PbsJob(object):
     '''
@@ -89,7 +80,7 @@ def format_state(pbsjobs):
 
 class Pbs(ResourceManagerScheduler):
     """Interaction with torque"""
-    @pbs_is_available
+    @only_if_module_is_available('pbs')
     def __init__(self, options):
         super(Pbs, self).__init__(options)
         self.log = fancylogger.getLogger(self.__class__.__name__, fname=False)
@@ -106,7 +97,7 @@ class Pbs(ResourceManagerScheduler):
 
         self.jobid = None
 
-    @pbs_is_available
+    @only_if_module_is_available('pbs')
     def submit(self, txt):
         """Submit the jobscript txt, set self.jobid"""
         self.log.debug("Going to submit script %s", txt)
@@ -213,7 +204,7 @@ class Pbs(ResourceManagerScheduler):
         pbsjobs = [PbsJob(j, s, h) for (j, s, h) in  zip(jid, jstate, map(_first_or_blank, ehosts))]
         return pbsjobs
 
-    @pbs_is_available
+    @only_if_module_is_available('pbs')
     def info(self, jobid, types=None, job_filter=None):
         """Return jobinfo"""
         # TODO restrict to current user jobs
@@ -276,7 +267,7 @@ class Pbs(ResourceManagerScheduler):
 
         return False
 
-    @pbs_is_available
+    @only_if_module_is_available('pbs')
     def remove(self, jobid=None):
         """Remove the job with id jobid"""
         if jobid is None:
@@ -364,7 +355,7 @@ class Pbs(ResourceManagerScheduler):
             "Created header %s (although not used by pbs_submit)", hdr)
         return hdr
 
-    @pbs_is_available
+    @only_if_module_is_available('pbs')
     def get_ppn(self):
         """Guess the ppn for full node"""
         pq = PBSQuery()

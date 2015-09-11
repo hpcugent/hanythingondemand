@@ -37,26 +37,17 @@ from vsc.utils import fancylogger
 import hod.node.node as node
 from hod.config.config import ConfigOpts
 from hod.config.template import ConfigTemplate, TemplateRegistry, TemplateResolver, register_templates
+from hod.utils import only_if_module_is_available
+
+# optional packages, not always required
+try:
+    from mpi4py import MPI
+except ImportError:
+    pass
 
 
 _log = fancylogger.getLogger(fname=False)
 
-
-try:
-    from mpi4py import MPI
-    # mpi4py is available, no need guard against import errors
-    def mpi4py_is_available(fn):
-        """No-op decorator."""
-        return fn
-
-except ImportError as err:
-    def mpi4py_is_available(_):
-        """Decorator which raises an ImportError because mpi4py is not available."""
-        def fail(*args, **kwargs):
-            """Raise ImportError since mpi4py is not available."""
-            raise ImportError("%s; is there an environment module providing MPI support loaded?" % err)
-
-        return fail
 
 
 __all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_tasks', 'run_tasks']
@@ -72,7 +63,7 @@ def _who_is_out_there(comm, rank):
     return others
 
 
-@mpi4py_is_available
+@only_if_module_is_available('mpi4py')
 def _check_comm(comm, txt):
     """Report details about communicator"""
     if comm == MPI.COMM_NULL:
@@ -115,7 +106,7 @@ def _make_comm_group(comm, ranks):
     return newcomm
 
 
-@mpi4py_is_available
+@only_if_module_is_available('mpi4py')
 def _stop_comm(comm):
     """Stop a single communicator"""
     _check_comm(comm, 'Stopping')
@@ -198,7 +189,7 @@ def _mkconfigopts(cfg_opts):
     return ConfigOpts.from_params(cfg_opts, resolver)
 
 
-@mpi4py_is_available
+@only_if_module_is_available('mpi4py')
 def run_tasks(svc):
     """Make communicators for tasks and execute the work there"""
     # Based on initial dist, create the groups and communicators and map with work
@@ -250,7 +241,7 @@ def run_tasks(svc):
 class MpiService(object):
     """Basic mpi based service class"""
 
-    @mpi4py_is_available
+    @only_if_module_is_available('mpi4py')
     def __init__(self, log=None):
         self.log = log
         if self.log is None:
