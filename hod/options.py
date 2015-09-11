@@ -69,3 +69,17 @@ def validate_pbs_option(options):
         return False
 
     return True
+
+def validate_genconfig_option(options):
+    """pbs options require a config and a workdir"""
+    if not options.hodconf and not options.dist:
+        _log.error('Either --hodconf or --dist must be set')
+        return False
+    if options.hodconf and options.dist:
+        _log.error('Only one of --hodconf or --dist can be set')
+        return False
+    if not options.workdir:
+        _log.error('No workdir ("--workdir") provided')
+        return False
+
+    return True
