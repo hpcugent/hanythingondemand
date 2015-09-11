@@ -45,7 +45,7 @@ _log = fancylogger.getLogger(fname=False)
 
 
 class CleanOptions(GeneralOption):
-    """Option parser for 'list' subcommand."""
+    """Option parser for 'clean' subcommand."""
     VERSION = HOD_VERSION
 
 

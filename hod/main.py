@@ -32,8 +32,7 @@ Hanythingondemand main program.
 import sys
 
 import hod
-from hod.subcommands import (batch, connect, clean, create, dists, genconfig,
-    helptemplate, listcmd)
+from hod.subcommands import batch, connect, clean, create, dists, genconfig, helptemplate, listcmd
 
 
 SUBCOMMANDS = [

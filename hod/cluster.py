@@ -133,11 +133,6 @@ def mk_cluster_info(labels, pbsjobs, master=None):
             job = None
         info.append(ClusterInfo(label, jobid, job))
 
-    # All the running clusters w/ no labels
-    for job in pbsjobs:
-        if job.jobid not in seen_jobs:
-            info.append(ClusterInfo(None, job.jobid, job))
-
     return info
 
 
@@ -198,6 +193,7 @@ def clean_cluster_info(master, cluster_info):
     for info in cluster_info:
         if info.pbsjob is None and info.jobid.endswith(os.getenv('PBS_DEFAULT', '')):
             rm_cluster_info(info.label)
+            print 'Removed %s' % info.label
 
 def rm_cluster_info(label):
     """Remove a cluster label directory"""

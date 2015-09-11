@@ -29,6 +29,7 @@
 
 import unittest
 import pytest
+from textwrap import dedent
 from mock import patch, Mock
 
 from vsc.utils.testing import EnhancedTestCase
@@ -39,17 +40,19 @@ from hod.subcommands.listcmd import ListSubCommand
 class TestListSubCommand(EnhancedTestCase):
     def test_run(self):
         app = ListSubCommand()
-        self.assertErrorRegex(SystemExit, '1', app.run, [])
+        self.assertErrorRegex(SystemExit, '0', app.run, [])
 
     def test_run_good(self):
         import hod.rmscheduler.rm_pbs as rm_pbs
         job = rm_pbs.PbsJob('good-jobid', 'good-state', 'good-host')
         with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [job])):
-            with patch('os.listdir', return_value=[]):
-                with patch('sys.exit'):
-                    app = ListSubCommand()
-                    with capture(app.run, []) as (out, err):
-                        self.assertEqual(out, """Cluster label\tjob ID\n<no-label>   \tJobid  good-jobid state good-state ehosts good-host\n""")
+            with patch('hod.cluster.cluster_jobid', return_value='good-jobid'):
+                with patch('os.listdir', return_value=['mylabel']):
+                    with patch('sys.exit'):
+                        app = ListSubCommand()
+                        app.run([])
+                        with capture(app.run, []) as (out, err):
+                            self.assertEqual(out, """Cluster label\tjob ID\nmylabel      \tJobid  good-jobid state good-state ehosts good-host\n""")
 
     def test_usage(self):
         app = ListSubCommand()

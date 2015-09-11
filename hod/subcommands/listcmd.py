@@ -60,7 +60,7 @@ def format_cluster_info(cluster_info):
     ret = []
     for info in cluster_info:
         label = info.label if info.label is not None else '<no-label>'
-        job = str(info.pbsjob) if info.pbsjob is not None else 'Job not found on cluster.'
+        job = str(info.pbsjob) if info.pbsjob is not None else '<no-job>'
         ret.append((label, job))
     return ret
 
@@ -79,9 +79,9 @@ class ListSubCommand(SubCommand):
             labels = known_cluster_labels()
             pbs_master = os.getenv('PBS_DEFAULT')
             info = mk_cluster_info(labels, state, pbs_master)
-            if len(info) == 0:
+            if not info:
                 print 'No jobs found'
-                sys.exit(1)
+                sys.exit(0)
 
             info = format_cluster_info(info)
             CLUSTER_LABEL = 'Cluster label'
