@@ -39,6 +39,6 @@ def only_if_module_is_available(modname):
     except ImportError as err:
         def wrapper(_):
             """Raise ImportError since required module is not available."""
-            raise ImportError("%s; required module '%s' is not available" % err)
+            raise ImportError("%s; required module '%s' is not available" % (err, modname))
 
     return wrapper
