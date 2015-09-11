@@ -38,7 +38,7 @@ from vsc.utils.generaloption import GeneralOption
 from hod import VERSION as HOD_VERSION
 from hod.hodproc import ConfiguredMaster
 from hod.mpiservice import setup_tasks
-from hod.options import GENERAL_HOD_OPTIONS, validate_pbs_option
+from hod.options import GENERAL_HOD_OPTIONS, validate_required_option
 from hod.subcommands.subcommand import SubCommand
 
 
@@ -68,7 +68,7 @@ class GenConfigSubCommand(SubCommand):
     def run(self, args):
         """Run 'genconfig' subcommand."""
         optparser = GenConfigOptions(go_args=args, usage=self.usage_txt)
-        if not validate_pbs_option(optparser.options):
+        if not validate_required_option(optparser.options):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 
