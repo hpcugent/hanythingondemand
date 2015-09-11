@@ -52,7 +52,7 @@ class CleanOptions(GeneralOption):
 class CleanSubCommand(SubCommand):
     """Implementation of HOD 'clean' subcommand."""
     CMD = 'clean'
-    HELP = "Remove stale cluster files"
+    HELP = "Remove stale cluster info."
 
     def run(self, args):
         """Run 'clean' subcommand."""
