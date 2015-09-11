@@ -41,9 +41,9 @@ copyright = '2015-2015, Ghent University, CC-BY-SA'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '3.0.0'  # this is meant to reference the version of hanythingondemand
+version = '3.0.0dev'  # this is meant to reference the version of hanythingondemand
 # The full version, including alpha/beta/rc tags.
-release = '201507213.01'  # this is meant to reference the version of the documentation itself
+release = '20151009.01'  # this is meant to reference the version of the documentation itself
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:

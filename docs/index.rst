@@ -27,5 +27,5 @@ Introductory topics
     Configuration
     Command_line_interface
     Logging
-    Web_Services
+    Connecting_to_web_UIs
     Spark
