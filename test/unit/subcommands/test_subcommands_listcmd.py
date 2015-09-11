@@ -47,12 +47,10 @@ class TestListSubCommand(EnhancedTestCase):
         job = rm_pbs.PbsJob('good-jobid', 'good-state', 'good-host')
         with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [job])):
             with patch('hod.cluster.cluster_jobid', return_value='good-jobid'):
-                with patch('os.listdir', return_value=['mylabel']):
-                    with patch('sys.exit'):
-                        app = ListSubCommand()
-                        app.run([])
-                        with capture(app.run, []) as (out, err):
-                            self.assertEqual(out, """Cluster label\tjob ID\nmylabel      \tJobid  good-jobid state good-state ehosts good-host\n""")
+                with patch('hod.cluster.known_cluster_labels', return_value=['mylabel']):
+                    app = ListSubCommand()
+                    with capture(app.run, []) as (out, err):
+                        self.assertEqual(out, """Cluster label\tjob ID\nmylabel      \tJobid  good-jobid state good-state ehosts good-host\n""")
 
     def test_usage(self):
         app = ListSubCommand()

@@ -129,7 +129,6 @@ def mk_cluster_info(labels, pbsjobs, master=None):
             if job is not None:
                 seen_jobs.add(jobid)
         except ValueError, e:
-            print e
             job = None
         info.append(ClusterInfo(label, jobid, job))
 
