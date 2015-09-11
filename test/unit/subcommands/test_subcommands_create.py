@@ -45,17 +45,17 @@ class TestCreateSubCommand(unittest.TestCase):
     def test_run_with_args(self):
         with patch('hod.subcommands.create.PbsHodJob'):
             app = CreateSubCommand()
-            app.run(['--hodconf=hod.conf', '--workdir=workdir'])
+            app.run(['--hodconf=hod.conf', '--workdir=workdir', '--hod-module=hanythingondemand'])
 
     def test_run_with_dist_arg(self):
         with patch('hod.subcommands.create.PbsHodJob'):
             app = CreateSubCommand()
-            app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir'])
+            app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand'])
 
     def test_run_fails_with_config_and_dist_arg(self):
         with patch('hod.subcommands.create.PbsHodJob'):
             app = CreateSubCommand()
-            self.assertEqual(app.run(['--hodconf=hod.conf', '--dist=Hadoop-2.3.0', '--workdir=workdir']), 1)
+            self.assertEqual(app.run(['--hodconf=hod.conf', '--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand']), 1)
 
     def test_usage(self):
         app = CreateSubCommand()
