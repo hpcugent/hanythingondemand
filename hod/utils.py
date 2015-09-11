@@ -30,15 +30,13 @@ Utility functions for hanythingondemand
 
 def only_if_module_is_available(modname):
     """Decorator to guard functions/methods against missing required module with specified name."""
-    try:
-        __import__(modname)
-        def wrapper(orig):
-            """No-op decorator/wrapper function."""
+    def wrapped_f(orig):
+        """Decorated function, raises ImportError if specified module is not available."""
+        try:
+            __import__(modname)
             return orig
 
-    except ImportError as err:
-        def wrapper(_):
-            """Raise ImportError since required module is not available."""
+        except ImportError as err:
             raise ImportError("%s; required module '%s' is not available" % (err, modname))
 
-    return wrapper
+    return wrapped_f
