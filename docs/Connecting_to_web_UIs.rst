@@ -107,7 +107,7 @@ For example, to connect to ``node2001.delcatty.gent.vsc`` using port ``10000``::
           workernode, as shown below. If you are confident you are connecting to the right workernode, enter '`yes`'::
 
             The authenticity of host 'node2001.delcatty.gent.vsc (<no hostip for proxy command>)' can't be established.
-            RSA key fingerprint is e3:fe:27:2e:14:10:27:51:b8:22:c1:de:37:af:b9:1d.
+            RSA key fingerprint is 00:11:22:33:44:55:66:77:88:99:aa:bb:ee:dd:ee:ff.
             Are you sure you want to continue connecting (yes/no)? yes
             Warning: Permanently added 'node2001.delcatty.gent.vsc' (RSA) to the list of known hosts.
 
