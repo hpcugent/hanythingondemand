@@ -61,6 +61,8 @@ class PbsJob(object):
     def __str__(self):
         return "Jobid %s state %s ehosts %s" % (self.jobid, self.state, self.hosts)
 
+    def __repr__(self):
+        return 'PbsJob(jobid=%s, state=%s, hosts=%s)' % (self.jobid, self.state, self.hosts)
 
 def format_state(pbsjobs):
     '''Given a list of PbsJob objects, print them.'''
@@ -255,6 +257,7 @@ class Pbs(ResourceManagerScheduler):
             if self.match_filter(job_details, job_filter):
                 res.append(job_details)
         self.log.debug("Found jobinfo %s", res)
+        print res
         return res
 
     def match_filter(self, job, filter=None):

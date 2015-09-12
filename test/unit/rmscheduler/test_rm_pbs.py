@@ -27,7 +27,14 @@
 
 import pytest
 import unittest
+from mock import patch
+from collections import namedtuple
+
 import hod.rmscheduler.rm_pbs as hrr
+
+
+Attribs = namedtuple('attribs', 'name, attribs')
+Attrib = namedtuple('attrib', 'name, value')
 
 class HodRMSchedulerRMPBSTestCase(unittest.TestCase):
     '''Test Pbs class functions'''
@@ -36,22 +43,70 @@ class HodRMSchedulerRMPBSTestCase(unittest.TestCase):
         '''test Pbs init function'''
         o = hrr.Pbs(None)
 
+    def test_format_state_none(self):
+        expected = 'No jobs found'
+        self.assertTrue(expected, hrr.format_state([]))
+
+    def test_format_state_single(self):
+        job = hrr.PbsJob('123', 'R', 'host1')
+        expected = 'Found 1 job Id 123 State R Node host1'
+        self.assertTrue(expected, hrr.format_state([job]))
+
+    def test_format_state_multiple(self):
+        job1 = hrr.PbsJob('123', 'R', 'host1')
+        job2 = hrr.PbsJob('abc', 'Q', '')
+        expected = 'Found 2 jobs\n    Id 123 State R Node host1\n    Id abc State Q Node '
+        self.assertTrue(expected, hrr.format_state([job1, job2]))
+
     @pytest.mark.xfail
     def test_pbs_submit(self):
         '''test Pbs submit'''
         o = hrr.Pbs(None)
         o.submit()
 
-    # this dumps core on localhost.
-    def test_pbs_state(self):
-        o = hrr.Pbs(None)
-        o.state()
+    def test_pbs_state_none(self):
+        statjob = []
+        with patch('pbs.pbs_default'):
+            with patch('pbs.pbs_connect'):
+                with patch('pbs.pbs_statjob', return_value=statjob):
+                    o = hrr.Pbs(None)
+                    state = o.state()
+        self.assertEqual(len(state), 0)
+
+    def test_pbs_state_one(self):
+        statjob = [Attribs(name='123.master.domain', attribs=[
+                Attrib('job_state', 'R'),
+                Attrib('exec_host', 'node1.domain/1+node1.domain/2'),
+            ])
+        ]
+        with patch('pbs.pbs_default'):
+            with patch('pbs.pbs_connect'):
+                with patch('pbs.pbs_statjob', return_value=statjob):
+                    o = hrr.Pbs(None)
+                    state = o.state()
+        self.assertEqual(len(state), 1)
+        self.assertEqual(state[0].jobid, '123.master.domain')
+        self.assertEqual(state[0].state, 'R')
+        self.assertEqual(state[0].hosts, 'node1.domain')
 
     def test_pbs_info(self):
         '''test Pbs info -- though it doesn't do it yet.'''
-        # TODO: Make this test the info function
-        o = hrr.Pbs(None)
-
+        statjob = [Attribs(name='123.master.domain', attribs=[
+                Attrib('job_state', 'R'),
+                Attrib('exec_host', 'some-hosts'),
+            ])
+        ]
+        expected = [ {'id': '123.master.domain', 'job_state': 'R', 'exec_host': 'some-hosts'}]
+        with patch('pbs.pbs_default'):
+            with patch('pbs.pbs_connect'):
+                with patch('pbs.pbs_statjob', return_value=statjob):
+                    o = hrr.Pbs(None)
+                    info = o.info('123')
+        self.assertEqual(info[0]['id'], expected[0]['id'])
+        self.assertEqual(info[0]['job_state'], expected[0]['job_state'])
+        self.assertEqual(info[0]['exec_host'], expected[0]['exec_host'])
+        self.assertEqual(info, expected)
+ 
     def test_pbs_match_filter(self):
         '''test Pbs match_filter'''
         o = hrr.Pbs(None)
