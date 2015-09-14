@@ -27,9 +27,6 @@
 @author: Ewan Higgs (Universiteit Gent)
 """
 
-import unittest
-import pytest
-from textwrap import dedent
 from mock import patch, Mock
 
 from vsc.utils.testing import EnhancedTestCase
@@ -44,16 +41,16 @@ class TestListSubCommand(EnhancedTestCase):
 
     def test_run_good(self):
         import hod.rmscheduler.rm_pbs as rm_pbs
+        expected = "Cluster label\tjob ID\nmylabel      \tJobid  good-jobid state good-state ehosts good-host\n"
         job = rm_pbs.PbsJob('good-jobid', 'good-state', 'good-host')
         with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [job])):
             with patch('hod.cluster.cluster_jobid', return_value='good-jobid'):
                 with patch('hod.cluster.known_cluster_labels', return_value=['mylabel']):
                     app = ListSubCommand()
                     with capture(app.run, []) as (out, err):
-                        self.assertEqual(out, """Cluster label\tjob ID\nmylabel      \tJobid  good-jobid state good-state ehosts good-host\n""")
+                        self.assertEqual(out, expected)
 
     def test_usage(self):
         app = ListSubCommand()
         usage = app.usage()
         self.assertTrue(isinstance(usage, basestring))
-
