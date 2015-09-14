@@ -59,7 +59,7 @@ class PbsJob(object):
         self.hosts = hosts
 
     def __str__(self):
-        return "Jobid  %s state %s ehosts %s" % (self.jobid, self.state, self.hosts)
+        return "Jobid %s state %s ehosts %s" % (self.jobid, self.state, self.hosts)
 
 
 def format_state(pbsjobs):

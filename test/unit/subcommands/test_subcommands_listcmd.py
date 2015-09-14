@@ -32,25 +32,32 @@ from mock import patch, Mock
 from vsc.utils.testing import EnhancedTestCase
 
 from ..util import capture
-from hod.subcommands.listcmd import ListSubCommand
+import hod.subcommands.listcmd as hsl
 
 class TestListSubCommand(EnhancedTestCase):
-    def test_run(self):
-        app = ListSubCommand()
-        self.assertErrorRegex(SystemExit, '0', app.run, [])
+    def test_run_no_jobs(self):
+        with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [])):
+            with patch('hod.rmscheduler.rm_pbs.master_hostname', return_value='good-host'):
+                with patch('hod.cluster.cluster_jobid', return_value='good-jobid'):
+                    with patch('hod.cluster.known_cluster_labels', return_value=['mylabel']):
+                        app = hsl.ListSubCommand()
+                        self.assertErrorRegex(SystemExit, '0', app.run, [])
 
-    def test_run_good(self):
+
+    def test_run_one_job(self):
+        expected = "Cluster label\tjob ID\nmylabel      \tJobid good-jobid.good-master state good-state ehosts good-host\n"
         import hod.rmscheduler.rm_pbs as rm_pbs
-        expected = "Cluster label\tjob ID\nmylabel      \tJobid  good-jobid state good-state ehosts good-host\n"
-        job = rm_pbs.PbsJob('good-jobid', 'good-state', 'good-host')
+        job = rm_pbs.PbsJob('good-jobid.good-master', 'good-state', 'good-host')
         with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [job])):
-            with patch('hod.cluster.cluster_jobid', return_value='good-jobid'):
-                with patch('hod.cluster.known_cluster_labels', return_value=['mylabel']):
-                    app = ListSubCommand()
-                    with capture(app.run, []) as (out, err):
-                        self.assertEqual(out, expected)
+            with patch('hod.rmscheduler.rm_pbs.master_hostname', return_value='good-master'):
+                with patch('hod.cluster.cluster_jobid', return_value='good-jobid.good-master'):
+                    with patch('hod.cluster.known_cluster_labels', return_value=['mylabel']):
+                        app = hsl.ListSubCommand()
+                        app.run([])
+                        with capture(app.run, []) as (out, err):
+                            self.assertEqual(out, expected)
 
     def test_usage(self):
-        app = ListSubCommand()
+        app = hsl.ListSubCommand()
         usage = app.usage()
         self.assertTrue(isinstance(usage, basestring))

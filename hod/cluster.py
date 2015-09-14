@@ -36,7 +36,6 @@ from vsc.utils import fancylogger
 
 from hod.config.config import resolve_config_paths
 from hod.hodproc import load_hod_config
-import hod.rmscheduler.rm_pbs as rm_pbs
 
 
 _log = fancylogger.getLogger(fname=False)
@@ -194,9 +193,8 @@ def clean_cluster_info(master, cluster_info):
     Remove all the cluster directories for the labels with jobids using the
     master, but no job info founs.
     """
-    rm_master = rm_pbs.master_hostname() or ''
     for info in cluster_info:
-        if info.pbsjob is None and info.jobid.endswith(rm_master):
+        if info.pbsjob is None and info.jobid.endswith(master):
             rm_cluster_info(info.label)
 
 def rm_cluster_info(label):
