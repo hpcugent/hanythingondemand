@@ -139,8 +139,8 @@ class Pbs(ResourceManagerScheduler):
 
             attropl.extend(tmpattropl)
 
-        # # add a bunch of variables (added by qsub)
-        # # also set PBS_O_WORKDIR to os.getcwd()
+        # add a bunch of variables (added by qsub)
+        # also set PBS_O_WORKDIR to os.getcwd()
         os.environ.setdefault('WORKDIR', os.getcwd())
 
         defvars = ['MAIL', 'HOME', 'PATH', 'SHELL', 'WORKDIR']
@@ -234,7 +234,7 @@ class Pbs(ResourceManagerScheduler):
                 jobattr[idx].name = name
 
         jobs = pbs.pbs_statjob(self.pbsconn, jobid, jobattr, 'NULL')
-        if len(jobs) == 0:
+        if not jobs:
             self.log.debug("No job found. Wrong id %s or job finished?", jobid)
             return []
 
@@ -263,7 +263,7 @@ class Pbs(ResourceManagerScheduler):
 
     @only_if_module_is_available('pbs')
     def remove(self, jobid=None):
-        """Remove the job with id jobid"""
+        """Remove the job with id jobid."""
         if jobid is None:
             jobid = self.jobid
 
