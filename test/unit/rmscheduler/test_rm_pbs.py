@@ -25,6 +25,7 @@
 @author Ewan Higgs (Universiteit Gent)
 '''
 
+import os
 import pytest
 import unittest
 from mock import patch, Mock
@@ -39,6 +40,12 @@ Attrib = namedtuple('attrib', 'name, value')
 
 class HodRMSchedulerRMPBSTestCase(unittest.TestCase):
     '''Test Pbs class functions'''
+
+    def test_master_hostname(self):
+        fake_environ = os.environ.copy()
+        fake_environ['PBS_DEFAULT'] = 'master123.test.gent.vsc'
+        with patch('os.environ', fake_environ):
+            self.assertTrue(hrr.master_hostname(), 'master123.test.gent.vsc')
 
     def test_pbs_init(self):
         '''test Pbs init function'''

@@ -40,7 +40,7 @@ from hod.utils import only_if_module_is_available
 # optional packages, not always required
 try:
     import pbs
-    import PBSQuery 
+    import PBSQuery
 except ImportError:
     pass
 
