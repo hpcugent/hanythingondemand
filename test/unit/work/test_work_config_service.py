@@ -25,12 +25,14 @@
 """
 @author: Ewan Higgs
 """
-import hod.work.config_service as hwc
-import hod.config.config as hcc
-import hod.config.template as hct
+import os
 import unittest
 from mock import patch, sentinel
 from cStringIO import StringIO
+
+import hod.work.config_service as hwc
+import hod.config.config as hcc
+import hod.config.template as hct
 
 def _mk_master_config():
     return StringIO("""
