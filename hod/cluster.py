@@ -30,14 +30,17 @@ Cluster and label functions.
 
 import os
 import shutil
+from collections import namedtuple
 
 from vsc.utils import fancylogger
 
 from hod.config.config import resolve_config_paths
 from hod.hodproc import load_hod_config
-from collections import namedtuple
+import hod.rmscheduler.rm_pbs as rm_pbs
+
 
 _log = fancylogger.getLogger(fname=False)
+
 
 CLUSTER_ENV_TEMPLATE = """
 # make sure session is properly set up (e.g., that 'module' command is defined)
@@ -58,7 +61,9 @@ echo "List of loaded modules:"
 module list 2>&1
 """
 
+
 ClusterInfo = namedtuple('ClusterInfo', 'label, jobid, pbsjob')
+
 
 def cluster_info_dir():
     """
@@ -66,7 +71,7 @@ def cluster_info_dir():
     Returns $XDG_CONFIG_HOME/hod.d or $HOME/.config/hod.d
     http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     """
-    dflt = os.path.join(os.getenv('HOME', ''), '.config')
+    dflt = os.path.join(os.path.expanduser('~'), '.config')
     return os.path.join(os.getenv('XDG_CONFIG_HOME', dflt), 'hod.d')
 
 
@@ -189,12 +194,13 @@ def clean_cluster_info(master, cluster_info):
     Remove all the cluster directories for the labels with jobids using the
     master, but no job info founs.
     """
+    rm_master = rm_pbs.master_hostname() or ''
     for info in cluster_info:
-        if info.pbsjob is None and info.jobid.endswith(os.getenv('PBS_DEFAULT', '')):
+        if info.pbsjob is None and info.jobid.endswith(rm_master):
             rm_cluster_info(info.label)
-            print 'Removed %s' % info.label
 
 def rm_cluster_info(label):
     """Remove a cluster label directory"""
     info_dir = os.path.join(cluster_info_dir(), label)
     shutil.rmtree(info_dir)
+    print 'Removed cluster info directory %s for cluster labeled %s' % (info_dir, label)

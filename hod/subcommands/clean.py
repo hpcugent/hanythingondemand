@@ -29,9 +29,6 @@ Remove stale .hod.d/* files.
 @author: Ewan Higgs (Universiteit Gent)
 """
 
-import os
-from itertools import chain
-
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
@@ -61,9 +58,9 @@ class CleanSubCommand(SubCommand):
             pbs = rm_pbs.Pbs(optparser)
             state = pbs.state()
             labels = known_cluster_labels()
-            pbs_master = os.getenv('PBS_DEFAULT')
-            info = mk_cluster_info(labels, state, master=pbs_master)
-            clean_cluster_info(pbs_master, info)
+            rm_master = rm_pbs.master_hostname()
+            info = mk_cluster_info(labels, state, master=rm_master)
+            clean_cluster_info(rm_master, info)
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)

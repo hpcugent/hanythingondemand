@@ -29,7 +29,6 @@ List the running applications.
 @author: Ewan Higgs (Universiteit Gent)
 """
 
-import os
 import sys
 from itertools import chain
 
@@ -77,16 +76,16 @@ class ListSubCommand(SubCommand):
             pbs = rm_pbs.Pbs(optparser)
             state = pbs.state()
             labels = hc.known_cluster_labels()
-            pbs_master = os.getenv('PBS_DEFAULT')
-            info = hc.mk_cluster_info(labels, state, pbs_master)
+            rm_master = rm_pbs.master_hostname()
+            info = hc.mk_cluster_info(labels, state, rm_master)
             if not info:
                 print 'No jobs found'
                 sys.exit(0)
 
             info = format_cluster_info(info)
-            CLUSTER_LABEL = 'Cluster label'
-            fmt_str = mk_fmt_str([label for label, job in info], CLUSTER_LABEL)
-            print fmt_str % (CLUSTER_LABEL, 'job ID')
+            cluster_label = 'Cluster label'
+            fmt_str = mk_fmt_str([label for label, job in info], cluster_label)
+            print fmt_str % (cluster_label, 'job ID')
             for label, job in info:
                 print fmt_str % (label, job)
         except StandardError as err:

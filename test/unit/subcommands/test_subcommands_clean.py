@@ -28,7 +28,6 @@
 """
 
 import unittest
-import pytest
 from mock import patch, Mock
 from ..util import capture
 from hod.subcommands.clean import CleanSubCommand
@@ -51,4 +50,3 @@ class TestCleanSubCommand(unittest.TestCase):
         app = CleanSubCommand()
         usage = app.usage()
         self.assertTrue(isinstance(usage, basestring))
-
