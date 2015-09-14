@@ -81,7 +81,7 @@ def format_state(pbsjobs):
 
 def master_hostname():
     """Return hostname of master server of resource manager."""
-    return os.getenv('PBS_DEFAULT')
+    return pbs.pbs_default()
 
 
 class Pbs(ResourceManagerScheduler):
