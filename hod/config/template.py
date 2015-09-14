@@ -105,7 +105,7 @@ def register_templates(template_registry, config_opts):
     for ct in templates:
         template_registry.register(ct)
 
-def mklocalworkdir(workdir):
+def mklocalworkdir(workdir, label=None):
     '''
     Construct the pathname for a workdir with a path local to this
     host/job/user.
@@ -113,7 +113,9 @@ def mklocalworkdir(workdir):
     user = _current_user()
     pid = os.getpid()
     hostname = socket.getfqdn()
-    dir_name = ".".join([user, hostname, str(pid)])
+    dir_name = '.'.join([user, hostname, str(pid)])
+    if label:
+        dir_name = '%s.%s' % (label, dir_name)
     return mkpath(workdir, 'hod', dir_name)
 
 def _current_user():

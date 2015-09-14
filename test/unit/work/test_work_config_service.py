@@ -25,12 +25,14 @@
 """
 @author: Ewan Higgs
 """
-import hod.work.config_service as hwc
-import hod.config.config as hcc
-import hod.config.template as hct
+import os
 import unittest
 from mock import patch, sentinel
 from cStringIO import StringIO
+
+import hod.work.config_service as hwc
+import hod.config.config as hcc
+import hod.config.template as hct
 
 def _mk_master_config():
     return StringIO("""
@@ -83,7 +85,8 @@ class TestHodWorkConfiguredService(unittest.TestCase):
     def test_ConfiguredService_prepare_work_cfg(self):
         cfg = hcc.ConfigOpts.from_file(_mk_slave_config(), hct.TemplateResolver(workdir='/tmp'))
         cs = hwc.ConfiguredService(cfg)
+        localworkdir = '/tmp/label.node1234.user.123'
         with patch('hod.work.config_service.os.makedirs', side_effect=lambda *args: None):
-            with patch('hod.config.config.mklocalworkdir', side_effect=lambda *args: '/tmp/node1234.awesomeuser.123'):
+            with patch('hod.config.config.mklocalworkdir', side_effect=lambda *args, **kwargs: localworkdir):
                 cs.prepare_work_cfg()
-        self.assertEqual(cs.controldir, '/tmp/node1234.awesomeuser.123/controldir')
+        self.assertEqual(cs.controldir, os.path.join(localworkdir, 'controldir'))
