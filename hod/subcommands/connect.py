@@ -37,7 +37,7 @@ import sys
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
-from hod.local import cluster_env_file, cluster_jobid
+from hod.cluster import cluster_env_file, cluster_jobid
 from hod.subcommands.subcommand import SubCommand
 import hod
 import hod.rmscheduler.rm_pbs as rm_pbs

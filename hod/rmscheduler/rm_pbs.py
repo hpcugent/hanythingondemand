@@ -59,7 +59,7 @@ class PbsJob(object):
         self.hosts = hosts
 
     def __str__(self):
-        return "Jobid  %s state %s ehosts %s" % (self.jobid, self.state, self.hosts)
+        return "Jobid %s state %s ehosts %s" % (self.jobid, self.state, self.hosts)
 
 
 def format_state(pbsjobs):
@@ -77,6 +77,12 @@ def format_state(pbsjobs):
     _log.debug("msg %s", msg)
 
     return msg
+
+
+def master_hostname():
+    """Return hostname of master server of resource manager."""
+    return pbs.pbs_default()
+
 
 class Pbs(ResourceManagerScheduler):
     """Interaction with torque"""
@@ -239,10 +245,7 @@ class Pbs(ResourceManagerScheduler):
             self.log.debug("No job found. Wrong id %s or job finished? Returning %s",
                     jobid, res)
             return res
-        elif len(jobs) == 1:
-            self.log.debug("Request for jobid %s returned one result %s", jobid, jobs)
-        else:
-            self.log.error("Request for jobid %s returned more then one result %s", jobid, jobs)
+        self.log.debug("Request for jobid %s returned %d result(s) %s", jobid, len(jobs), jobs)
 
         # more then one, return value
         res = []

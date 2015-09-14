@@ -80,7 +80,7 @@ PACKAGE = {
         'netifaces',
         'netaddr',
     ],
-    'tests_require': ['tox', 'pytest', 'pytest-cover', 'coverage', 'mock'],
+    'tests_require': ['tox', 'pytest', 'pytest-cov', 'coverage', 'mock'],
     'packages': [
         'hod',
         'hod.commands',

@@ -4,6 +4,7 @@ omit =
     *__init__.py
     */.tox/*
     */.virtualenvs/*
+    test/*
 
 [paths]
 source = 

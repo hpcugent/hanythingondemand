@@ -27,37 +27,26 @@
 @author: Ewan Higgs (Universiteit Gent)
 """
 
+import unittest
 from mock import patch, Mock
-
-from vsc.utils.testing import EnhancedTestCase
-
 from ..util import capture
-import hod.subcommands.listcmd as hsl
+from hod.subcommands.clean import CleanSubCommand
 
-class TestListSubCommand(EnhancedTestCase):
-    def test_run_no_jobs(self):
-        with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [])):
-            with patch('hod.rmscheduler.rm_pbs.master_hostname', return_value='good-host'):
-                with patch('hod.cluster.cluster_jobid', return_value='good-jobid'):
-                    with patch('hod.cluster.known_cluster_labels', return_value=['mylabel']):
-                        app = hsl.ListSubCommand()
-                        self.assertErrorRegex(SystemExit, '0', app.run, [])
+class TestCleanSubCommand(unittest.TestCase):
+    def test_run(self):
+        app = CleanSubCommand()
+        app.run([])
 
-
-    def test_run_one_job(self):
-        expected = "Cluster label\tjob ID\nmylabel      \tJobid good-jobid.good-master state good-state ehosts good-host\n"
+    def test_run_good(self):
         import hod.rmscheduler.rm_pbs as rm_pbs
-        job = rm_pbs.PbsJob('good-jobid.good-master', 'good-state', 'good-host')
+        job = rm_pbs.PbsJob('good-jobid.master23.hod.os', 'good-state', 'good-host')
         with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [job])):
-            with patch('hod.rmscheduler.rm_pbs.master_hostname', return_value='good-master'):
-                with patch('hod.cluster.cluster_jobid', return_value='good-jobid.good-master'):
-                    with patch('hod.cluster.known_cluster_labels', return_value=['mylabel']):
-                        app = hsl.ListSubCommand()
-                        app.run([])
-                        with capture(app.run, []) as (out, err):
-                            self.assertEqual(out, expected)
+            with patch('os.getenv', return_value='master23.hod.os'):
+                app = CleanSubCommand()
+                with capture(app.run, []) as (out, err):
+                    self.assertEqual(out, '')
 
     def test_usage(self):
-        app = hsl.ListSubCommand()
+        app = CleanSubCommand()
         usage = app.usage()
         self.assertTrue(isinstance(usage, basestring))
