@@ -164,7 +164,7 @@ class HodRMSchedulerRMPBSTestCase(unittest.TestCase):
         nodes = { }
 
         with patch('PBSQuery.PBSQuery', return_value=Mock(getnodes=lambda: nodes)):
-            self.assertIsNone(o.get_ppn())
+            self.assertTrue(o.get_ppn() is None)
 
     def test_pbs_get_ppn(self):
         '''test Pbs get_ppn'''
