@@ -96,6 +96,9 @@ Create a hanythingondemand cluster, with the specified label (optional) and clus
 
 The configuration file can be a filepath, or one of the included cluster configuration files (see :ref:`cmdline_dists`).
 
+Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<no-job>`` until ``hod clean`` 
+is run.
+
 .. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
 
 
@@ -190,6 +193,9 @@ Next to ``--script`` (which is mandatory with ``batch``), all configuration opti
 also supported for ``batch``, see :ref:`cmdline_create_options`.
 When used with ``batch``, these options can also be specified via ``$HOD_BATCH_*``.
 
+Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<no-job>`` until ``hod clean`` 
+is run.
+
 .. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
 
 
@@ -253,4 +259,5 @@ that was created for this cluster (``$HOME/.config/hod.d/<label>/env``).
 ``hod clean``
 ~~~~~~~~~~~~~
 
-Remove old cluster labels that will appear in ``hod list``.
+Remove cluster info directory for clusters that are no longer available, i.e.  those marked with ``<no-job>`` in the 
+output of ``hod list``.
