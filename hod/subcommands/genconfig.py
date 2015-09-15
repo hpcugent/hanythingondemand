@@ -52,6 +52,9 @@ class GenConfigOptions(GeneralOption):
     def config_options(self):
         """Add general configuration options."""
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
+        opts.update({
+            'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
+        })
         descr = ["Genconfig configuration", "Configuration options for the 'genconfig' subcommand"]
 
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)
