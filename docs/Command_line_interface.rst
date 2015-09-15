@@ -34,6 +34,7 @@ Running ``hod`` without arguments is equivalent to ``hod --help``, and results i
         help-template   Print the values of the configuration templates based on the current machine.
         genconfig       Write hod configs to a directory for diagnostic purposes
         connect         Connect to a hod cluster.
+        clean           Remove stale cluster info.
 
 .. _cmdline_hod_options:
 
@@ -201,6 +202,11 @@ When used with ``batch``, these options can also be specified via ``$HOD_BATCH_*
 
 Print a list of existing clusters, and their state ('``queued``' or '``running``').
 
+Jobs that have completed running will remain in the list with ``<no-job>`` until
+``hod clean`` is run.
+
+See :ref:`cmdline_clean`.
+
 
 .. _cmdline_dists:
 
@@ -241,3 +247,10 @@ Connect to an existing hanythingondemand cluster, and set up the environment to 
 
 This basically corresponds to logging in to the cluster head node using SSH and sourcing the cluster information script
 that was created for this cluster (``$HOME/.config/hod.d/<label>/env``).
+
+.. _cmdline_clean:
+
+``hod clean``
+~~~~~~~~~~~~~
+
+Remove old cluster labels that will appear in ``hod list``.

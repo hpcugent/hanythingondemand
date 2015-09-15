@@ -5,7 +5,7 @@ Logging
 
 If your job didn't work as expected, you'll need to check the logs.
 
-It's important to realise that both *hanythingondemand* itself and the services it is running (e.g., Hadoop) produce
+It's important to realise that both *hanythingondemand* itself and the services it is running (e.g. Hadoop) produce
 logs.
 
 Which logs you should be diving into depends on the information you are looking for or the kind of problems
@@ -51,8 +51,7 @@ Service logs
 Hadoop logs
 ***********
 
-By default, the log files for a Hadoop cluster will be in ``$localworkdir/log``.
-Expanded, this is in the workdir of the HOD cluster as follows: ``$workdir/${USER}.${HOSTNAME}.${PID}/log``.
+By default, the log files for a Hadoop cluster will be in ``$HOD_LOCALWORKDIR/log``.
 
 One of the advantages of having the log files on a parallel file system is that
 one no longer needs to use special tools for log aggregation (Flume, Logstash,
@@ -61,7 +60,7 @@ structure.
 
 Hadoop logs have two components:
 
-1. *Service logs*: These are in ``$localworkdir/log``. Examples are:
+1. *Service logs*: These are in ``$HOD_LOCALWORKDIR/log``. Examples are:
    ``yarn-username-resourcemanager-node.domain.out``,
    ``yarn-username-nodemanager-node.domain.out``.
 
@@ -69,4 +68,10 @@ Hadoop logs have two components:
    Output from your program will appear in these files.  These
    are organized by application/container/stderr and stdout. For example: ::
 
-   $localworkdir/log/userlogs/application_1430748293929_0001/container_1430748293929_0001_01_000003/stdout
+   $HOD_LOCALWORKDIR/log/userlogs/application_1430748293929_0001/container_1430748293929_0001_01_000003/stdout
+
+IPython logs
+************
+
+IPython logs to stdout and stderr. These are sent by hanythingondemand to
+``$HOD_LOCALWORKDIR/log/pyspark.stdout`` and ``$HOD_LOCALWORKDIR/log/pyspark.stderr``
