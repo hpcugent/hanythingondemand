@@ -81,4 +81,5 @@ class GenConfigSubCommand(SubCommand):
             return 0
         except Exception as e:
             _log.error("Failed to setup hod tasks: %s", str(e))
-            _log.exception("hod-genconfig failed")
+            _log.exception("hod genconfig failed")
+            sys.exit(1)
