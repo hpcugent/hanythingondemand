@@ -202,3 +202,10 @@ def rm_cluster_info(label):
     info_dir = os.path.join(cluster_info_dir(), label)
     shutil.rmtree(info_dir)
     print 'Removed cluster info directory %s for cluster labeled %s' % (info_dir, label)
+
+def mv_cluster_info(label, newlabel):
+    """Remove a cluster label directory"""
+    cid = cluster_info_dir()
+    labeldir = os.path.join(cid, label)
+    newlabeldir = os.path.join(cid, newlabel)
+    shutil.move(labeldir, newlabeldir)
