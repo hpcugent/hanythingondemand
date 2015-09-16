@@ -28,12 +28,34 @@
 """
 
 import unittest
+from mock import patch, Mock, MagicMock
+
 from hod.subcommands.genconfig import GenConfigSubCommand
 
 class TestGenconfigSubCommand(unittest.TestCase):
     def test_run(self):
         app = GenConfigSubCommand()
-        app.run([])
+        mpi = Mock(COMM_WORLD=0, Get_size=lambda:1)
+        mock_cfg = Mock(modules=lambda:[], master_env=[], hodconfdir='',
+                service_files=[])
+        with patch('mpi4py.MPI', mpi):
+            with patch('hod.hodproc._setup_config_paths'):
+                with patch('hod.hodproc.resolve_config_paths', return_value='/'):
+                    with patch('hod.hodproc.load_hod_config', return_value=mock_cfg):
+                        with patch('hod.hodproc._setup_template_resolver', return_value=Mock()):
+                            app.run(['--workdir=/no-path', '--hod-module=foo', '--dist=Some-Dist-1.2.3'])
+
+    def test_run_no_hod_module(self):
+        app = GenConfigSubCommand()
+        mpi = Mock(COMM_WORLD=0, Get_size=lambda:1)
+        mock_cfg = Mock(modules=lambda:[], master_env=[], hodconfdir='',
+                service_files=[])
+        with patch('mpi4py.MPI', mpi):
+            with patch('hod.hodproc._setup_config_paths'):
+                with patch('hod.hodproc.resolve_config_paths', return_value='/'):
+                    with patch('hod.hodproc.load_hod_config', return_value=mock_cfg):
+                        with patch('hod.hodproc._setup_template_resolver', return_value=Mock()):
+                            app.run(['--workdir=/no-path', '--dist=Some-Dist-1.2.3'])
 
     def test_usage(self):
         app = GenConfigSubCommand()
