@@ -32,7 +32,7 @@ Hanythingondemand main program.
 import sys
 
 import hod
-from hod.subcommands import batch, connect, clean, create, dists, genconfig, helptemplate, label, listcmd
+from hod.subcommands import batch, connect, clean, create, dists, genconfig, helptemplate, relabel, listcmd
 
 
 SUBCOMMANDS = [
@@ -44,7 +44,7 @@ SUBCOMMANDS = [
     genconfig.GenConfigSubCommand,
     connect.ConnectSubCommand,
     clean.CleanSubCommand,
-    label.LabelSubCommand,
+    relabel.RelabelSubCommand,
 ]
 
 SUBCOMMAND_CLASSES = dict([(sc.CMD, sc) for sc in SUBCOMMANDS])

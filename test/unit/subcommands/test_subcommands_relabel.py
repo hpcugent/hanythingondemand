@@ -32,23 +32,36 @@ from mock import patch, MagicMock
 from vsc.utils.testing import EnhancedTestCase
 
 from ..util import capture
-import hod.subcommands.label as hsl
+import hod.subcommands.relabel as hsr
 
-class TestLabelSubCommand(EnhancedTestCase):
+class TestRelabelSubCommand(EnhancedTestCase):
     def test_run_no_args(self):
-        app = hsl.LabelSubCommand()
+        app = hsr.RelabelSubCommand()
         self.assertErrorRegex(SystemExit, '1', app.run, [])
 
     def test_run_success(self):
         with patch('hod.cluster.known_cluster_labels', return_value=['abc']):
             with patch('hod.cluster.cluster_info_dir', return_value='/path'):
                 with patch('shutil.move', MagicMock()) as move_fn:
-                    app = hsl.LabelSubCommand()
-                    app.run(['label', 'abc', 'xyz'])
+                    app = hsr.RelabelSubCommand()
+                    app.run(['relabel', 'abc', 'xyz'])
                     move_fn.assert_called_with('/path/abc', '/path/xyz')
 
+    def test_run_oserror(self):
+        with patch('hod.cluster.known_cluster_labels', return_value=['abc']):
+            with patch('hod.cluster.cluster_info_dir', return_value='/path'):
+                with patch('shutil.move', side_effect=OSError('bad')):
+                    app = hsr.RelabelSubCommand()
+                    self.assertErrorRegex(SystemExit, '1', app.run, ['relabel', 'abc', 'xyz'])
+
+    def test_run_ioerror(self):
+        with patch('hod.cluster.known_cluster_labels', return_value=['abc']):
+            with patch('hod.cluster.cluster_info_dir', return_value='/path'):
+                with patch('shutil.move', side_effect=IOError('bad')):
+                    app = hsr.RelabelSubCommand()
+                    self.assertErrorRegex(SystemExit, '1', app.run, ['relabel', 'abc', 'xyz'])
 
     def test_usage(self):
-        app = hsl.LabelSubCommand()
+        app = hsr.RelabelSubCommand()
         usage = app.usage()
         self.assertTrue(isinstance(usage, basestring))

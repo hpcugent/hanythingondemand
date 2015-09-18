@@ -24,7 +24,7 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-List the running applications.
+Relabel a cluster.
 
 @author: Ewan Higgs (Universiteit Gent)
 """
@@ -42,31 +42,36 @@ import hod.cluster as hc
 _log = fancylogger.getLogger(fname=False)
 
 
-class LabelOptions(GeneralOption):
-    """Option parser for 'label' subcommand."""
+class RelabelOptions(GeneralOption):
+    """Option parser for 'relabel' subcommand."""
     VERSION = HOD_VERSION
     ALLOPTSMANDATORY = False # let us use optionless arguments.
 
 
-class LabelSubCommand(SubCommand):
-    """Implementation of HOD 'label' subcommand."""
-    CMD = 'label'
+class RelabelSubCommand(SubCommand):
+    """Implementation of HOD 'relabel' subcommand."""
+    CMD = 'relabel'
     EXAMPLE = "<source-cluster-label> <dest-cluster-label>"
-    HELP = "Set the label to an existing job"
+    HELP = "Change the label of an existing job"
 
     def run(self, args):
-        """Run 'label' subcommand."""
-        optparser = LabelOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
+        """Run 'relabel' subcommand."""
+        optparser = RelabelOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
-            if len(optparser.args) < 3:
+            if len(optparser.args) != 3:
                 sys.stderr.write(self.usage())
                 sys.exit(1)
 
             labels = hc.known_cluster_labels()
             if optparser.args[1] not in labels:
-                sys.stderr.write('Job "%s" not found\n' % optparser.args[1])
+                sys.stderr.write('Cluster with label "%s" not found\n' % optparser.args[1])
                 sys.exit(1)
-            hc.mv_cluster_info(optparser.args[1], optparser.args[2])
+            try:
+                hc.mv_cluster_info(optparser.args[1], optparser.args[2])
+            except (IOError, OSError) as err:
+                sys.stderr.write('Could not change label "%s" to "%s": "%s"\n' %
+                    (optparser.args[1], optparser.args[2], err.message))
+                sys.exit(1)
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
