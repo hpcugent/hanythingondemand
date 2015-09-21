@@ -33,6 +33,7 @@ from hod.mpiservice import MpiService, Task, MASTERRANK
 from hod.config.config import (PreServiceConfigOpts, ConfigOpts, 
         ConfigOptsParams, env2str, service_config_fn, write_service_config,
         parse_comma_delim_list, resolve_config_paths, RUNS_ON_MASTER)
+from hod.commands.command import NO_TIMEOUT
 from hod.config.template import (TemplateRegistry, TemplateResolver,
         register_templates)
 from hod.work.config_service import ConfiguredService
@@ -129,9 +130,14 @@ class ConfiguredMaster(MpiService):
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
 
         if hasattr(self.options, 'script') and self.options.script is not None:
-            script = self.options.script + '; qdel $PBS_JOBID'
+            script = self.options.script
+            # Use scring concatenation since os.path.join will expand envvars, which we don't want!
+            script_stdout = mkpath('$PBS_O_WORKDIR', '%s.stdout' % os.path.basename(script))
+            script_stderr = mkpath('$PBS_O_WORKDIR', '%s.stderr' % os.path.basename(script))
+            redirection = ' > %s 2> %s' % (script_stdout, script_stderr)
+            start_script = script + redirection + '; qdel $PBS_JOBID'
             # TODO: How can we test this?
-            config = ConfigOpts(script, RUNS_ON_MASTER, '', script, '', master_env, resolver)
+            config = ConfigOpts(script, RUNS_ON_MASTER, '', start_script, '', master_env, resolver, timeout=NO_TIMEOUT)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
             cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))

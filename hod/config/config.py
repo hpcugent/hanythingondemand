@@ -36,6 +36,7 @@ from pkg_resources import Requirement, resource_filename, resource_listdir
 
 import hod
 from hod.node.node import Node
+from hod.commands.command import COMMAND_TIMEOUT
 from hod.config.template import mklocalworkdir
 
 
@@ -325,16 +326,17 @@ class ConfigOpts(object):
 
     def to_params(self, workdir, modules, master_template_args):
         """Create a ConfigOptsParams object from the ConfigOpts instance"""
-        return ConfigOptsParams(self.name, self._runs_on, self._pre_start_script, self._start_script, 
-                                self._stop_script, self._env, workdir, modules, master_template_args)
+        return ConfigOptsParams(self.name, self._runs_on, self._pre_start_script, self._start_script,
+                                self._stop_script, self._env, workdir, modules, master_template_args, self.timeout)
 
     @staticmethod
     def from_params(params, template_resolver):
         """Create a ConfigOpts instance from a ConfigOptsParams instance"""
         return ConfigOpts(params.name, params.runs_on, params.pre_start_script, params.start_script,
-                          params.stop_script, params.env, template_resolver)
+                          params.stop_script, params.env, template_resolver, params.timeout)
 
-    def __init__(self, name, runs_on, pre_start_script, start_script, stop_script, env, template_resolver):
+    def __init__(self, name, runs_on, pre_start_script, start_script, stop_script, env, template_resolver, 
+                    timeout=COMMAND_TIMEOUT):
         self.name = name
         self._runs_on = runs_on
         self._tr = template_resolver
@@ -342,6 +344,7 @@ class ConfigOpts(object):
         self._start_script = start_script
         self._stop_script = stop_script
         self._env = env
+        self.timeout = timeout
 
     @property
     def pre_start_script(self):
@@ -411,7 +414,8 @@ ConfigOptsParams = namedtuple('ConfigOptsParams', [
     'env',
     'workdir',
     'modules',
-    'master_template_kwargs'
+    'master_template_kwargs',
+    'timeout',
 ])
 
 def autogen_fn(name):

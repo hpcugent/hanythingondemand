@@ -43,6 +43,7 @@ from vsc.utils import fancylogger
 
 
 COMMAND_TIMEOUT = 120  # timeout
+NO_TIMEOUT = -1
 
 
 class Command(object):
@@ -122,15 +123,20 @@ class Command(object):
         timedout = False
         while p.poll() is None:
             if os.path.exists("/proc/%s" % (p.pid)):
-                now = datetime.datetime.now()
-                if (now - start).seconds > self.timeout:
-                    if timedout is False:
-                        os.kill(p.pid, signal.SIGTERM)
-                        self.log.debug("Timeout occured with cmd %s. took more than %i secs to complete.",
-                                self.command, self.timeout)
-                        timedout = True
-                    else:
-                        os.kill(p.pid, signal.SIGKILL)
+                if self.timeout == NO_TIMEOUT:
+                    self.log.debug("There is no timeout for cmd %s and it is still running" % self.command)
+                    time.sleep(10)
+                    continue
+                else:
+                    now = datetime.datetime.now()
+                    if (now - start).seconds > self.timeout:
+                        if timedout is False:
+                            os.kill(p.pid, signal.SIGTERM)
+                            self.log.debug("Timeout occured with cmd %s. took more than %i secs to complete.",
+                                    self.command, self.timeout)
+                            timedout = True
+                        else:
+                            os.kill(p.pid, signal.SIGKILL)
             time.sleep(1)
 
         if self.fake_pty:
