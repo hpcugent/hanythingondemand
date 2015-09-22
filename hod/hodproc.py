@@ -95,6 +95,17 @@ def _setup_template_resolver(m_config, master_template_args):
         reg.register(ct)
     return TemplateResolver(**reg.to_kwargs())
 
+def _script_output_paths(script_name):
+    """
+    Given a script path, return the path to the output files. This uses a
+    sceheme mirroring how PBS actually works where jobs have
+    '$PBS_O_WORKDIR/<script-name>.[eo]<$PBS_JOBID>'
+    """
+    script_basename = os.path.basename(script_name)
+    script_stdout = mkpath('$PBS_O_WORKDIR', '%s.o${PBS_JOBID}' % script_basename)
+    script_stderr = mkpath('$PBS_O_WORKDIR', '%s.e${PBS_JOBID}' % script_basename)
+    return (script_stdout, script_stderr)
+    
 class ConfiguredMaster(MpiService):
     """
     Use config to setup services.
@@ -132,8 +143,7 @@ class ConfiguredMaster(MpiService):
         if hasattr(self.options, 'script') and self.options.script is not None:
             script = self.options.script
             # Use scring concatenation since os.path.join will expand envvars, which we don't want!
-            script_stdout = mkpath('$PBS_O_WORKDIR', '%s.stdout' % os.path.basename(script))
-            script_stderr = mkpath('$PBS_O_WORKDIR', '%s.stderr' % os.path.basename(script))
+            script_stdout, script_stderr = _script_output_paths(script)
             redirection = ' > %s 2> %s' % (script_stdout, script_stderr)
             start_script = script + redirection + '; qdel $PBS_JOBID'
             # TODO: How can we test this?
