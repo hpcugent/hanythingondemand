@@ -97,7 +97,7 @@ Create a hanythingondemand cluster, with the specified label (optional) and clus
 The configuration file can be a filepath, or one of the included cluster configuration files (see :ref:`cmdline_dists`).
 
 Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<no-job>`` until ``hod clean`` 
-is run.
+is run (see :ref:`cmdline_clean`).
 
 .. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
 
@@ -194,7 +194,7 @@ also supported for ``batch``, see :ref:`cmdline_create_options`.
 When used with ``batch``, these options can also be specified via ``$HOD_BATCH_*``.
 
 Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<no-job>`` until ``hod clean`` 
-is run.
+is run (see :ref:`cmdline_clean`).
 
 .. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
 

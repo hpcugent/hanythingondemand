@@ -87,8 +87,8 @@ IPython logs to stdout and stderr. These are sent by hanythingondemand to
 ``hod batch`` logs
 ******************
 
-Logs for your script running under ``hod batch`` are found in your PBS logs:
-``HOD_<job-label>.o<job-id>``
+Logs for your script running under ``hod batch`` are found in your `PBS_O_WORKDIR` in:
+`<script-name>.o<$PBS_JOBID>` and `<script-name>.e<$PBS_JOBID>.
 
 If you want to watch the progress of your job while it's running, it's advisable to write your
 script so that it pipes output to the ``tee`` command.
