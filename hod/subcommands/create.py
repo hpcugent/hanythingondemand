@@ -29,6 +29,7 @@ Generate a PBS job script using pbs_python. Will use mympirun to get the all sta
 @author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
+import os
 import copy
 import sys
 
@@ -84,14 +85,24 @@ class CreateSubCommand(SubCommand):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 
-        if optparser.options.label in hc.known_cluster_labels():
-            sys.stderr.write("Tried to submit HOD cluster with label '%s' but it already exists\n" % optparser.options.label)
+        label = optparser.options.label
+
+        if label is not None and not hc.is_valid_label(label):
+            sys.stderr.write("Tried to submit HOD cluster with label '%s' but it is not a valid label\n" % label)
+            sys.stderr.write("Labels are used as filenames so they cannot have %s characters\n" % os.sep)
+            sys.exit(1)
+
+        if label in hc.known_cluster_labels():
+            sys.stderr.write("Tried to submit HOD cluster with label '%s' but it already exists\n" % label)
             sys.stderr.write("If it is an old HOD cluster, you can remove it with `hod clean`\n")
             sys.exit(1)
 
         try:
             j = PbsHodJob(optparser)
-            print "Submitting HOD cluster with label '%s'..." % optparser.options.label
+            if label is None:
+                print "Submitting HOD cluster with no label ..."
+            else:
+                print "Submitting HOD cluster with label '%s'..." % label
             j.run()
             jobs = j.state()
             print "Jobs submitted: %s" % [str(j) for j in jobs]

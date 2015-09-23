@@ -34,6 +34,12 @@ from hod.rmscheduler.rm_pbs import PbsJob
 
 class TestCluster(unittest.TestCase):
     """Tests for the hod.cluster module."""
+    def test_is_valid_label(self):
+        self.assertTrue(hc.is_valid_label('my-batch-job'))
+        self.assertFalse(hc.is_valid_label('my/batch-job'))
+        self.assertFalse(hc.is_valid_label('/mybatch-job'))
+        self.assertFalse(hc.is_valid_label('mybatch-job/'))
+
     def test_cluster_info_dir(self):
         with patch('os.getenv', lambda x, *args: dict(HOME='/home/myname', XDG_CONFIG_HOME='/home/myname/.config')[x]):
             self.assertEqual('/home/myname/.config/hod.d', hc.cluster_info_dir())

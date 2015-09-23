@@ -64,6 +64,12 @@ module list 2>&1
 
 ClusterInfo = namedtuple('ClusterInfo', 'label, jobid, pbsjob')
 
+def is_valid_label(path):
+    """
+    Checks if a labelname is a valid filename by making sure it doesn't have
+    directory splitting characters in it.
+    """
+    return os.path.basename(path) == path
 
 def cluster_info_dir():
     """
