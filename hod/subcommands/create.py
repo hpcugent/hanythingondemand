@@ -35,6 +35,7 @@ import sys
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
+import hod.cluster as hc
 from hod import VERSION as HOD_VERSION
 from hod.options import GENERAL_HOD_OPTIONS, RESOURCE_MANAGER_OPTIONS, validate_pbs_option
 from hod.rmscheduler.hodjob import PbsHodJob
@@ -83,8 +84,12 @@ class CreateSubCommand(SubCommand):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 
+        if optparser.options.label in hc.known_cluster_labels():
+            sys.stderr.write("Tried to submit HOD cluster with label '%s' but it already exists\n" % optparser.options.label)
+            sys.stderr.write("If it is an old HOD cluster, you can remove it with `hod clean`\n")
+            sys.exit(1)
+
         try:
-            # FIXME: check whether label is already in use
             j = PbsHodJob(optparser)
             print "Submitting HOD cluster with label '%s'..." % optparser.options.label
             j.run()
