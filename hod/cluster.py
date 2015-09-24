@@ -47,6 +47,7 @@ source /etc/profile
 
 # set up environment
 export HADOOP_CONF_DIR='%(hadoop_conf_dir)s'
+export HBASE_CONF_DIR='%(hadoop_conf_dir)s'
 export HOD_LOCALWORKDIR='%(hod_localworkdir)s'
 # TODO: HADOOP_LOG_DIR?
 module load %(modules)s

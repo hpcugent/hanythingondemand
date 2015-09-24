@@ -45,7 +45,15 @@ def _write_properties(outfile, options, template_resolver):
     for k, v in sorted(options.items()):
         output += '%s=%s\n' % (k, v)
     return output
+
+def _write_masters(outfile, options, template_resolver):
+    output = ''
+    for k, v in sorted(options.items()):
+        value = template_resolver(v)
+        output += '%s\n' % (value)
+    return output
  
+
 def hadoop_xml(outfile, options, template_resolver):
     """Given a dict of options, write the resulting .xml or .properties file.
     Note: when dealing with .properties files, we don't use the templating
@@ -64,6 +72,8 @@ def hadoop_xml(outfile, options, template_resolver):
         return _write_xml(outfile, options, template_resolver)
     elif outfile.endswith('.properties'):
         return _write_properties(outfile, options, template_resolver)
+    elif outfile.endswith('masters'):
+        return _write_masters(outfile, options, template_resolver)
     else:
         _log.error('Unrecognized hadoop file type: %s', outfile)
         raise RuntimeError('Unrecognized hadoop file type: %s' % outfile)
