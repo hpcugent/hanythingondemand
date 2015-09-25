@@ -35,6 +35,7 @@ from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
 from hod.mpiservice import master_template_opts
 from hod.config.config import ConfigOptsParams
+from hod.commands.command import COMMAND_TIMEOUT
 
 
 class HelpTemplateOptions(GeneralOption):
@@ -45,7 +46,8 @@ class HelpTemplateOptions(GeneralOption):
 def mk_registry():
     """Make a TemplateRegistry and register basic items"""
     config_opts = ConfigOptsParams('svc-name', 'MASTER', 'ExecPreStart', 'ExecStart', 'ExecStop',
-                                   dict(), workdir='WORKDIR', modules=['MODULES'], master_template_kwargs=[])
+                                   dict(), workdir='WORKDIR', modules=['MODULES'], master_template_kwargs=[],
+                                   timeout=COMMAND_TIMEOUT)
     reg = hct.TemplateRegistry()
     hct.register_templates(reg, config_opts)
     master_template_kwargs = master_template_opts(reg.fields.values())

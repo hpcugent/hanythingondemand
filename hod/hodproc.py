@@ -33,6 +33,7 @@ from hod.mpiservice import MpiService, Task, MASTERRANK
 from hod.config.config import (PreServiceConfigOpts, ConfigOpts, 
         ConfigOptsParams, env2str, service_config_fn, write_service_config,
         parse_comma_delim_list, resolve_config_paths, RUNS_ON_MASTER)
+from hod.commands.command import NO_TIMEOUT
 from hod.config.template import (TemplateRegistry, TemplateResolver,
         register_templates)
 from hod.work.config_service import ConfiguredService
@@ -94,6 +95,23 @@ def _setup_template_resolver(m_config, master_template_args):
         reg.register(ct)
     return TemplateResolver(**reg.to_kwargs())
 
+def _script_output_paths(script_name, label=None):
+    """
+    Given a script path, return the path to the output files. This uses a
+    sceheme mirroring how PBS actually works where jobs have
+    '$PBS_O_WORKDIR/<script-name>.[eo]<$PBS_JOBID>'
+    """
+    script_basename = os.path.basename(script_name)
+    if label is None:
+        output_label = 'hod-%s' % script_basename
+    else:
+        output_label = 'hod-%s-%s' % (label, script_basename)
+
+    script_stdout = mkpath('$PBS_O_WORKDIR', '%s.o${PBS_JOBID}' % output_label)
+    script_stderr = mkpath('$PBS_O_WORKDIR', '%s.e${PBS_JOBID}' % output_label)
+    return (script_stdout, script_stderr)
+
+
 class ConfiguredMaster(MpiService):
     """
     Use config to setup services.
@@ -129,9 +147,12 @@ class ConfiguredMaster(MpiService):
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
 
         if hasattr(self.options, 'script') and self.options.script is not None:
-            script = self.options.script + '; qdel $PBS_JOBID'
+            script = self.options.script
+            script_stdout, script_stderr = _script_output_paths(script, self.options.label)
+            redirection = ' > %s 2> %s' % (script_stdout, script_stderr)
+            start_script = script + redirection + '; qdel $PBS_JOBID'
             # TODO: How can we test this?
-            config = ConfigOpts(script, RUNS_ON_MASTER, '', script, '', master_env, resolver)
+            config = ConfigOpts(script, RUNS_ON_MASTER, '', start_script, '', master_env, resolver, timeout=NO_TIMEOUT)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
             cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
