@@ -87,20 +87,13 @@ class CreateSubCommand(SubCommand):
 
         label = optparser.options.label
 
-        if label is not None and not hc.is_valid_label(label):
-            sys.stderr.write("Tried to submit HOD cluster with label '%s' but it is not a valid label\n" % label)
-            sys.stderr.write("Labels are used as filenames so they cannot have %s characters\n" % os.sep)
-            sys.exit(1)
-
-        if label in hc.known_cluster_labels():
-            sys.stderr.write("Tried to submit HOD cluster with label '%s' but it already exists\n" % label)
-            sys.stderr.write("If it is an old HOD cluster, you can remove it with `hod clean`\n")
+        if not hc.validate_label(label, hc.known_cluster_labels()):
             sys.exit(1)
 
         try:
             j = PbsHodJob(optparser)
             if label is None:
-                print "Submitting HOD cluster with no label ..."
+                print "Submitting HOD cluster with no label (job id will be used as a default label) ..."
             else:
                 print "Submitting HOD cluster with label '%s'..." % label
             j.run()

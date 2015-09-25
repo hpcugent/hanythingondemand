@@ -29,6 +29,7 @@ Cluster and label functions.
 """
 
 import os
+import sys
 import shutil
 from collections import namedtuple
 
@@ -68,8 +69,26 @@ def is_valid_label(path):
     """
     Checks if a labelname is a valid filename by making sure it doesn't have
     directory splitting characters in it.
+
+    None is also a value label; it just means we will use the job id for the
+    label.
     """
-    return os.path.basename(path) == path
+    return path is None or os.path.basename(path) == path
+
+
+def validate_label(label, known_labels):
+    if not is_valid_label(label):
+        sys.stderr.write("Tried to submit HOD cluster with label '%s' but it is not a valid label\n" % label)
+        sys.stderr.write("Labels are used as filenames so they cannot have %s characters\n" % os.sep)
+        return False
+
+    if label in known_labels:
+        sys.stderr.write("Tried to submit HOD cluster with label '%s' but it already exists\n" % label)
+        sys.stderr.write("If it is an old HOD cluster, you can remove it with `hod clean`\n")
+        return False
+
+    return True
+
 
 def cluster_info_dir():
     """
@@ -204,11 +223,13 @@ def clean_cluster_info(master, cluster_info):
         if info.pbsjob is None and info.jobid.endswith(master):
             rm_cluster_info(info.label)
 
+
 def rm_cluster_info(label):
     """Remove a cluster label directory"""
     info_dir = os.path.join(cluster_info_dir(), label)
     shutil.rmtree(info_dir)
     print 'Removed cluster info directory %s for cluster labeled %s' % (info_dir, label)
+
 
 def mv_cluster_info(label, newlabel):
     """Remove a cluster label directory"""

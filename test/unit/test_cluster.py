@@ -40,6 +40,15 @@ class TestCluster(unittest.TestCase):
         self.assertFalse(hc.is_valid_label('/mybatch-job'))
         self.assertFalse(hc.is_valid_label('mybatch-job/'))
 
+    def test_validate_label(self):
+        self.assertTrue(hc.validate_label('my-batch-job', ['your-batch-job']))
+        self.assertFalse(hc.validate_label('my-batch-job', ['my-batch-job']))
+        self.assertTrue(hc.validate_label('my-batch-job', []))
+        self.assertFalse(hc.validate_label('my/batch-job', ['my-batch-job']))
+        self.assertFalse(hc.validate_label('my/batch-job', ['your-batch-job', 'my-batch-job']))
+        self.assertFalse(hc.validate_label('/mybatch-job', ['mybatch-job']))
+        self.assertFalse(hc.validate_label('/mybatch-job', ['/mybatch-job']))
+
     def test_cluster_info_dir(self):
         with patch('os.getenv', lambda x, *args: dict(HOME='/home/myname', XDG_CONFIG_HOME='/home/myname/.config')[x]):
             self.assertEqual('/home/myname/.config/hod.d', hc.cluster_info_dir())
