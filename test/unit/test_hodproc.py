@@ -102,3 +102,13 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
         self.assertTrue(cm.tasks is None) # slaves don't collect tasks.
         self.assertTrue(autogen_config.called)
         self.assertEqual(autogen_config.call_count, 1)
+
+    def test_script_output_paths_nolabel(self):
+        out, err = hh._script_output_paths('script_name')
+        self.assertEqual(out, '$PBS_O_WORKDIR/hod-script_name.o${PBS_JOBID}')
+        self.assertEqual(err, '$PBS_O_WORKDIR/hod-script_name.e${PBS_JOBID}')
+
+    def test_script_output_paths_label(self):
+        out, err = hh._script_output_paths('script_name', 'label')
+        self.assertEqual(out, '$PBS_O_WORKDIR/hod-label-script_name.o${PBS_JOBID}')
+        self.assertEqual(err, '$PBS_O_WORKDIR/hod-label-script_name.e${PBS_JOBID}')

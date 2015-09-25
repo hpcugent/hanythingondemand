@@ -103,11 +103,12 @@ def _script_output_paths(script_name, label=None):
     """
     script_basename = os.path.basename(script_name)
     if label is None:
-        script_stdout = mkpath('$PBS_O_WORKDIR', 'hod-%s.o${PBS_JOBID}' % script_basename)
-        script_stderr = mkpath('$PBS_O_WORKDIR', 'hod-%s.e${PBS_JOBID}' % script_basename)
+        output_label = 'hod-%s' % script_basename
     else:
-        script_stdout = mkpath('$PBS_O_WORKDIR', 'hod-%s-%s.o${PBS_JOBID}' % (label, script_basename))
-        script_stderr = mkpath('$PBS_O_WORKDIR', 'hod-%s-%s.e${PBS_JOBID}' % (label, script_basename))
+        output_label = 'hod-%s-%s' % (label, script_basename)
+
+    script_stdout = mkpath('$PBS_O_WORKDIR', '%s.o${PBS_JOBID}' % output_label)
+    script_stderr = mkpath('$PBS_O_WORKDIR', '%s.e${PBS_JOBID}' % output_label)
     return (script_stdout, script_stderr)
 
 
