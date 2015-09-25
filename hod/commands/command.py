@@ -42,8 +42,11 @@ import time
 from vsc.utils import fancylogger
 
 
-COMMAND_TIMEOUT = 120  # timeout
-NO_TIMEOUT = -1
+COMMAND_TIMEOUT = 120  # timeout in seconds
+NO_TIMEOUT = None # No timeout
+
+TIMEOUT_POLL_TIME = 1
+NO_TIMEOUT_POLL_TIME = 10
 
 
 class Command(object):
@@ -125,7 +128,7 @@ class Command(object):
             if os.path.exists("/proc/%s" % (p.pid)):
                 if self.timeout == NO_TIMEOUT:
                     self.log.debug("There is no timeout for cmd %s and it is still running" % self.command)
-                    time.sleep(10)
+                    time.sleep(NO_TIMEOUT_POLL_TIME)
                     continue
                 else:
                     now = datetime.datetime.now()
@@ -137,7 +140,7 @@ class Command(object):
                             timedout = True
                         else:
                             os.kill(p.pid, signal.SIGKILL)
-            time.sleep(1)
+            time.sleep(TIMEOUT_POLL_TIME)
 
         if self.fake_pty:
             # # no stdout/stderr

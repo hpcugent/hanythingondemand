@@ -95,17 +95,22 @@ def _setup_template_resolver(m_config, master_template_args):
         reg.register(ct)
     return TemplateResolver(**reg.to_kwargs())
 
-def _script_output_paths(script_name):
+def _script_output_paths(script_name, label=None):
     """
     Given a script path, return the path to the output files. This uses a
     sceheme mirroring how PBS actually works where jobs have
     '$PBS_O_WORKDIR/<script-name>.[eo]<$PBS_JOBID>'
     """
     script_basename = os.path.basename(script_name)
-    script_stdout = mkpath('$PBS_O_WORKDIR', '%s.o${PBS_JOBID}' % script_basename)
-    script_stderr = mkpath('$PBS_O_WORKDIR', '%s.e${PBS_JOBID}' % script_basename)
+    if label is None:
+        script_stdout = mkpath('$PBS_O_WORKDIR', 'hod-%s.o${PBS_JOBID}' % script_basename)
+        script_stderr = mkpath('$PBS_O_WORKDIR', 'hod-%s.e${PBS_JOBID}' % script_basename)
+    else:
+        script_stdout = mkpath('$PBS_O_WORKDIR', 'hod-%s-%s.o${PBS_JOBID}' % (label, script_basename))
+        script_stderr = mkpath('$PBS_O_WORKDIR', 'hod-%s-%s.e${PBS_JOBID}' % (label, script_basename))
     return (script_stdout, script_stderr)
-    
+
+
 class ConfiguredMaster(MpiService):
     """
     Use config to setup services.
@@ -142,8 +147,7 @@ class ConfiguredMaster(MpiService):
 
         if hasattr(self.options, 'script') and self.options.script is not None:
             script = self.options.script
-            # Use scring concatenation since os.path.join will expand envvars, which we don't want!
-            script_stdout, script_stderr = _script_output_paths(script)
+            script_stdout, script_stderr = _script_output_paths(script, self.options.label)
             redirection = ' > %s 2> %s' % (script_stdout, script_stderr)
             start_script = script + redirection + '; qdel $PBS_JOBID'
             # TODO: How can we test this?
