@@ -102,14 +102,11 @@ class BatchSubCommand(SubCommand):
 
         try:
             j = PbsHodJob(optparser)
-            if label is None:
-                print "Submitting HOD cluster with no label (job id will be used as a default label) ..."
-            else:
-                print "Submitting HOD cluster with label '%s'..." % label
-
+            hc.report_cluster_submission(label)
             j.run()
             jobs = j.state()
             print "Jobs submitted: %s" % [str(j) for j in jobs]
+            hc.mk_cluster_info(label, jobs[0].jobid)
             return 0
         except StandardError as e:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)

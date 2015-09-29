@@ -34,7 +34,7 @@ from vsc.utils.generaloption import GeneralOption
 
 from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
-from hod.cluster import clean_cluster_info, known_cluster_labels, mk_cluster_info
+from hod.cluster import clean_cluster_info, known_cluster_labels, mk_cluster_info_dict
 import hod.rmscheduler.rm_pbs as rm_pbs
 
 
@@ -59,7 +59,7 @@ class CleanSubCommand(SubCommand):
             state = pbs.state()
             labels = known_cluster_labels()
             rm_master = rm_pbs.master_hostname()
-            info = mk_cluster_info(labels, state, master=rm_master)
+            info = mk_cluster_info_dict(labels, state, master=rm_master)
             clean_cluster_info(rm_master, info)
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)

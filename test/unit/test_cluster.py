@@ -26,11 +26,25 @@
 @author: Ewan Higgs (Universiteit Gent)
 """
 
+import os.path
 import unittest
 from mock import patch, Mock
+from contextlib import contextmanager
+from cStringIO import StringIO
 
 import hod.cluster as hc
 from hod.rmscheduler.rm_pbs import PbsJob
+
+def _mock_open(**kwargs):
+    """
+    Hijack calls to `open` using filename=StringIO() arguments so we can
+    verify the contents later.
+    """
+    @contextmanager
+    def inner(x, *args):
+        yield kwargs.get(os.path.basename(x), open(x, *args))
+    return inner
+
 
 class TestCluster(unittest.TestCase):
     """Tests for the hod.cluster module."""
@@ -93,8 +107,39 @@ class TestCluster(unittest.TestCase):
         self.assertEqual(jobs[0], hc._find_pbsjob('123', jobs))
         self.assertEqual(jobs[1], hc._find_pbsjob('abc', jobs))
 
-    def test_mk_cluster_info(self):
+    def test_mk_cluster_info_dict(self):
         jobs = [PbsJob('123', 'R', 'host1'), PbsJob('abc', 'Q', '')]
         expected = [hc.ClusterInfo('banana', '123', jobs[0]), hc.ClusterInfo('apple', 'abc', jobs[1])]
         with patch('hod.cluster.cluster_jobid', side_effect=lambda lbl: dict(banana='123', apple='abc')[lbl]):
-            self.assertEqual(expected, hc.mk_cluster_info(['banana', 'apple'], jobs))
+            self.assertEqual(expected, hc.mk_cluster_info_dict(['banana', 'apple'], jobs))
+
+    def test_mk_cluster_info(self):
+        jobs = [PbsJob('123', 'R', 'host1'), PbsJob('abc', 'Q', '')]
+        jobid_file = StringIO()
+        with patch('hod.cluster.cluster_jobid', side_effect=lambda lbl: dict(banana='123', apple='abc')[lbl]):
+            with patch('os.makedirs'):
+                with patch('__builtin__.open', side_effect=_mock_open(jobid=jobid_file)):
+                    hc.mk_cluster_info('banana', jobs[0].jobid)
+                    self.assertEqual(jobid_file.getvalue(), '123')
+
+    def test_save_cluster_info(self):
+        env_file = StringIO()
+        with patch('hod.cluster.cluster_jobid', side_effect=lambda lbl: dict(banana='123', apple='abc')[lbl]):
+            with patch('hod.cluster.cluster_info_exists', return_value=True):
+                with patch('hod.cluster.generate_cluster_env_script', return_value='my script'):
+                    with patch('__builtin__.open', side_effect=_mock_open(env=env_file)):
+                        hc.save_cluster_info(dict(label='banana',
+                            hadoop_conf_dir='hadoop', hod_localworkdir='localworkdir', modules=''))
+                        self.assertTrue(env_file.getvalue(), 'my script')
+
+    def test_save_cluster_info_mk_cluster_info(self):
+        jobid_file = StringIO()
+        env_file = StringIO()
+        with patch('hod.cluster.cluster_jobid', side_effect=lambda lbl: dict(banana='123', apple='abc')[lbl]):
+            with patch('hod.cluster.cluster_info_exists', return_value=False):
+                with patch('hod.cluster.generate_cluster_env_script', return_value='my script'):
+                    with patch('os.makedirs'):
+                        with patch('__builtin__.open', side_effect=_mock_open(jobid=jobid_file, env=env_file)):
+                            hc.save_cluster_info(dict(label='banana',
+                                hadoop_conf_dir='hadoop', hod_localworkdir='localworkdir', modules=''))
+                            self.assertTrue(env_file.getvalue(), 'my script')
