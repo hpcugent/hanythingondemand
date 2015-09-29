@@ -172,7 +172,7 @@ class Pbs(ResourceManagerScheduler):
 
         extend = 'NULL'  # always
 
-        jobid = pbs.pbs_submit(self.pbsconn, attropl, scriptfn, queue, 'NULL')
+        jobid = pbs.pbs_submit(self.pbsconn, attropl, scriptfn, queue, extend)
 
         is_error, errormsg = pbs.error()
         if is_error:
