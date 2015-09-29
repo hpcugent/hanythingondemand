@@ -48,6 +48,8 @@ RESOURCE_MANAGER_OPTIONS = {
     'mail': ("When to send mail (b=begin, e=end, a=abort)", "string", "extend", [], "m"),
     'mailothers': ("Other email adresses to send mail to", "string", "extend", [], "M"),
     'queue': ("Queue name (empty string is default queue)", "string", "store", "", "q"),
+    'partition': ("Partition name (empty string is default partition)", "string", "store", "", "p"),
+    'account': ("Account name (empty string is default Account)", "string", "store", "", "A"),
 }
 
 _log = fancylogger.getLogger('create', fname=False)

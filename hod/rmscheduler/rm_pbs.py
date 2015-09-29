@@ -133,11 +133,17 @@ class Pbs(ResourceManagerScheduler):
             elif arg in ('queue',):
                 # # use destination field of pbs_submit
                 pass
+            elif arg in ('account',):
+                tmpattropl = pbs.new_attropl(1)
+	 	tmpattropl[0].name = pbs.ATTR_A 
+                tmpattropl[0].value = tmp
+                #continue 
             else:
                 self.log.error('Unknown arg %s', arg)
                 tmpattropl = pbs.new_attropl(0)
 
             attropl.extend(tmpattropl)
+
 
         # add a bunch of variables (added by qsub)
         # also set PBS_O_WORKDIR to os.getcwd()
@@ -165,7 +171,8 @@ class Pbs(ResourceManagerScheduler):
             self.log.debug("No queue specified. Will submit to default destination.")
 
         extend = 'NULL'  # always
-        jobid = pbs.pbs_submit(self.pbsconn, attropl, scriptfn, queue, extend)
+
+        jobid = pbs.pbs_submit(self.pbsconn, attropl, scriptfn, queue, 'NULL')
 
         is_error, errormsg = pbs.error()
         if is_error:
@@ -285,9 +292,11 @@ class Pbs(ResourceManagerScheduler):
         mail = self.options.get('mail', [])
         mail_others = self.options.get('mailothers', [])
         queue = self.options.get('queue', 'default')
+        partition = self.options.get('partition', 'default')
+        account = self.options.get('account', 'default')
 
-        self.log.debug("Arguments nodes %s, ppn %s, walltime %s, mail %s, mail_others %s, queue %s",
-                nodes, ppn, walltime, mail, mail_others, queue)
+        self.log.debug("Arguments nodes %s, ppn %s, walltime %s, mail %s, mail_others %s, queue %s, partition %s, account %s",
+                nodes, ppn, walltime, mail, mail_others, queue, partition, account)
         if nodes is None:
             nodes = 1
 
@@ -316,6 +325,12 @@ class Pbs(ResourceManagerScheduler):
         if queue:
             self.args['queue'] = queue
 
+        if partition:
+	    self.args['resources']['partition'] = partition
+
+	if account:
+	    self.args['account'] = account
+
         if mail or mail_others:
             self.args['mail'] = {}
             if not mail:
@@ -339,6 +354,9 @@ class Pbs(ResourceManagerScheduler):
             elif arg in ('queue',):
                 if self.args[arg]:
                     opts.append('-q %s' % self.args[arg])
+            elif arg in ('account',):
+		if self.args[arg]:
+		    opts.append('-A %s' % self.args[arg])
             else:
                 self.log.debug("Unknown arg %s. Not adding to args.", arg)
 
