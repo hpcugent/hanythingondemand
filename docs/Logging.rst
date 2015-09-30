@@ -52,10 +52,10 @@ Hadoop logs
 ***********
 
 By default, the log files for a Hadoop cluster will be in ``$HOD_LOCALWORKDIR/log``, where the 
-``HOD_LOCALWORKDIR`` is an environment variable set by ``hod connect``.
+``$HOD_LOCALWORKDIR`` is an environment variable set by ``hod connect``.
 
 Expanded, this is in the workdir of the HOD cluster as follows:
-``$workdir/${USER}.${HOSTNAME}.${PID}/log``
+``$workdir/$PBS_JOBID/${USER}.${HOSTNAME}.${PID}/log``
 
 One of the advantages of having the log files on a parallel file system is that
 one no longer needs to use special tools for log aggregation (Flume, Logstash,
@@ -87,8 +87,8 @@ IPython logs to stdout and stderr. These are sent by hanythingondemand to
 ``hod batch`` logs
 ******************
 
-Logs for your script running under ``hod batch`` are found in your `PBS_O_WORKDIR` in:
-`<script-name>.o<$PBS_JOBID>` and `<script-name>.e<$PBS_JOBID>.
+Logs for your script running under ``hod batch`` are found in your ``$PBS_O_WORKDIR`` in:
+``<script-name>.o<$PBS_JOBID>`` and ``<script-name>.e<$PBS_JOBID>``.
 
 If you want to watch the progress of your job while it's running, it's advisable to write your
 script so that it pipes output to the ``tee`` command.
