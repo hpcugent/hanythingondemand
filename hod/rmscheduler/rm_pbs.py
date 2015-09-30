@@ -135,7 +135,7 @@ class Pbs(ResourceManagerScheduler):
                 pass
             elif arg in ('account',):
                 tmpattropl = pbs.new_attropl(1)
-	 	tmpattropl[0].name = pbs.ATTR_A 
+                tmpattropl[0].name = pbs.ATTR_A 
                 tmpattropl[0].value = tmp
                 #continue 
             else:
@@ -326,10 +326,10 @@ class Pbs(ResourceManagerScheduler):
             self.args['queue'] = queue
 
         if partition:
-	    self.args['resources']['partition'] = partition
+            self.args['resources']['partition'] = partition
 
-	if account:
-	    self.args['account'] = account
+        if account:
+            self.args['account'] = account
 
         if mail or mail_others:
             self.args['mail'] = {}
@@ -355,8 +355,8 @@ class Pbs(ResourceManagerScheduler):
                 if self.args[arg]:
                     opts.append('-q %s' % self.args[arg])
             elif arg in ('account',):
-		if self.args[arg]:
-		    opts.append('-A %s' % self.args[arg])
+                if self.args[arg]:
+                    opts.append('-A %s' % self.args[arg])
             else:
                 self.log.debug("Unknown arg %s. Not adding to args.", arg)
 
