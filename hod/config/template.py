@@ -112,7 +112,9 @@ def mklocalworkdir(workdir):
     '''
     user = _current_user()
     pid = os.getpid()
-    jobid = os.getenv('PBS_JOBID', '')
+    jobid = os.getenv('PBS_JOBID')
+    if jobid is None:
+        raise RuntimeError('PBS_JOBID must be defined to create a localworkdir.')
     hostname = socket.getfqdn()
     dir_name = '.'.join([user, hostname, str(pid)])
     return mkpath(workdir, 'hod', jobid, dir_name)

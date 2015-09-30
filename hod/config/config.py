@@ -37,7 +37,7 @@ from pkg_resources import Requirement, resource_filename, resource_listdir
 import hod
 from hod.node.node import Node
 from hod.commands.command import COMMAND_TIMEOUT
-from hod.config.template import mklocalworkdir
+import hod.config.template as hct
 
 
 from vsc.utils import fancylogger
@@ -187,7 +187,7 @@ class PreServiceConfigOpts(object):
 
     @property
     def localworkdir(self):
-        return mklocalworkdir(self.workdir)
+        return hct.mklocalworkdir(self.workdir)
 
     @property
     def configdir(self):
@@ -364,7 +364,7 @@ class ConfigOpts(object):
 
     @property
     def localworkdir(self):
-        return mklocalworkdir(self._tr.workdir)
+        return hct.mklocalworkdir(self._tr.workdir)
 
     @property
     def configdir(self):

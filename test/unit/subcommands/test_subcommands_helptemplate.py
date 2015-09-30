@@ -29,12 +29,15 @@
 
 import unittest
 import pytest
+from mock import patch
+
 from hod.subcommands.helptemplate import HelpTemplateSubCommand
 
 class TestHelpTemplateApplication(unittest.TestCase):
     def test_run(self):
         app = HelpTemplateSubCommand()
-        app.run([])
+        with patch('hod.config.template.mklocalworkdir', return_value='localworkdir'):
+            app.run([])
 
     def test_usage(self):
         app = HelpTemplateSubCommand()

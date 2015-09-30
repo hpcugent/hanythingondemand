@@ -80,8 +80,9 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
             with patch('hod.config.config.PreServiceConfigOpts.autogen_configs',
                     side_effect=autogen_config):
                 with patch('hod.hodproc.resolve_config_paths', side_effect=['hod.conf']):
-                    with patch('__builtin__.open', side_effect=_mock_open):
-                        cm.distribution()
+                    with patch('hod.config.template.mklocalworkdir', return_value='localworkdir'):
+                        with patch('__builtin__.open', side_effect=_mock_open):
+                            cm.distribution()
         self.assertEqual(len(cm.tasks), 1)
         self.assertTrue(autogen_config.called)
         self.assertEqual(autogen_config.call_count, 1)
@@ -97,8 +98,9 @@ class TestHodProcConfiguredMaster(unittest.TestCase):
             with patch('hod.config.config.PreServiceConfigOpts.autogen_configs',
                     side_effect=autogen_config):
                 with patch('hod.hodproc.resolve_config_paths', side_effect=['hod.conf']):
-                    with patch('__builtin__.open', side_effect=_mock_open):
-                        cm.distribution()
+                    with patch('hod.config.template.mklocalworkdir', return_value='localworkdir'):
+                        with patch('__builtin__.open', side_effect=_mock_open):
+                            cm.distribution()
         self.assertTrue(cm.tasks is None) # slaves don't collect tasks.
         self.assertTrue(autogen_config.called)
         self.assertEqual(autogen_config.call_count, 1)
