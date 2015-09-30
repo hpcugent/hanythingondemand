@@ -71,6 +71,21 @@ class TestConfigTemplate(unittest.TestCase):
         self.assertEqual(hct.resolve_config_str('someval', **dict(configdir='someval')), 'someval')
         self.assertEqual(hct.resolve_config_str(47, **dict(configdir='someval')), 47)
 
+    def test_localworkdir_no_jobid(self):
+        with patch('hod.config.template._current_user', return_value='username'):
+            with patch('os.getpid', return_value='123'):
+                with patch('socket.getfqdn', return_value='hostname'):
+                    with patch('os.getenv', return_value=''):
+                        self.assertEqual('workdir/hod/username.hostname.123', hct.mklocalworkdir('workdir'))
+
+    def test_localworkdir_jobid(self):
+        with patch('hod.config.template._current_user', return_value='username'):
+            with patch('os.getpid', return_value='123'):
+                with patch('socket.getfqdn', return_value='hostname'):
+                    with patch('os.getenv', return_value='jobid'):
+                        self.assertEqual('workdir/hod/jobid/username.hostname.123', hct.mklocalworkdir('workdir'))
+
+
     def test_TemplateResolver(self):
         with patch('hod.config.template.os.environ', dict(BINDIR='/usr/bin')):
             tr = hct.TemplateResolver(workdir='someval', greeting='hello')

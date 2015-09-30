@@ -105,18 +105,17 @@ def register_templates(template_registry, config_opts):
     for ct in templates:
         template_registry.register(ct)
 
-def mklocalworkdir(workdir, label=None):
+def mklocalworkdir(workdir):
     '''
     Construct the pathname for a workdir with a path local to this
     host/job/user.
     '''
     user = _current_user()
     pid = os.getpid()
+    jobid = os.getenv('PBS_JOBID', '')
     hostname = socket.getfqdn()
     dir_name = '.'.join([user, hostname, str(pid)])
-    if label:
-        dir_name = '%s.%s' % (label, dir_name)
-    return mkpath(workdir, 'hod', dir_name)
+    return mkpath(workdir, 'hod', jobid, dir_name)
 
 def _current_user():
     '''

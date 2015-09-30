@@ -363,8 +363,8 @@ class ConfigOpts(object):
         return self._tr.workdir
 
     @property
-    def localworkdir(self, label=None):
-        return mklocalworkdir(self._tr.workdir, label=None)
+    def localworkdir(self):
+        return mklocalworkdir(self._tr.workdir)
 
     @property
     def configdir(self):
