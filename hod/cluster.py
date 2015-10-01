@@ -233,7 +233,7 @@ def mk_cluster_info(label, jobid):
 def save_cluster_info(cluster_info):
     """Save info (job ID, env script, ...) for this cluster in the cluster info dir."""
     info_dir = os.path.join(cluster_info_dir(), cluster_info['label'])
-    jobid = os.getenv('PBS_DEFAULT', 'PBS_JOBID_NOT_DEFINED')
+    jobid = os.getenv('PBS_JOBID', 'PBS_JOBID_NOT_DEFINED')
 
     if not cluster_info_exists(cluster_info['label']):
         _log.warn("Cluster info directory not found. Creating it now""")
