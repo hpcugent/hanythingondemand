@@ -109,6 +109,7 @@ def hbase_site_xml_defaults(workdir, node_info):
         'hbase.zookeeper.quorum': '$masterhostaddress',
         'hbase.zookeeper.property.dataDir': '$localworkdir/zookeeper',
         'hbase.regionserver.info.port.auto': 'true',
+        'hbase.regionserver.port': '17020',
     }
     return dflts
 
