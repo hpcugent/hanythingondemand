@@ -65,15 +65,15 @@ module list 2>&1
 
 ClusterInfo = namedtuple('ClusterInfo', 'label, jobid, pbsjob')
 
-def is_valid_label(path):
+def is_valid_label(label):
     """
-    Checks if a labelname is a valid filename by making sure it doesn't have
-    directory splitting characters in it.
+    Checks if a label provided on the command line is a valid filename by making
+    sure it doesn't have directory splitting characters in it.
 
-    None is also a value label; it just means we will use the job id for the
-    label.
+    Because user provided labels are optional, None is also a valid label. It
+    just means we will use the job id for the label.
     """
-    return path is None or os.path.basename(path) == path
+    return label is None or os.path.basename(label) == label
 
 
 def validate_label(label, known_labels):
@@ -277,3 +277,18 @@ def mv_cluster_info(label, newlabel):
     labeldir = os.path.join(cid, label)
     newlabeldir = os.path.join(cid, newlabel)
     shutil.move(labeldir, newlabeldir)
+
+def post_job_submission(label, jobs):
+    """
+    Report the jobs and write hod.d/ files that have been submitted by create
+    and batch.
+    """
+    if not jobs:
+        sys.stderr.write('Error: No jobs found after submission.\n')
+        sys.exit(1)
+    elif len(jobs) > 1:
+        sys.stderr.write('Warning: than one job found: %s\n' % str([j.jobid for j in jobs]))
+    job = jobs[0]
+    print "Jobs submitted: %s" % str(job)
+    mk_cluster_info(label, job.jobid)
+
