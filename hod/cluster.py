@@ -116,7 +116,6 @@ def report_cluster_submission(label):
         print "Submitting HOD cluster with label '%s'..." % label
 
 
-
 def cluster_info_dir():
     """
     Determine cluster info directory.
@@ -161,12 +160,16 @@ def cluster_jobid(label):
     return open(_cluster_info(label, 'jobid')).read()
 
 
+def cluster_workdir(label):
+    """Return workdir for cluster with specified label."""
+    return open(_cluster_info(label, 'workdir')).read()
+
+
 def _find_pbsjob(jobid, pbsjobs):
     for job in pbsjobs:
         if jobid == job.jobid:
             return job
     return None
-
 
 
 def mk_cluster_info_dict(labels, pbsjobs, master=None):
@@ -217,11 +220,12 @@ def gen_cluster_info(label, options):
         'hod_localworkdir': hodconf.localworkdir,
         'label': label,
         'modules': ' '.join(hodconf.modules),
+        'workdir': options.workdir
     }
     return cluster_info
 
 
-def mk_cluster_info(label, jobid):
+def mk_cluster_info(label, jobid, workdir):
     """
     Given a label and PbsJob, create the hod.d/<label> directory.
     This is created after the job is submitted, but before the job is run.
@@ -239,18 +243,26 @@ def mk_cluster_info(label, jobid):
         with open(os.path.join(info_dir, 'jobid'), 'w') as jobid_file:
             jobid_file.write(jobid)
     except IOError as err:
-        _log.error("Failed to write cluster info files: %s", err)
+        _log.error("Failed to write jobid file: %s", err)
+
+    try:
+        with open(os.path.join(info_dir, 'workdir'), 'w') as workdir_file:
+            workdir_file.write(workdir)
+    except IOError as err:
+        _log.error("Failed to write workdir file: %s", err)
 
 
 def save_cluster_info(cluster_info):
-    """Save info (job ID, env script, ...) for this cluster in the cluster info dir."""
+    """
+    Save info (job ID, env script, ...) for this cluster in the cluster info dir.
+    cluster_info is a dict created by `gen_cluster_info` (not a ClusterInfo)
+    """
     info_dir = os.path.join(cluster_info_dir(), cluster_info['label'])
     jobid = os.getenv('PBS_JOBID', 'PBS_JOBID_NOT_DEFINED')
 
     if not cluster_info_exists(cluster_info['label']):
         _log.warn("Cluster info directory not found. Creating it now""")
-        mk_cluster_info(cluster_info['label'], jobid)
-
+        mk_cluster_info(cluster_info['label'], jobid, cluster_info['workdir'])
     try:
         env_script_txt = generate_cluster_env_script(cluster_info)
 
@@ -283,6 +295,16 @@ def rm_cluster_info(label):
     print 'Removed cluster info directory %s for cluster labeled %s' % (info_dir, label)
 
 
+def rm_cluster_localworkdir(label):
+    """Remove a cluster localworkdir directory"""
+    info_dir = os.path.join(cluster_info_dir(), label)
+    jobid = cluster_jobid(label)
+    workdir = cluster_workdir(label)
+    jobid_workdir = os.path.join(workdir, jobid)
+    shutil.rmtree(jobid_workdir)
+    print 'Removed cluster localworkdir directory %s for cluster labeled %s' % (jobid_workdir, label)
+
+
 def mv_cluster_info(label, newlabel):
     """Remove a cluster label directory"""
     cid = cluster_info_dir()
@@ -290,7 +312,8 @@ def mv_cluster_info(label, newlabel):
     newlabeldir = os.path.join(cid, newlabel)
     shutil.move(labeldir, newlabeldir)
 
-def post_job_submission(label, jobs):
+
+def post_job_submission(label, jobs, workdir):
     """
     Report the jobs and write hod.d/ files that have been submitted by create
     and batch.
@@ -301,6 +324,6 @@ def post_job_submission(label, jobs):
     elif len(jobs) > 1:
         sys.stderr.write('Warning: More than one job found: %s\n' % str([j.jobid for j in jobs]))
     job = jobs[0]
-    print "Jobs submitted: %s" % str(job)
-    mk_cluster_info(label, job.jobid)
+    print "Job submitted: %s" % str(job)
+    mk_cluster_info(label, job.jobid, workdir)
 
