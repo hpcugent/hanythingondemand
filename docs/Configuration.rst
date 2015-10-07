@@ -90,8 +90,8 @@ Preview configuration
 To preview the output configuration files that your ``hod.conf`` file would
 produce, one can use the ``genconfig`` command::
 
-    hod-genconfig --config-config=/path/to/hod.conf --config-workdir=/path/to/workdir
+    hod genconfig --hodconf=/path/to/hod.conf --workdir=/path/to/workdir
 
-Here, ``--config-workdir`` is the output directory (which will be created if it
-doesn't yet exist) and ``--config-config`` is the input configuration file.
+Here, ``--workdir`` is the output directory (which will be created if it
+doesn't yet exist) and ``--hodconf`` is the input configuration file.
 

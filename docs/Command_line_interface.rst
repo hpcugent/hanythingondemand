@@ -34,6 +34,7 @@ Running ``hod`` without arguments is equivalent to ``hod --help``, and results i
         help-template   Print the values of the configuration templates based on the current machine.
         genconfig       Write hod configs to a directory for diagnostic purposes
         connect         Connect to a hod cluster.
+        clean           Remove stale cluster info.
 
 .. _cmdline_hod_options:
 
@@ -94,6 +95,9 @@ Create a hanythingondemand cluster, with the specified label (optional) and clus
 .. TODO the number part
 
 The configuration file can be a filepath, or one of the included cluster configuration files (see :ref:`cmdline_dists`).
+
+Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<job-not-found>`` until ``hod clean`` 
+is run (see :ref:`cmdline_clean`).
 
 .. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
 
@@ -189,6 +193,9 @@ Next to ``--script`` (which is mandatory with ``batch``), all configuration opti
 also supported for ``batch``, see :ref:`cmdline_create_options`.
 When used with ``batch``, these options can also be specified via ``$HOD_BATCH_*``.
 
+Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<job-not-found>`` until ``hod clean`` 
+is run (see :ref:`cmdline_clean`).
+
 .. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
 
 
@@ -200,6 +207,11 @@ When used with ``batch``, these options can also be specified via ``$HOD_BATCH_*
 .. TODO enhance output?
 
 Print a list of existing clusters, and their state ('``queued``' or '``running``').
+
+Jobs that have completed running will remain in the list with ``<job-not-found>`` until
+``hod clean`` is run.
+
+See :ref:`cmdline_clean`.
 
 
 .. _cmdline_dists:
@@ -241,3 +253,11 @@ Connect to an existing hanythingondemand cluster, and set up the environment to 
 
 This basically corresponds to logging in to the cluster head node using SSH and sourcing the cluster information script
 that was created for this cluster (``$HOME/.config/hod.d/<label>/env``).
+
+.. _cmdline_clean:
+
+``hod clean``
+~~~~~~~~~~~~~
+
+Remove cluster info directory for clusters that are no longer available, i.e.  those marked with ``<job-not-found>`` in the 
+output of ``hod list``.
