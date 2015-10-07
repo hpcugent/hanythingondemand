@@ -287,7 +287,7 @@ def post_job_submission(label, jobs):
         sys.stderr.write('Error: No jobs found after submission.\n')
         sys.exit(1)
     elif len(jobs) > 1:
-        sys.stderr.write('Warning: than one job found: %s\n' % str([j.jobid for j in jobs]))
+        sys.stderr.write('Warning: More than one job found: %s\n' % str([j.jobid for j in jobs]))
     job = jobs[0]
     print "Jobs submitted: %s" % str(job)
     mk_cluster_info(label, job.jobid)
