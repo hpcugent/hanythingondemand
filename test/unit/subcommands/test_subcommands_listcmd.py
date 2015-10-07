@@ -39,13 +39,14 @@ class TestListSubCommand(EnhancedTestCase):
         with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [])):
             with patch('hod.rmscheduler.rm_pbs.master_hostname', return_value='good-host'):
                 with patch('hod.cluster.cluster_jobid', return_value='good-jobid'):
-                    with patch('hod.cluster.known_cluster_labels', return_value=['mylabel']):
-                        app = hsl.ListSubCommand()
-                        self.assertErrorRegex(SystemExit, '0', app.run, [])
+                    with patch('os.path.exists', return_value=False):
+                        with patch('hod.cluster.known_cluster_labels', return_value=['mylabel']):
+                            app = hsl.ListSubCommand()
+                            self.assertEqual(0, app.run([]))
 
 
     def test_run_one_job(self):
-        expected = "Cluster label\tjob ID\nmylabel      \tJobid good-jobid.good-master state good-state ehosts good-host\n"
+        expected = "Cluster label\tJob ID                \tPBS Job State\nmylabel      \tgood-jobid.good-master\tJobid good-jobid.good-master state good-state ehosts good-host\n"
         import hod.rmscheduler.rm_pbs as rm_pbs
         job = rm_pbs.PbsJob('good-jobid.good-master', 'good-state', 'good-host')
         with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [job])):
