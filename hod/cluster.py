@@ -308,8 +308,7 @@ def rm_cluster_localworkdir(label):
     except OSError, e:
         # If we cancelled a queued job we might not have a localworkdir yet.
         if e.errno == errno.ENOENT:
-            print 'Note: No localworkdir directory %s for cluster labeled %s' % (jobid_workdir, label)
-            print 'Maybe this was a cancelled queued job'
+            print 'Note: No local workdir %s found for cluster %s; job was deleted before it started running?' % (jobid_workdir, label)
         else:
             raise
 
