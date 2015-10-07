@@ -28,6 +28,7 @@ Cluster and label functions.
 @author: Kenneth Hoste (Universiteit Gent)
 """
 
+import errno
 import os
 import sys
 import shutil
@@ -279,6 +280,7 @@ def clean_cluster_info(master, cluster_info):
     """
     for info in cluster_info:
         if info.pbsjob is None and info.jobid.endswith(master):
+            rm_cluster_localworkdir(info.label)
             rm_cluster_info(info.label)
 
 
@@ -297,12 +299,19 @@ def rm_cluster_info(label):
 
 def rm_cluster_localworkdir(label):
     """Remove a cluster localworkdir directory"""
-    info_dir = os.path.join(cluster_info_dir(), label)
     jobid = cluster_jobid(label)
     workdir = cluster_workdir(label)
-    jobid_workdir = os.path.join(workdir, jobid)
-    shutil.rmtree(jobid_workdir)
-    print 'Removed cluster localworkdir directory %s for cluster labeled %s' % (jobid_workdir, label)
+    jobid_workdir = os.path.join(workdir, 'hod', jobid)
+    try:
+        shutil.rmtree(jobid_workdir)
+        print 'Removed cluster localworkdir directory %s for cluster labeled %s' % (jobid_workdir, label)
+    except OSError, e:
+        # If we cancelled a queued job we might not have a localworkdir yet.
+        if e.errno == errno.ENOENT:
+            print 'Note: No localworkdir directory %s for cluster labeled %s' % (jobid_workdir, label)
+            print 'Maybe this was a cancelled queued job'
+        else:
+            raise
 
 
 def mv_cluster_info(label, newlabel):

@@ -87,7 +87,7 @@ def main(args):
 
         _log.debug("Creating cluster info using label '%s'", label)
         cluster_info = gen_cluster_info(label, optparser.options)
-        save_cluster_info(cluster_info, optparser.options.workdir)
+        save_cluster_info(cluster_info)
 
         _log.debug("Starting master process")
         svc = ConfiguredMaster(optparser.options)

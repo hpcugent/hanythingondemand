@@ -60,8 +60,7 @@ class CleanSubCommand(SubCommand):
             labels = hc.known_cluster_labels()
             rm_master = rm_pbs.master_hostname()
             info = hc.mk_cluster_info_dict(labels, state, master=rm_master)
-            hc.rm_cluster_localworkdir(rm_master, info)
-            hc.rm_cluster_info(rm_master, info)
+            hc.clean_cluster_info(rm_master, info)
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
