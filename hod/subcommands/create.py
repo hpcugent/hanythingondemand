@@ -29,12 +29,14 @@ Generate a PBS job script using pbs_python. Will use mympirun to get the all sta
 @author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
+import os
 import copy
 import sys
 
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
+import hod.cluster as hc
 from hod import VERSION as HOD_VERSION
 from hod.options import GENERAL_HOD_OPTIONS, RESOURCE_MANAGER_OPTIONS, validate_pbs_option
 from hod.rmscheduler.hodjob import PbsHodJob
@@ -83,13 +85,17 @@ class CreateSubCommand(SubCommand):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 
+        label = optparser.options.label
+
+        if not hc.validate_label(label, hc.known_cluster_labels()):
+            sys.exit(1)
+
         try:
-            # FIXME: check whether label is already in use
             j = PbsHodJob(optparser)
-            print "Submitting HOD cluster with label '%s'..." % optparser.options.label
+            hc.report_cluster_submission(label)
             j.run()
             jobs = j.state()
-            print "Jobs submitted: %s" % [str(j) for j in jobs]
+            hc.post_job_submission(label, jobs)
             return 0
         except StandardError as e:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)

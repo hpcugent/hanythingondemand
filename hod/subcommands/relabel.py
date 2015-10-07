@@ -24,44 +24,56 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-Remove stale .hod.d/* files.
+Relabel a cluster.
 
 @author: Ewan Higgs (Universiteit Gent)
 """
+
+import sys
 
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
 from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
-from hod.cluster import clean_cluster_info, known_cluster_labels, mk_cluster_info_dict
-import hod.rmscheduler.rm_pbs as rm_pbs
+import hod.cluster as hc
 
 
 _log = fancylogger.getLogger(fname=False)
 
 
-class CleanOptions(GeneralOption):
-    """Option parser for 'clean' subcommand."""
+class RelabelOptions(GeneralOption):
+    """Option parser for 'relabel' subcommand."""
     VERSION = HOD_VERSION
+    ALLOPTSMANDATORY = False # let us use optionless arguments.
 
 
-class CleanSubCommand(SubCommand):
-    """Implementation of HOD 'clean' subcommand."""
-    CMD = 'clean'
-    HELP = "Remove stale cluster info."
+class RelabelSubCommand(SubCommand):
+    """Implementation of HOD 'relabel' subcommand."""
+    CMD = 'relabel'
+    EXAMPLE = "<source-cluster-label> <dest-cluster-label>"
+    HELP = "Change the label of an existing job"
 
     def run(self, args):
-        """Run 'clean' subcommand."""
-        optparser = CleanOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
+        """Run 'relabel' subcommand."""
+        optparser = RelabelOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
-            pbs = rm_pbs.Pbs(optparser)
-            state = pbs.state()
-            labels = known_cluster_labels()
-            rm_master = rm_pbs.master_hostname()
-            info = mk_cluster_info_dict(labels, state, master=rm_master)
-            clean_cluster_info(rm_master, info)
+            if len(optparser.args) != 3:
+                sys.stderr.write(self.usage())
+                sys.exit(1)
+
+            labels = hc.known_cluster_labels()
+            if optparser.args[1] not in labels:
+                sys.stderr.write('Cluster with label "%s" not found\n' % optparser.args[1])
+                sys.exit(1)
+            try:
+                hc.mv_cluster_info(optparser.args[1], optparser.args[2])
+            except (IOError, OSError) as err:
+                sys.stderr.write('Could not change label "%s" to "%s": "%s"\n' %
+                    (optparser.args[1], optparser.args[2], err.message))
+                sys.exit(1)
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
             _log.raiseException(err.message)
+        return 0

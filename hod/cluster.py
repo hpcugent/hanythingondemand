@@ -29,13 +29,14 @@ Cluster and label functions.
 """
 
 import os
+import sys
 import shutil
 from collections import namedtuple
 
 from vsc.utils import fancylogger
 
 from hod.config.config import resolve_config_paths
-from hod.hodproc import load_hod_config
+import hod.hodproc as hh
 
 
 _log = fancylogger.getLogger(fname=False)
@@ -47,6 +48,7 @@ source /etc/profile
 
 # set up environment
 export HADOOP_CONF_DIR='%(hadoop_conf_dir)s'
+export HBASE_CONF_DIR='%(hadoop_conf_dir)s'
 export HOD_LOCALWORKDIR='%(hod_localworkdir)s'
 # TODO: HADOOP_LOG_DIR?
 module load %(modules)s
@@ -62,6 +64,45 @@ module list 2>&1
 
 
 ClusterInfo = namedtuple('ClusterInfo', 'label, jobid, pbsjob')
+
+def is_valid_label(label):
+    """
+    Checks if a label provided on the command line is a valid filename by making
+    sure it doesn't have directory splitting characters in it.
+
+    Because user provided labels are optional, None is also a valid label. It
+    just means we will use the job id for the label.
+    """
+    return label is None or os.path.basename(label) == label
+
+
+def validate_label(label, known_labels):
+    """
+    Return true if a label is valid; false otherwise.  If it is invalid, report why to stderr.
+    This is a convenience function used in 'hod batch' and 'hod create'
+    """
+    if not is_valid_label(label):
+        sys.stderr.write("Tried to submit HOD cluster with label '%s' but it is not a valid label\n" % label)
+        sys.stderr.write("Labels are used as filenames so they cannot have %s characters\n" % os.sep)
+        return False
+
+    if label in known_labels:
+        sys.stderr.write("Tried to submit HOD cluster with label '%s' but it already exists\n" % label)
+        sys.stderr.write("If it is an old HOD cluster, you can remove it with `hod clean`\n")
+        return False
+
+    return True
+
+def report_cluster_submission(label):
+    """
+    Report to stdout that a cluster has been submitted.
+    This is a convenience function used in 'hod batch' and 'hod create'
+    """
+    if label is None:
+        print "Submitting HOD cluster with no label (job id will be used as a default label) ..."
+    else:
+        print "Submitting HOD cluster with label '%s'..." % label
+
 
 
 def cluster_info_dir():
@@ -115,7 +156,8 @@ def _find_pbsjob(jobid, pbsjobs):
     return None
 
 
-def mk_cluster_info(labels, pbsjobs, master=None):
+
+def mk_cluster_info_dict(labels, pbsjobs, master=None):
     """
     Given a list of labels and PbsJobs, construct a dict of list of tuples
     mapping label to PbsJob.
@@ -157,7 +199,7 @@ def gen_cluster_info(label, options):
     """Generate cluster info as a dict, intended to use as template values for CLUSTER_ENV_TEMPLATE."""
     # list of modules that should be loaded: modules for selected service + extra modules specified via --modules
     config_path = resolve_config_paths(options.hodconf, options.dist)
-    hodconf = load_hod_config(config_path, options.workdir, options.modules)
+    hodconf = hh.load_hod_config(config_path, options.workdir, options.modules)
     cluster_info = {
         'hadoop_conf_dir': hodconf.configdir,
         'hod_localworkdir': hodconf.localworkdir,
@@ -167,9 +209,14 @@ def gen_cluster_info(label, options):
     return cluster_info
 
 
-def save_cluster_info(cluster_info):
-    """Save info (job ID, env script, ...) for this cluster in the cluster info dir."""
-    info_dir = os.path.join(cluster_info_dir(), cluster_info['label'])
+def mk_cluster_info(label, jobid):
+    """
+    Given a label and PbsJob, create the hod.d/<label> directory.
+    This is created after the job is submitted, but before the job is run.
+    """
+    if label is None:
+        label = jobid
+    info_dir = os.path.join(cluster_info_dir(), label)
     try:
         if not os.path.exists(info_dir):
             os.makedirs(info_dir)
@@ -177,9 +224,22 @@ def save_cluster_info(cluster_info):
         _log.error("Failed to create cluster info dir '%s': %s", info_dir, err)
 
     try:
-        with open(os.path.join(info_dir, 'jobid'), 'w') as jobid:
-            jobid.write(os.getenv('PBS_JOBID', 'PBS_JOBID_NOT_DEFINED'))
+        with open(os.path.join(info_dir, 'jobid'), 'w') as jobid_file:
+            jobid_file.write(jobid)
+    except IOError as err:
+        _log.error("Failed to write cluster info files: %s", err)
 
+
+def save_cluster_info(cluster_info):
+    """Save info (job ID, env script, ...) for this cluster in the cluster info dir."""
+    info_dir = os.path.join(cluster_info_dir(), cluster_info['label'])
+    jobid = os.getenv('PBS_JOBID', 'PBS_JOBID_NOT_DEFINED')
+
+    if not cluster_info_exists(cluster_info['label']):
+        _log.warn("Cluster info directory not found. Creating it now""")
+        mk_cluster_info(cluster_info['label'], jobid)
+
+    try:
         env_script_txt = generate_cluster_env_script(cluster_info)
 
         with open(os.path.join(info_dir, 'env'), 'w') as env_script:
@@ -197,8 +257,38 @@ def clean_cluster_info(master, cluster_info):
         if info.pbsjob is None and info.jobid.endswith(master):
             rm_cluster_info(info.label)
 
+
+def cluster_info_exists(label):
+    """Returns whether a cluster info directory with jobid file exists."""
+    info_dir = os.path.join(cluster_info_dir(), label)
+    return os.path.exists(info_dir) and os.path.exists(os.path.join(info_dir, 'jobid'))
+
+
 def rm_cluster_info(label):
     """Remove a cluster label directory"""
     info_dir = os.path.join(cluster_info_dir(), label)
     shutil.rmtree(info_dir)
     print 'Removed cluster info directory %s for cluster labeled %s' % (info_dir, label)
+
+
+def mv_cluster_info(label, newlabel):
+    """Remove a cluster label directory"""
+    cid = cluster_info_dir()
+    labeldir = os.path.join(cid, label)
+    newlabeldir = os.path.join(cid, newlabel)
+    shutil.move(labeldir, newlabeldir)
+
+def post_job_submission(label, jobs):
+    """
+    Report the jobs and write hod.d/ files that have been submitted by create
+    and batch.
+    """
+    if not jobs:
+        sys.stderr.write('Error: No jobs found after submission.\n')
+        sys.exit(1)
+    elif len(jobs) > 1:
+        sys.stderr.write('Warning: More than one job found: %s\n' % str([j.jobid for j in jobs]))
+    job = jobs[0]
+    print "Jobs submitted: %s" % str(job)
+    mk_cluster_info(label, job.jobid)
+

@@ -75,7 +75,7 @@ class ConfiguredService(Work):
                 self._config.name, rank, self._config.start_script)
         self.log.info("Env for %s service on rank %s: %s",
                 self._config.name, rank, env2str(env))
-        command = Command(self._config.start_script, env=env)
+        command = Command(self._config.start_script, env=env, timeout=self._config.timeout)
         output = command.run()
         self.log.info('Ran %s service on rank %s start script. Output: "%s"',
                 self._config.name, rank, output)

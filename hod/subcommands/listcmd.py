@@ -48,10 +48,11 @@ class ListOptions(GeneralOption):
     """Option parser for 'list' subcommand."""
     VERSION = HOD_VERSION
 
-def mk_fmt_str(labels, header):
+def mk_fmt_str(labels, jobid, header):
     """Calculate the format string for printing the template parameters."""
     max_label_len = max(map(len, chain(labels, [header])))
-    return '%%-%ds\t%%s' % max_label_len
+    max_jobid_len = max(map(len, chain(jobid, [header])))
+    return '%%-%ds\t%%-%ds\t%%s' % (max_label_len, max_jobid_len)
 
 
 def format_cluster_info(cluster_info):
@@ -59,8 +60,9 @@ def format_cluster_info(cluster_info):
     ret = []
     for info in cluster_info:
         label = info.label if info.label is not None else '<no-label>'
-        job = str(info.pbsjob) if info.pbsjob is not None else '<no-job>'
-        ret.append((label, job))
+        jobid = info.jobid
+        job = str(info.pbsjob) if info.pbsjob is not None else '<job-not-found>'
+        ret.append((label, jobid, job))
     return ret
 
 
@@ -77,17 +79,18 @@ class ListSubCommand(SubCommand):
             state = pbs.state()
             labels = hc.known_cluster_labels()
             rm_master = rm_pbs.master_hostname()
-            info = hc.mk_cluster_info(labels, state, rm_master)
+            info = hc.mk_cluster_info_dict(labels, state)
             if not info:
                 print 'No jobs found'
                 sys.exit(0)
 
             info = format_cluster_info(info)
-            cluster_label = 'Cluster label'
-            fmt_str = mk_fmt_str([label for label, job in info], cluster_label)
-            print fmt_str % (cluster_label, 'job ID')
-            for label, job in info:
-                print fmt_str % (label, job)
+            cluster_labels = ('Cluster label', 'Job ID', 'PBS Job State')
+            labels, jobids  = zip(*[(label, jobid) for label, jobid, job in info])
+            fmt_str = mk_fmt_str(labels, jobids, cluster_labels[0])
+            print fmt_str % cluster_labels
+            for label, jobid, job in info:
+                print fmt_str % (label, jobid.strip(), job)
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)

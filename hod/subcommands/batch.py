@@ -30,12 +30,14 @@ all started, run a job, and tear down the cluster when it's done.
 @author: Kenneth Hoste (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
 """
+import os
 import copy
 import sys
 
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
+import hod.cluster as hc
 from hod import VERSION as HOD_VERSION
 from hod.options import GENERAL_HOD_OPTIONS, RESOURCE_MANAGER_OPTIONS, validate_pbs_option
 from hod.rmscheduler.hodjob import PbsHodJob
@@ -93,11 +95,17 @@ class BatchSubCommand(SubCommand):
             sys.stderr.write('Missing script. Exiting.\n')
             return 1
 
+        label = optparser.options.label
+
+        if not hc.validate_label(label, hc.known_cluster_labels()):
+            sys.exit(1)
+
         try:
             j = PbsHodJob(optparser)
+            hc.report_cluster_submission(label)
             j.run()
             jobs = j.state()
-            print "Jobs submitted: %s" % [str(j) for j in jobs]
+            hc.post_job_submission(label, jobs)
             return 0
         except StandardError as e:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
