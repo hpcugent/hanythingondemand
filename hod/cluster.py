@@ -256,7 +256,7 @@ def mk_cluster_info(label, jobid, workdir):
 def save_cluster_info(cluster_info):
     """
     Save info (job ID, env script, ...) for this cluster in the cluster info dir.
-    cluster_info is a dict created by `gen_cluster_info` (not a ClusterInfo)
+    cluster_info is a dict created by `gen_cluster_info` (not a ClusterInfo instance)
     """
     info_dir = os.path.join(cluster_info_dir(), cluster_info['label'])
     jobid = os.getenv('PBS_JOBID', 'PBS_JOBID_NOT_DEFINED')
@@ -302,15 +302,11 @@ def rm_cluster_localworkdir(label):
     jobid = cluster_jobid(label)
     workdir = cluster_workdir(label)
     jobid_workdir = os.path.join(workdir, 'hod', jobid)
-    try:
+    if os.path.exists(jobid_workdir):
         shutil.rmtree(jobid_workdir)
         print 'Removed cluster localworkdir directory %s for cluster labeled %s' % (jobid_workdir, label)
-    except OSError, e:
-        # If we cancelled a queued job we might not have a localworkdir yet.
-        if e.errno == errno.ENOENT:
-            print 'Note: No local workdir %s found for cluster %s; job was deleted before it started running?' % (jobid_workdir, label)
-        else:
-            raise
+    else:
+        print 'Note: No local workdir %s found for cluster %s; job was deleted before it started running?' % (jobid_workdir, label)
 
 
 def mv_cluster_info(label, newlabel):
