@@ -55,21 +55,24 @@ class TestBatchSubCommand(unittest.TestCase):
     def test_run_with_hodconf(self):
         with patch('hod.subcommands.batch.PbsHodJob'):
             with patch('hod.cluster.mk_cluster_info'):
-                app = BatchSubCommand()
-                self.assertEqual(0, app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand', '--script=some-script.sh']))
+                with patch('hod.cluster.validate_hodconf_or_dist', return_value=True):
+                    app = BatchSubCommand()
+                    self.assertEqual(0, app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand', '--script=some-script.sh']))
 
 
     def test_run_with_dist(self):
         with patch('hod.subcommands.batch.PbsHodJob'):
             with patch('hod.cluster.mk_cluster_info'):
-                app = BatchSubCommand()
-                self.assertEqual(0, app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand', '--script=some-script.sh']))
+                with patch('hod.cluster.validate_hodconf_or_dist', return_value=True):
+                    app = BatchSubCommand()
+                    self.assertEqual(0, app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand', '--script=some-script.sh']))
 
 
     def test_run_fails_with_config_and_dist_arg(self):
         with patch('hod.subcommands.batch.PbsHodJob'):
-            app = BatchSubCommand()
-            self.assertEqual(1, app.run(['--hodconf=hod.conf', '--dist=Hadoop-2.3.0', '--hod-module=hanythingondemand', '--workdir=workdir']))
+            with patch('hod.cluster.validate_hodconf_or_dist', return_value=True):
+                app = BatchSubCommand()
+                self.assertEqual(1, app.run(['--hodconf=hod.conf', '--dist=Hadoop-2.3.0', '--hod-module=hanythingondemand', '--workdir=workdir']))
 
     def test_usage(self):
         app = BatchSubCommand()

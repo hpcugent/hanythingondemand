@@ -143,3 +143,9 @@ class TestCluster(unittest.TestCase):
                             hc.save_cluster_info(dict(label='banana',
                                 hadoop_conf_dir='hadoop', hod_localworkdir='localworkdir', modules=''))
                             self.assertTrue(env_file.getvalue(), 'my script')
+
+    def test_validate_hodconf_or_dist(self):
+        with patch('hod.cluster.resolve_config_paths'):
+            self.assertTrue(hc.validate_hodconf_or_dist('a', 'b'))
+        with patch('hod.cluster.resolve_config_paths', side_effect=ValueError):
+            self.assertFalse(hc.validate_hodconf_or_dist('a', 'b'))
