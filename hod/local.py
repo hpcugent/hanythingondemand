@@ -87,7 +87,11 @@ def main(args):
 
         _log.debug("Creating cluster info using label '%s'", label)
         cluster_info = gen_cluster_info(label, optparser.options)
-        save_cluster_info(cluster_info)
+        try:
+            save_cluster_info(cluster_info)
+        except OSError, e:
+            _log.error("Failed to save cluster info files: %s", e)
+            sys.exit(1)
 
         _log.debug("Starting master process")
         svc = ConfiguredMaster(optparser.options)

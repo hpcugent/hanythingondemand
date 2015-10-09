@@ -28,7 +28,6 @@ Cluster and label functions.
 @author: Kenneth Hoste (Universiteit Gent)
 """
 
-import errno
 import os
 import sys
 import shutil
@@ -239,18 +238,21 @@ def mk_cluster_info(label, jobid, workdir):
             os.makedirs(info_dir)
     except OSError as err:
         _log.error("Failed to create cluster info dir '%s': %s", info_dir, err)
+        raise
 
     try:
         with open(os.path.join(info_dir, 'jobid'), 'w') as jobid_file:
             jobid_file.write(jobid)
     except IOError as err:
         _log.error("Failed to write jobid file: %s", err)
+        raise
 
     try:
         with open(os.path.join(info_dir, 'workdir'), 'w') as workdir_file:
             workdir_file.write(workdir)
     except IOError as err:
         _log.error("Failed to write workdir file: %s", err)
+        raise
 
 
 def save_cluster_info(cluster_info):
@@ -264,13 +266,11 @@ def save_cluster_info(cluster_info):
     if not cluster_info_exists(cluster_info['label']):
         _log.warn("Cluster info directory not found. Creating it now""")
         mk_cluster_info(cluster_info['label'], jobid, cluster_info['workdir'])
-    try:
-        env_script_txt = generate_cluster_env_script(cluster_info)
 
-        with open(os.path.join(info_dir, 'env'), 'w') as env_script:
-            env_script.write(env_script_txt)
-    except IOError as err:
-        _log.error("Failed to write cluster info files: %s", err)
+    env_script_txt = generate_cluster_env_script(cluster_info)
+
+    with open(os.path.join(info_dir, 'env'), 'w') as env_script:
+        env_script.write(env_script_txt)
 
 
 def clean_cluster_info(master, cluster_info):
@@ -329,5 +329,7 @@ def post_job_submission(label, jobs, workdir):
         sys.stderr.write('Warning: More than one job found: %s\n' % str([j.jobid for j in jobs]))
     job = jobs[0]
     print "Job submitted: %s" % str(job)
-    mk_cluster_info(label, job.jobid, workdir)
-
+    try:
+        mk_cluster_info(label, job.jobid, workdir)
+    except OSError:
+        sys.stderr.write('Failed to write out cluster files. You will not be able to use `hod connect "%s"`.\n' % label)
