@@ -93,6 +93,18 @@ def validate_label(label, known_labels):
 
     return True
 
+def validate_hodconf_or_dist(hodconf, dist):
+    """
+    Returns true if either the hodconf or the dist can be resolved successfully.
+    If it cannot be resolved, an error is logged and false is returned..
+    """
+    try:
+        resolve_config_paths(hodconf, dist)
+    except ValueError, e:
+        _log.error(e)
+        return False
+    return True
+
 def report_cluster_submission(label):
     """
     Report to stdout that a cluster has been submitted.

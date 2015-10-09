@@ -44,19 +44,22 @@ class TestCreateSubCommand(unittest.TestCase):
     @pytest.mark.xfail(reason="Requires easybuild environment")
     def test_run_with_args(self):
         with patch('hod.subcommands.create.PbsHodJob'):
-            app = CreateSubCommand()
-            app.run(['--hodconf=hod.conf', '--workdir=workdir', '--hod-module=hanythingondemand'])
+            with patch('hod.cluster.validate_hodconf_or_dist', return_value=True):
+                app = CreateSubCommand()
+                app.run(['--hodconf=hod.conf', '--workdir=workdir', '--hod-module=hanythingondemand'])
 
     def test_run_with_dist_arg(self):
         with patch('hod.subcommands.create.PbsHodJob'):
             with patch('hod.cluster.mk_cluster_info'):
-                app = CreateSubCommand()
-                app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand'])
+                with patch('hod.cluster.validate_hodconf_or_dist', return_value=True):
+                    app = CreateSubCommand()
+                    app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand'])
 
     def test_run_fails_with_config_and_dist_arg(self):
         with patch('hod.subcommands.create.PbsHodJob'):
-            app = CreateSubCommand()
-            self.assertEqual(app.run(['--hodconf=hod.conf', '--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand']), 1)
+            with patch('hod.cluster.validate_hodconf_or_dist', return_value=True):
+                app = CreateSubCommand()
+                self.assertEqual(app.run(['--hodconf=hod.conf', '--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand']), 1)
 
     def test_usage(self):
         app = CreateSubCommand()

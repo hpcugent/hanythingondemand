@@ -81,13 +81,17 @@ class CreateSubCommand(SubCommand):
     def run(self, args):
         """Run 'create' subcommand."""
         optparser = CreateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
-        if not validate_pbs_option(optparser.options):
+        options = optparser.options
+        if not validate_pbs_option(options):
             sys.stderr.write('Missing config options. Exiting.\n')
             return 1
 
-        label = optparser.options.label
+        label = options.label
 
         if not hc.validate_label(label, hc.known_cluster_labels()):
+            sys.exit(1)
+
+        if not hc.validate_hodconf_or_dist(options.hodconf, options.dist):
             sys.exit(1)
 
         try:
