@@ -89,7 +89,7 @@ def main(args):
         cluster_info = gen_cluster_info(label, optparser.options)
         try:
             save_cluster_info(cluster_info)
-        except OSError, e:
+        except (IOError, OSError) as e:
             _log.error("Failed to save cluster info files: %s", e)
             sys.exit(1)
 

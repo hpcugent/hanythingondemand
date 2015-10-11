@@ -100,7 +100,7 @@ def validate_hodconf_or_dist(hodconf, dist):
     """
     try:
         resolve_config_paths(hodconf, dist)
-    except ValueError, e:
+    except ValueError as e:
         _log.error(e)
         return False
     return True
@@ -189,7 +189,7 @@ def mk_cluster_info_dict(labels, pbsjobs, master=None):
             job = _find_pbsjob(jobid, pbsjobs)
             if job is not None:
                 seen_jobs.add(jobid)
-        except ValueError, e:
+        except ValueError as e:
             job = None
         info.append(ClusterInfo(label, jobid, job))
 
@@ -331,5 +331,6 @@ def post_job_submission(label, jobs, workdir):
     print "Job submitted: %s" % str(job)
     try:
         mk_cluster_info(label, job.jobid, workdir)
-    except OSError:
-        sys.stderr.write('Failed to write out cluster files. You will not be able to use `hod connect "%s"`.\n' % label)
+    except (IOError, OSError) as e:
+        sys.stderr.write('Failed to write out cluster files. You will not be able to use `hod connect "%s"`: %s.\n' % (label, e))
+        sys.exit(1)
