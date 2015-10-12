@@ -107,7 +107,7 @@ def blocksize(path):
     '''
     try:
         return os.statvfs(path).f_bsize
-    except OSError, e:
+    except OSError as e:
         if e.errno == errno.ENOENT:
             return os.statvfs(dirname(path)).f_bsize
         raise

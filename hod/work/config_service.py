@@ -98,7 +98,7 @@ class ConfiguredService(Work):
         self.controldir = mkpath(self._config.localworkdir, 'controldir')
         try:
             os.makedirs(self.controldir)
-        except OSError, e:
+        except OSError as e:
             if e.errno == EEXIST:
                 pass
             else:

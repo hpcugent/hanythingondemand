@@ -107,7 +107,7 @@ class BatchSubCommand(SubCommand):
             hc.report_cluster_submission(label)
             j.run()
             jobs = j.state()
-            hc.post_job_submission(label, jobs)
+            hc.post_job_submission(label, jobs, optparser.options.workdir)
             return 0
         except StandardError as e:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)

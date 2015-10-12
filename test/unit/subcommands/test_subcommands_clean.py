@@ -34,17 +34,21 @@ from hod.subcommands.clean import CleanSubCommand
 
 class TestCleanSubCommand(unittest.TestCase):
     def test_run(self):
-        app = CleanSubCommand()
-        app.run([])
+        with patch('hod.cluster.rm_cluster_info'):
+            with patch('hod.cluster.rm_cluster_localworkdir'):
+                app = CleanSubCommand()
+                app.run([])
 
     def test_run_good(self):
         import hod.rmscheduler.rm_pbs as rm_pbs
         job = rm_pbs.PbsJob('good-jobid.master23.hod.os', 'good-state', 'good-host')
         with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [job])):
-            with patch('os.getenv', return_value='master23.hod.os'):
-                app = CleanSubCommand()
-                with capture(app.run, []) as (out, err):
-                    self.assertEqual(out, '')
+            with patch('hod.cluster.rm_cluster_info'):
+                with patch('hod.cluster.rm_cluster_localworkdir'):
+                    with patch('os.getenv', return_value='master23.hod.os'):
+                        app = CleanSubCommand()
+                        with capture(app.run, []) as (out, err):
+                            self.assertEqual(out, '')
 
     def test_usage(self):
         app = CleanSubCommand()

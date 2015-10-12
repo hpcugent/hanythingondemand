@@ -32,6 +32,8 @@ from mock import patch, Mock
 from contextlib import contextmanager
 from cStringIO import StringIO
 
+from .util import capture
+
 import hod.cluster as hc
 from hod.rmscheduler.rm_pbs import PbsJob
 
@@ -116,10 +118,11 @@ class TestCluster(unittest.TestCase):
     def test_mk_cluster_info(self):
         jobs = [PbsJob('123', 'R', 'host1'), PbsJob('abc', 'Q', '')]
         jobid_file = StringIO()
+        workdir_file = StringIO()
         with patch('hod.cluster.cluster_jobid', side_effect=lambda lbl: dict(banana='123', apple='abc')[lbl]):
             with patch('os.makedirs'):
-                with patch('__builtin__.open', side_effect=_mock_open(jobid=jobid_file)):
-                    hc.mk_cluster_info('banana', jobs[0].jobid)
+                with patch('__builtin__.open', side_effect=_mock_open(jobid=jobid_file, workdir=workdir_file)):
+                    hc.mk_cluster_info('banana', jobs[0].jobid, 'workdir')
                     self.assertEqual(jobid_file.getvalue(), '123')
 
     def test_save_cluster_info(self):
@@ -128,20 +131,22 @@ class TestCluster(unittest.TestCase):
             with patch('hod.cluster.cluster_info_exists', return_value=True):
                 with patch('hod.cluster.generate_cluster_env_script', return_value='my script'):
                     with patch('__builtin__.open', side_effect=_mock_open(env=env_file)):
-                        hc.save_cluster_info(dict(label='banana',
-                            hadoop_conf_dir='hadoop', hod_localworkdir='localworkdir', modules=''))
+                        hc.save_cluster_info(dict(label='banana', hadoop_conf_dir='hadoop', 
+                            hod_localworkdir='localworkdir', modules='', workdir=''))
                         self.assertTrue(env_file.getvalue(), 'my script')
 
     def test_save_cluster_info_mk_cluster_info(self):
         jobid_file = StringIO()
         env_file = StringIO()
+        workdir_file = StringIO()
         with patch('hod.cluster.cluster_jobid', side_effect=lambda lbl: dict(banana='123', apple='abc')[lbl]):
             with patch('hod.cluster.cluster_info_exists', return_value=False):
                 with patch('hod.cluster.generate_cluster_env_script', return_value='my script'):
                     with patch('os.makedirs'):
-                        with patch('__builtin__.open', side_effect=_mock_open(jobid=jobid_file, env=env_file)):
-                            hc.save_cluster_info(dict(label='banana',
-                                hadoop_conf_dir='hadoop', hod_localworkdir='localworkdir', modules=''))
+                        with patch('__builtin__.open',
+                                side_effect=_mock_open(jobid=jobid_file, env=env_file, workdir=workdir_file)):
+                            hc.save_cluster_info(dict(label='banana', hadoop_conf_dir='hadoop',
+                                hod_localworkdir='localworkdir', modules='', workdir=''))
                             self.assertTrue(env_file.getvalue(), 'my script')
 
     def test_validate_hodconf_or_dist(self):
@@ -149,3 +154,34 @@ class TestCluster(unittest.TestCase):
             self.assertTrue(hc.validate_hodconf_or_dist('a', 'b'))
         with patch('hod.cluster.resolve_config_paths', side_effect=ValueError):
             self.assertFalse(hc.validate_hodconf_or_dist('a', 'b'))
+
+    def test_report_cluster_submission_with_label(self):
+        with capture(hc.report_cluster_submission, 'some-label') as (out, err):
+            self.assertEqual("Submitting HOD cluster with label 'some-label'...\n", out)
+            self.assertEqual("", err)
+
+    def test_report_cluster_submission_with_no_label(self):
+        with capture(hc.report_cluster_submission, None) as (out, err):
+            self.assertEqual("Submitting HOD cluster with no label (job id will be used as a default label) ...\n", out)
+            self.assertEqual("", err)
+
+    def test_cluster_env_file(self):
+        with patch('hod.cluster._cluster_info', side_effect=lambda x, y: '%s/%s'% (x, y)):
+            self.assertEqual(hc.cluster_env_file('label'), 'label/env')
+
+    def test_post_job_submission_no_jobs(self):
+        jobs = []
+        self.assertRaises(SystemExit, hc.post_job_submission, 'label', jobs, 'workdir')
+
+    def test_post_job_submission_one_job(self):
+        jobs = [PbsJob('123', 'R', 'host')]
+        with capture(hc.post_job_submission, 'label', jobs, 'workdir') as (out, err):
+            self.assertEqual(out, 'Job submitted: Jobid 123 state R ehosts host\n')
+            self.assertEqual(err, '')
+
+    def test_post_job_submission_two_jobs(self):
+        jobs = [PbsJob('123', 'R', 'host'), PbsJob('124', 'R', 'host')]
+        with capture(hc.post_job_submission, 'label', jobs, 'workdir') as (out, err):
+            self.assertEqual(out, "Job submitted: Jobid 123 state R ehosts host\n")
+            self.assertEqual(err, "Warning: More than one job found: ['123', '124']\n")
+
