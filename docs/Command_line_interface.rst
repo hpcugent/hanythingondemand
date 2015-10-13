@@ -35,6 +35,7 @@ Running ``hod`` without arguments is equivalent to ``hod --help``, and results i
         genconfig       Write hod configs to a directory for diagnostic purposes
         connect         Connect to a hod cluster.
         clean           Remove stale cluster info.
+        clone           Write hod configs to a directory for edtting purposes.
 
 .. _cmdline_hod_options:
 
@@ -261,3 +262,11 @@ that was created for this cluster (``$HOME/.config/hod.d/<label>/env``).
 
 Remove cluster info directory for clusters that are no longer available, i.e.  those marked with ``<job-not-found>`` in the 
 output of ``hod list``.
+
+.. _cmdline_clone:
+
+``hod clone``
+~~~~~~~~~~~~~
+
+Clone a dist for use editing purposes. If there is a provided dist that is almost what is required for some work, users 
+can clone it and edit the files.

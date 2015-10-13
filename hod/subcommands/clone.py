@@ -23,7 +23,7 @@
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 """
-hod clone - copy a dist to a local directory for editting.
+hod clone - copy a dist to a local directory for editing.
 
 @author: Ewan Higgs (Ghent University)
 """
@@ -54,7 +54,7 @@ class CloneSubCommand(SubCommand):
 
     CMD = 'clone'
     EXAMPLE = "<dist-to-copy> <output-directory>"
-    HELP = "Write hod configs to a directory for editting purposes."
+    HELP = "Write hod configs to a directory for editing purposes."
 
     def run(self, args):
         """Run 'genconfig' subcommand."""
