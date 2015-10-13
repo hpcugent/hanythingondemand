@@ -46,7 +46,8 @@ class TestListSubCommand(EnhancedTestCase):
 
 
     def test_run_one_job(self):
-        expected = "Cluster label\tJob ID                \tPBS Job State\nmylabel      \tgood-jobid.good-master\tJobid good-jobid.good-master state good-state ehosts good-host\n"
+        expected = 'Cluster label\tJob ID                \tState     \tHosts    \n'
+        expected += 'mylabel      \tgood-jobid.good-master\tgood-state\tgood-host\n'
         import hod.rmscheduler.rm_pbs as rm_pbs
         job = rm_pbs.PbsJob('good-jobid.good-master', 'good-state', 'good-host')
         with patch('hod.rmscheduler.rm_pbs.Pbs', return_value=Mock(state=lambda: [job])):

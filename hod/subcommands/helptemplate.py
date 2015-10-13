@@ -28,9 +28,11 @@ Print out template parameters used by hod.
 @author: Ewan Higgs (Ghent University)
 @author: Kenneth Hoste (Ghent University)
 """
+import os
 from vsc.utils.generaloption import GeneralOption
 
 import hod.config.template as hct
+import hod.table as ht
 from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
 from hod.mpiservice import master_template_opts
@@ -56,15 +58,14 @@ def mk_registry():
     return reg
 
 
-def mk_fmt_str(fields, resolver):
-    """Calculate the format string for printing the template parameters."""
-    longest_name = max(fields.values(), key=lambda x: len(x.name)).name
-    max_name_len = len(longest_name)
-    value_names = map(resolver, ['$%s'% v.name for v in fields.values()])
-    longest_value = max(value_names, key=len)
-    max_val_len = len(longest_value)
-    return '%%-%ds:\t%%-%ds\t%%s' % (max_name_len, max_val_len)
-
+def format_rows(fields, resolver):
+    """
+    Given a list of fields, return the template substituted versions of the text
+    """
+    rows = []
+    for v in sorted(fields.values(), key=lambda x: x.name):
+        rows.append((v.name, resolver('$%s' % v.name), v.doc))
+    return rows
 
 class HelpTemplateSubCommand(SubCommand):
     """Implementation of 'help-template' subcommand."""
@@ -74,11 +75,11 @@ class HelpTemplateSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'help-template' subcommand."""
+        os.environ['PBS_JOBID'] = '123.%s' % os.environ['PBS_DEFAULT']
         optparser = HelpTemplateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         reg = mk_registry()
         resolver = hct.TemplateResolver(**reg.to_kwargs())
         print 'Hanythingondemand template parameters'
-        fmt_str = mk_fmt_str(reg.fields, resolver)
-        print fmt_str % ('Parameter name', 'Value', 'Documentation')
-        for v in sorted(reg.fields.values(), key=lambda x: x.name):
-            print fmt_str % (v.name, resolver('$%s' % v.name), v.doc)
+        headers = ('Parameter name', 'Value', 'Documentation')
+        formatted_rows = format_rows(reg.fields, resolver)
+        print ht.format_table(formatted_rows, headers)

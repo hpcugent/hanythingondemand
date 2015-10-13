@@ -38,6 +38,7 @@ from vsc.utils.generaloption import GeneralOption
 from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
 import hod.cluster as hc
+import hod.table as ht
 import hod.rmscheduler.rm_pbs as rm_pbs
 
 
@@ -55,14 +56,15 @@ def mk_fmt_str(labels, jobid, header):
     return '%%-%ds\t%%-%ds\t%%s' % (max_label_len, max_jobid_len)
 
 
-def format_cluster_info(cluster_info):
-    """Turn a list of 'ClusterInfo' objects into a 2-tuple of strings."""
+def format_rows(cluster_info):
+    """Turn a list of 'ClusterInfo' objects into a list of strings."""
     ret = []
     for info in cluster_info:
         label = info.label if info.label is not None else '<no-label>'
         jobid = info.jobid
-        job = str(info.pbsjob) if info.pbsjob is not None else '<job-not-found>'
-        ret.append((label, jobid, job))
+        state = info.pbsjob.state if info.pbsjob is not None else '<job-not-found>'
+        hosts = info.pbsjob.hosts if info.pbsjob is not None else '<no-hosts-found>'
+        ret.append((label, jobid, state, hosts))
     return ret
 
 
@@ -78,19 +80,14 @@ class ListSubCommand(SubCommand):
             pbs = rm_pbs.Pbs(optparser)
             state = pbs.state()
             labels = hc.known_cluster_labels()
-            rm_master = rm_pbs.master_hostname()
             info = hc.mk_cluster_info_dict(labels, state)
             if not info:
                 print 'No jobs found'
                 sys.exit(0)
 
-            info = format_cluster_info(info)
-            cluster_labels = ('Cluster label', 'Job ID', 'PBS Job State')
-            labels, jobids  = zip(*[(label, jobid) for label, jobid, job in info])
-            fmt_str = mk_fmt_str(labels, jobids, cluster_labels[0])
-            print fmt_str % cluster_labels
-            for label, jobid, job in info:
-                print fmt_str % (label, jobid.strip(), job)
+            headers = ['Cluster label', 'Job ID', 'State', 'Hosts']
+            info_rows = format_rows(info)
+            print ht.format_table(info_rows, headers)
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
