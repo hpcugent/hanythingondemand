@@ -57,7 +57,7 @@ class CloneSubCommand(SubCommand):
     HELP = "Write hod configs to a directory for editing purposes."
 
     def run(self, args):
-        """Run 'genconfig' subcommand."""
+        """Run 'clone' subcommand."""
         optparser = CloneOptions(go_args=args, usage=self.usage_txt)
         if len(optparser.args) < 3:
             sys.stderr.write(self.usage())
@@ -67,7 +67,7 @@ class CloneSubCommand(SubCommand):
         output_dir = optparser.args[2]
 
         if os.path.exists(output_dir):
-            sys.stderr.write('Error: Output directory exists.\n')
+            sys.stderr.write('Error: Output directory exists: "%s"\n' % output_dir)
             sys.exit(1)
 
         try:
@@ -78,7 +78,7 @@ class CloneSubCommand(SubCommand):
                 sys.exit(1)
             shutil.copytree(src, output_dir)
             return 0
-        except Exception as e:
-            _log.error("Failed to copy dist: %s", str(e))
+        except Exception as err:
+            _log.error("Failed to copy dist: %s", str(err))
             _log.exception("hod clone failed")
             sys.exit(1)

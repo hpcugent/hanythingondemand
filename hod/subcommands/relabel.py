@@ -52,7 +52,7 @@ class RelabelSubCommand(SubCommand):
     """Implementation of HOD 'relabel' subcommand."""
     CMD = 'relabel'
     EXAMPLE = "<source-cluster-label> <dest-cluster-label>"
-    HELP = "Change the label of an existing job"
+    HELP = "Change the label of an existing job."
 
     def run(self, args):
         """Run 'relabel' subcommand."""
