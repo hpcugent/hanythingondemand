@@ -27,14 +27,16 @@ Running ``hod`` without arguments is equivalent to ``hod --help``, and results i
     hanythingondemand version 3.0.0 - Run services within an HPC cluster
     usage: hod <subcommand> [subcommand options]
     Available subcommands (one of these must be specified!):
-        create          Submit a job to spawn a cluster on a PBS job controller
         batch           Submit a job to spawn a cluster on a PBS job controller, run a job script, and tear down the cluster when it's done
-        list            List submitted/running clusters
-        dists           List the available distributions
-        help-template   Print the values of the configuration templates based on the current machine.
-        genconfig       Write hod configs to a directory for diagnostic purposes
-        connect         Connect to a hod cluster.
         clean           Remove stale cluster info.
+        clone           Write hod configs to a directory for editing purposes.
+        connect         Connect to a hod cluster.
+        create          Submit a job to spawn a cluster on a PBS job controller
+        dists           List the available distributions
+        genconfig       Write hod configs to a directory for diagnostic purposes
+        help-template   Print the values of the configuration templates based on the current machine.
+        list            List submitted/running clusters
+        relabel         Change the label of an existing job.
 
 .. _cmdline_hod_options:
 
@@ -75,15 +77,66 @@ An overview of the available subcommands is available via ``hod --help`` (see :r
 
 More details on a specific subcommand are available via ``hod <subcommand> --help``.
 
-Known subcommands:
+Available subcommands:
 
-* :ref:`cmdline_create`
 * :ref:`cmdline_batch`
-* :ref:`cmdline_list`
-* :ref:`cmdline_dists`
-* :ref:`cmdline_helptemplate`
-* :ref:`cmdline_genconfig`
+* :ref:`cmdline_clean`
+* :ref:`cmdline_clone`
 * :ref:`cmdline_connect`
+* :ref:`cmdline_create`
+* :ref:`cmdline_dists`
+* :ref:`cmdline_genconfig`
+* :ref:`cmdline_helptemplate`
+* :ref:`cmdline_list`
+* :ref:`cmdline_relabel`
+
+
+.. _cmdline_batch:
+
+``hod batch --script=<script-name>``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a cluster and run the script. Upon completion of the script, the cluster will be stopped.
+
+Next to ``--script`` (which is mandatory with ``batch``), all configuration options supported for ``create`` are
+also supported for ``batch``, see :ref:`cmdline_create_options`.
+When used with ``batch``, these options can also be specified via ``$HOD_BATCH_*``.
+
+Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<job-not-found>`` until ``hod clean`` 
+is run (see :ref:`cmdline_clean`).
+
+.. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
+
+
+.. _cmdline_clean:
+
+``hod clean``
+~~~~~~~~~~~~~
+
+Remove cluster info directory for clusters that are no longer available, i.e.  those marked with ``<job-not-found>`` in the 
+output of ``hod list``.
+
+
+.. _cmdline_clone:
+
+``hod clone <dist-name> <destination>``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Clone a dist for use editing purposes. If there is a provided dist that is almost what is required for some work, users 
+can clone it and edit the files.
+
+.. _cmdline_connect:
+
+``hod connect <cluster-label>``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. ssh + set up environment (screen no longer needed!)
+
+Connect to an existing hanythingondemand cluster, and set up the environment to use it.
+
+This basically corresponds to logging in to the cluster head node using SSH and sourcing the cluster information script
+that was created for this cluster (``$HOME/.config/hod.d/<label>/env``).
+
 
 .. _cmdline_create:
 
@@ -182,21 +235,32 @@ The resources being requested for the job that is submitted can be controlled vi
 see :ref:`cmdline_job_options`; can also be specified via ``$HOD_CREATE_JOB_*``.
 
 
-.. _cmdline_batch:
+.. _cmdline_dists:
 
-``hod batch --script=<script-name>``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``hod dists``
+~~~~~~~~~~~~~
 
-Create a cluster and run the script. Upon completion of the script, the cluster will be stopped.
+Print a list of available cluster configuration files.
 
-Next to ``--script`` (which is mandatory with ``batch``), all configuration options supported for ``create`` are
-also supported for ``batch``, see :ref:`cmdline_create_options`.
-When used with ``batch``, these options can also be specified via ``$HOD_BATCH_*``.
 
-Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<job-not-found>`` until ``hod clean`` 
-is run (see :ref:`cmdline_clean`).
+.. _cmdline_genconfig:
 
-.. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
+``hod genconfig``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Generate hanythingondemand cluster configuration files to the working directory for diagnostic purposes.
+
+The working directory can be specified using ``--workdir`` or via ``$HOD_GENCONFIG_WORKDIR``.
+
+
+.. _cmdline_helptemplate:
+
+``hod help-template``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. FIXME machine?
+
+Print the values for the configuration templates based on the current machine.
 
 
 .. _cmdline_list:
@@ -214,50 +278,9 @@ Jobs that have completed running will remain in the list with ``<job-not-found>`
 See :ref:`cmdline_clean`.
 
 
-.. _cmdline_dists:
+.. _cmdline_relabel:
 
-``hod dists``
-~~~~~~~~~~~~~
+``hod relabel <old-label> <new-label>``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Print a list of available cluster configuration files.
-
-
-.. _cmdline_helptemplate:
-
-``hod help-template``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. FIXME machine?
-
-Print the values for the configuration templates based on the current machine.
-
-
-.. _cmdline_genconfig:
-
-``hod genconfig``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Generate hanythingondemand cluster configuration files to the working directory for diagnostic purposes.
-
-The working directory can be specified using ``--workdir`` or via ``$HOD_GENCONFIG_WORKDIR``.
-
-
-.. _cmdline_connect:
-
-``hod connect <cluster label>``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. ssh + set up environment (screen no longer needed!)
-
-Connect to an existing hanythingondemand cluster, and set up the environment to use it.
-
-This basically corresponds to logging in to the cluster head node using SSH and sourcing the cluster information script
-that was created for this cluster (``$HOME/.config/hod.d/<label>/env``).
-
-.. _cmdline_clean:
-
-``hod clean``
-~~~~~~~~~~~~~
-
-Remove cluster info directory for clusters that are no longer available, i.e.  those marked with ``<job-not-found>`` in the 
-output of ``hod list``.
+Change the label for a hod cluster that is queued or running.

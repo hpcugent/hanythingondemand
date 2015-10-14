@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# #
+# ##
 # Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
@@ -22,58 +22,63 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
-# #
 """
-Relabel a cluster.
+hod clone - copy a dist to a local directory for editing.
 
-@author: Ewan Higgs (Universiteit Gent)
+@author: Ewan Higgs (Ghent University)
 """
-
+import os
 import sys
+import shutil
 
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
+
+import hod.config.config as hcc
 from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
-import hod.cluster as hc
 
 
-_log = fancylogger.getLogger(fname=False)
+_log = fancylogger.getLogger('clone', fname=False)
 
 
-class RelabelOptions(GeneralOption):
-    """Option parser for 'relabel' subcommand."""
+class CloneOptions(GeneralOption):
+    """Option parser for 'clone' subcommand."""
     VERSION = HOD_VERSION
     ALLOPTSMANDATORY = False # let us use optionless arguments.
 
 
-class RelabelSubCommand(SubCommand):
-    """Implementation of HOD 'relabel' subcommand."""
-    CMD = 'relabel'
-    EXAMPLE = "<source-cluster-label> <dest-cluster-label>"
-    HELP = "Change the label of an existing job."
+class CloneSubCommand(SubCommand):
+    """Implementation of 'clone' subcommand."""
+
+    CMD = 'clone'
+    EXAMPLE = "<dist-to-copy> <output-directory>"
+    HELP = "Write hod configs to a directory for editing purposes."
 
     def run(self, args):
-        """Run 'relabel' subcommand."""
-        optparser = RelabelOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
-        try:
-            if len(optparser.args) != 3:
-                sys.stderr.write(self.usage())
-                sys.exit(1)
+        """Run 'clone' subcommand."""
+        optparser = CloneOptions(go_args=args, usage=self.usage_txt)
+        if len(optparser.args) < 3:
+            sys.stderr.write(self.usage())
+            sys.exit(1)
 
-            labels = hc.known_cluster_labels()
-            if optparser.args[1] not in labels:
-                sys.stderr.write('Cluster with label "%s" not found\n' % optparser.args[1])
+        dist = optparser.args[1]
+        output_dir = optparser.args[2]
+
+        if os.path.exists(output_dir):
+            sys.stderr.write('Error: Output directory exists: "%s"\n' % output_dir)
+            sys.exit(1)
+
+        try:
+            dists_dir = hcc.resolve_dists_dir()
+            src = os.path.join(dists_dir, dist)
+            if not os.path.exists(src):
+                sys.stderr.write('Error: Input dist not found: "%s".\n' % dist)
                 sys.exit(1)
-            try:
-                hc.mv_cluster_info(optparser.args[1], optparser.args[2])
-            except (IOError, OSError) as err:
-                sys.stderr.write('Could not change label "%s" to "%s": "%s"\n' %
-                    (optparser.args[1], optparser.args[2], err.message))
-                sys.exit(1)
-        except StandardError as err:
-            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
-            fancylogger.logToScreen(enable=True)
-            _log.raiseException(err.message)
-        return 0
+            shutil.copytree(src, output_dir)
+            return 0
+        except Exception as err:
+            _log.error("Failed to copy dist: %s", str(err))
+            _log.exception("hod clone failed")
+            sys.exit(1)
