@@ -29,18 +29,10 @@ Utility functions for printing text in tables.
 @author: Ewan Higgs (Universiteit Gent)
 """
 
-from itertools import chain
-
 def _mk_fmt_str(fields):
     """Calculate the format string for printing the template parameters."""
-    field_lens = []
-    for field in fields:
-        field_lens.append(max(map(len, field)))
-    fmt_str = ""
-    for i, field_len in enumerate(field_lens):
-        fmt_str += '%%-%ds' % field_len
-        if i != len(field_lens)-1:
-            fmt_str += '\t'
+    field_lens = [max(map(len, field)) for field in fields]
+    fmt_str = '\t'.join(['%%-%ds' % field_len for field_len in field_lens])
     return fmt_str
 
 
@@ -49,15 +41,15 @@ def _pivot(rows):
     if not rows:
         return []
 
-    cols = []
     ncols = len(rows[0])
-    for col in range(ncols):
-        cols.append([row[col] for row in rows])
+    cols = [[row[col] for row in rows] for col in range(ncols)]
     return cols
+
 
 def format_table(rows, headers=None):
     """
-    Formats a table of data. 
+    Formats a table of data.
+
     Params
     ------
     rows - list of lists containing each row of data
@@ -72,18 +64,17 @@ def format_table(rows, headers=None):
     if headers is not None and len(headers) != len(rows[0]):
         raise ValueError('Headers and rows must have the same length')
 
+    if len(set(map(len, rows))) != 1:
+        raise ValueError('Not all of the rows have the same length')
+
     out = ''
     if headers:
         cols = _pivot([headers] + rows)
         fmt_str = _mk_fmt_str(cols)
-        out = fmt_str % tuple(headers)
-        out += '\n'
+        out = fmt_str % tuple(headers) + '\n'
     else:
         cols = _pivot(rows)
         fmt_str = _mk_fmt_str(cols)
 
-    for i, line in enumerate(rows):
-        out += fmt_str % tuple(line)
-        if i != len(rows)-1:
-            out += '\n'
+    out += '\n'.join([fmt_str % tuple(line) for line in rows])
     return out

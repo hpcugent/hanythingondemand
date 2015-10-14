@@ -67,3 +67,7 @@ class TestTables(unittest.TestCase):
         headers = ['Header1', 'Header2']
         self.assertRaises(ValueError, ht.format_table, contents, headers)
 
+    def test_format_table_non_equal_row_lengths(self):
+        contents = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9', '10']]
+        self.assertRaises(ValueError, ht.format_table, contents)
+

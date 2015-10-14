@@ -37,9 +37,9 @@ from hod.subcommands.helptemplate import HelpTemplateSubCommand
 class TestHelpTemplateApplication(unittest.TestCase):
     def test_run(self):
         app = HelpTemplateSubCommand()
-        environ = dict(PBS_DEFAULT='pbsmaster')
-        environ.update(os.environ)
-        with patch('os.environ', environ):
+        test_environ = dict(PBS_DEFAULT='pbsmaster')
+        test_environ.update(os.environ)
+        with patch('os.environ', test_environ):
             with patch('hod.config.template.mklocalworkdir', return_value='localworkdir'):
                 app.run([])
 

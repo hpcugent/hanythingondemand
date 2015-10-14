@@ -49,21 +49,17 @@ class ListOptions(GeneralOption):
     """Option parser for 'list' subcommand."""
     VERSION = HOD_VERSION
 
-def mk_fmt_str(labels, jobid, header):
-    """Calculate the format string for printing the template parameters."""
-    max_label_len = max(map(len, chain(labels, [header])))
-    max_jobid_len = max(map(len, chain(jobid, [header])))
-    return '%%-%ds\t%%-%ds\t%%s' % (max_label_len, max_jobid_len)
 
-
-def format_rows(cluster_info):
+def format_list_rows(cluster_info):
     """Turn a list of 'ClusterInfo' objects into a list of strings."""
     ret = []
     for info in cluster_info:
         label = info.label if info.label is not None else '<no-label>'
         jobid = info.jobid
-        state = info.pbsjob.state if info.pbsjob is not None else '<job-not-found>'
-        hosts = info.pbsjob.hosts if info.pbsjob is not None else '<no-hosts-found>'
+        if info.pbsjob is None:
+            state, hosts = '<job-not-found>', '<none>'
+        else:
+            state, hosts = info.pbsjob.state, info.pbsjob.hosts
         ret.append((label, jobid, state, hosts))
     return ret
 
@@ -86,7 +82,7 @@ class ListSubCommand(SubCommand):
                 sys.exit(0)
 
             headers = ['Cluster label', 'Job ID', 'State', 'Hosts']
-            info_rows = format_rows(info)
+            info_rows = format_list_rows(info)
             print ht.format_table(info_rows, headers)
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)

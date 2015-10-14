@@ -63,8 +63,8 @@ def format_rows(fields, resolver):
     Given a list of fields, return the template substituted versions of the text
     """
     rows = []
-    for v in sorted(fields.values(), key=lambda x: x.name):
-        rows.append((v.name, resolver('$%s' % v.name), v.doc))
+    for val in sorted(fields.values(), key=lambda x: x.name):
+        rows.append((val.name, resolver('$%s' % val.name), val.doc))
     return rows
 
 class HelpTemplateSubCommand(SubCommand):
@@ -75,8 +75,12 @@ class HelpTemplateSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'help-template' subcommand."""
+        # We need PBS_JOBID defined in the environment to generate localworkdirs
+        if 'PBS_DEFAULT' not in os.environ:
+            os.environ['PBS_DEFAULT'] = 'pbs-master'
         os.environ['PBS_JOBID'] = '123.%s' % os.environ['PBS_DEFAULT']
-        optparser = HelpTemplateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
+
+        _ = HelpTemplateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         reg = mk_registry()
         resolver = hct.TemplateResolver(**reg.to_kwargs())
         print 'Hanythingondemand template parameters'
