@@ -1,6 +1,7 @@
 # hanythingondemand  (HOD for short)
 
-Documentation is available at http://hod.readthedocs.org
+Documentation is available at [Read the Docs](http://hod.readthedocs.org)
+
 [![Build
 Status](https://jenkins1.ugent.be/job/hanythingondemand/badge/icon)](https://jenkins1.ugent.be/job/hanythingondemand/)
 
