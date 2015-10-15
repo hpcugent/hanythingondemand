@@ -40,6 +40,7 @@ from hod.hodproc import ConfiguredMaster
 from hod.mpiservice import setup_tasks
 from hod.options import GENERAL_HOD_OPTIONS, validate_required_option
 from hod.subcommands.subcommand import SubCommand
+from hod.utils import setup_diagnostic_environment
 
 
 _log = fancylogger.getLogger('genconfig', fname=False)
@@ -70,6 +71,9 @@ class GenConfigSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'genconfig' subcommand."""
+
+        setup_diagnostic_environment()
+
         optparser = GenConfigOptions(go_args=args, usage=self.usage_txt)
         if not validate_required_option(optparser.options):
             sys.stderr.write('Missing config options. Exiting.\n')

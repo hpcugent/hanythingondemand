@@ -38,6 +38,7 @@ from hod.subcommands.subcommand import SubCommand
 from hod.mpiservice import master_template_opts
 from hod.config.config import ConfigOptsParams
 from hod.commands.command import COMMAND_TIMEOUT
+from hod.utils import setup_diagnostic_environment
 
 
 class HelpTemplateOptions(GeneralOption):
@@ -75,10 +76,7 @@ class HelpTemplateSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'help-template' subcommand."""
-        # We need PBS_JOBID defined in the environment to generate localworkdirs
-        if 'PBS_DEFAULT' not in os.environ:
-            os.environ['PBS_DEFAULT'] = 'pbs-master'
-        os.environ['PBS_JOBID'] = '123.%s' % os.environ['PBS_DEFAULT']
+        setup_diagnostic_environment()
 
         _ = HelpTemplateOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         reg = mk_registry()

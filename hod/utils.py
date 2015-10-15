@@ -28,6 +28,8 @@ Utility functions for hanythingondemand
 @author: Kenneth Hoste (Universiteit Gent)
 """
 
+import os
+
 def only_if_module_is_available(modname):
     """Decorator to guard functions/methods against missing required module with specified name."""
     def wrap(orig):
@@ -42,3 +44,14 @@ def only_if_module_is_available(modname):
             return error
 
     return wrap
+
+def setup_diagnostic_environment():
+    """
+    When we run diagnostic functions (e.g. genconfig, help-template), we need to
+    pretend we are in a job so we poke some values into the environment.
+    """
+    if 'PBS_DEFAULT' not in os.environ:
+        os.environ['PBS_DEFAULT'] = 'pbs-master'
+    os.environ['PBS_JOBID'] = '123.%s' % os.environ['PBS_DEFAULT']
+
+
