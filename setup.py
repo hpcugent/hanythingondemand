@@ -73,9 +73,11 @@ PACKAGE = {
         'Programming Language :: Python :: 2'
     ],
     'install_requires': [
-        'vsc-base >= 1.7.3',
+# Pin vsc-base to 2.2.2 since it's the last non broken tag.
+        'vsc-base >= 2.2.2',
         'setuptools',
-        'mpi4py',
+# Pin mpi4py to 1.3.1 since it's the last of the 1.x series and we don't want to pick up 2.0.0
+        'mpi4py == 1.3.1',
         'pbs-python',
         'netifaces',
         'netaddr',
