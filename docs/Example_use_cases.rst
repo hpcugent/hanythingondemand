@@ -121,3 +121,23 @@ Running a batch script on an HOD cluster (Hadoop)
 Connecting to an IPython notebook running on an HOD cluster
 -----------------------------------------------------------
 
+Running an IPython notebook on an HOD cluster is as simple as creating an HOD cluster using the appropriate
+distribution, and then connecting to the IPython notebook over an SSH tunnel.
+
+For example:
+
+* create HOD cluster using an IPython HOD distribution::
+
+    $ hod create --dist IPython-notebook-3.2.1 --label ipython_example
+    Submitting HOD cluster with label 'ipython_example'...
+    Job submitted: Jobid 12345.master15.delcatty.gent.vsc state Q ehosts
+
+* determine head node of HOD cluster::
+
+    $ hod list
+
+    Cluster label	Job ID                         	    State	Hosts
+    ipython_example 12345.master15.delcatty.gent.vsc	R    	node2001.delcatty.gent.vsc
+
+* connect to IPython notebook by pointing your web browser to http://localhost:8888, using a SOCKS proxy over
+  an SSH tunnel to the head node ``node2001.delcatty.gent.vsc``, see :ref:`connecting_to_web_uis`
