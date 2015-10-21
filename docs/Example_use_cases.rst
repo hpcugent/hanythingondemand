@@ -30,6 +30,7 @@ Common aspects
     Hadoop-2.3.0-cdh5.0.0
     Hadoop-2.5.0-cdh5.3.1-gpfs
     Hadoop-2.5.0-cdh5.3.1-native
+    Hadoop-2.6.0-cdh5.4.5-native
     Hadoop-on-lustre2
     IPython-notebook-3.2.1
 
