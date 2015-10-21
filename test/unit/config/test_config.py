@@ -411,4 +411,4 @@ SOME_ENV=123""")
                 self.assertRaises(RuntimeError, hcc.resolve_config_paths, '', '')
 
     def test_avail_dists(self):
-        self.assertEqual(hcc.avail_dists(), os.listdir(hcc.resolve_dists_dir()))
+        self.assertEqual(hcc.avail_dists(), sorted(os.listdir(hcc.resolve_dists_dir())))

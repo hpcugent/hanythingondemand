@@ -484,7 +484,7 @@ def resolve_dist_path(dist):
 def avail_dists():
     """Return a list of available distributions"""
     pkg = Requirement.parse(hod.NAME)
-    return resource_listdir(pkg, HOD_ETC_DIR)
+    return sorted(resource_listdir(pkg, HOD_ETC_DIR))
 
 
 def resolve_config_paths(config, dist):
