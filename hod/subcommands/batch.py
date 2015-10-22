@@ -96,12 +96,12 @@ class BatchSubCommand(SubCommand):
             sys.stderr.write('Missing script. Exiting.\n')
             return 1
 
+        # resolve script path to absolute path
+        optparser.options.script = os.path.abspath(optparser.options.script)
+
         if not os.path.exists(optparser.options.script):
             sys.stderr.write("Specified script does not exist: %s. Exiting.\n" % optparser.options.script)
             return 1
-
-        # resolve script path to absolute path
-        optparser.options.script = os.path.abspath(optparser.options.script)
 
         # make sure script is executable
         cur_perms = os.stat(optparser.options.script)[stat.ST_MODE]
