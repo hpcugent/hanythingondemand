@@ -64,9 +64,12 @@ class TestBatchSubCommand(unittest.TestCase):
                     script = os.path.join(tmpdir, 'some-script.sh')
                     with open(script, 'w') as f:
                         f.write('echo hello')
+                    cwd = os.getcwd()
+                    os.chdir(tmpdir)
                     self.assertEqual(0, app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir',
                                                  '--hod-module=hanythingondemand', '--script=some-script.sh']))
                     shutil.rmtree(tmpdir)
+                    os.chdir(cwd)
 
     def test_run_with_dist(self):
         with patch('hod.subcommands.batch.PbsHodJob'):
@@ -78,9 +81,12 @@ class TestBatchSubCommand(unittest.TestCase):
                     script = os.path.join(tmpdir, 'some-script.sh')
                     with open(script, 'w') as f:
                         f.write('echo hello')
+                    cwd = os.getcwd()
+                    os.chdir(tmpdir)
                     self.assertEqual(0, app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir',
                                                  '--hod-module=hanythingondemand', '--script=some-script.sh']))
                     shutil.rmtree(tmpdir)
+                    os.chdir(cwd)
 
     def test_run_fails_with_config_and_dist_arg(self):
         with patch('hod.subcommands.batch.PbsHodJob'):
