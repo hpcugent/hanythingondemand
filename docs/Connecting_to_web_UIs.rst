@@ -40,8 +40,8 @@ The first step is to figure out which workernode is the *head* node of your HOD 
 For example::
 
     $ hod list
-    Cluster label       Job ID                              State   Hosts
-    awesome-research    123456.master15.delcatty.gent.vsc   R       node2001.delcatty.gent.vsc       
+    Cluster label   Job ID                            State   Hosts                   
+    example         123456.master15.delcatty.gent.vsc R       node2001.delcatty.gent.vsc
 
 So, in this example, ``node2001.delcatty.gent.vsc`` is the `fully qualified domain name (FQDN)` of the head node
 of our HOD cluster.

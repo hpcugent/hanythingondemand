@@ -1,6 +1,6 @@
-####################################
-hanythingondemand for Administrators
-####################################
+##############
+Administration
+##############
 
 This is a page for Administrators who wish to offer `hanythingondemand` on their PBS/Torque cluster. hanythingondemand is a particularly tricky project as it integrates several pieces of tecchnology (Torque, MPI, Java, Hadoop, on Python) and as such we don't have an out of the box installation procedure yet.
 

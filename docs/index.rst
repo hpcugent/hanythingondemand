@@ -20,7 +20,7 @@ Introductory topics
 
 .. toctree::
     :glob:
-    :maxdepth: 3
+    :maxdepth: 2
 
     What_is_HOD
     Administration
@@ -29,3 +29,4 @@ Introductory topics
     Logging
     Connecting_to_web_UIs
     Spark
+    Example_use_cases
