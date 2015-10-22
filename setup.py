@@ -100,7 +100,7 @@ PACKAGE = {
     'data_files': find_files('etc'),
     'scripts': ['bin/hod'],
     'cmdclass' : {'test': TestCommand},
-    'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
+    'long_description': open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
     'zip_safe': False,
 }
 
