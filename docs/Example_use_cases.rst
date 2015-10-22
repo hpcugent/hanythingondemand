@@ -28,8 +28,10 @@ Configuring HOD
 You can/should configure HOD by defining the HOD work directory and specifying which module should be loaded
 in the HOD job being submitted (see also :ref:`cmdline_create_options`)::
 
+    # for 'hod batch'
     $ export HOD_BATCH_HOD_MODULE=hanythingondemand/3.0.0-intel-2015b-Python-2.7.10
     $ export HOD_BATCH_WORKDIR=$VSC_SCRATCH/hod
+    # for 'hod create'
     $ export HOD_CREATE_HOD_MODULE=hanythingondemand/3.0.0-intel-2015b-Python-2.7.10
     $ export HOD_CREATE_WORKDIR=$VSC_SCRATCH/hod
 
@@ -63,7 +65,7 @@ To interactively use an HOD cluster, you should
 (ii) connect to it once it is up and running, using ``hod connect``
 (iii) execute your commands
 
-Basic usage information for ``hod create`` is available at :ref:`cmdline_create`.
+See the example below for more details; basic usage information for ``hod create`` is available at :ref:`cmdline_create`.
 
 .. _example_use_cases_interactive_hadoop_screen:
 
@@ -177,7 +179,7 @@ Via ``hod batch``, a script can be provided that should be executed on an HOD cl
 
 This alleviates the need to wait until a cluster effectively starts running and entering the commands interactively.
 
-Basic usage information for ``hod batch`` is available at :ref:`cmdline_batch`.
+See also the example below; basic usage information for ``hod batch`` is available at :ref:`cmdline_batch`.
 
 Example: Hadoop WordCount
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -204,6 +206,12 @@ The classic Hadoop WordCount can be run using the following script (``wordcount.
 
     # copy results
     cp -a wordcount.out $HOME/$PBS_JOBNAME.$PBS_JOBID
+
+.. note:: No modules need to be loaded in order to make sure the required software is available (i.e., Java, Hadoop).
+          Setting up the working environment in which the job will be run is done right after starting the HOD cluster.
+
+          To check which modules are/will be available, you can use ``module list`` in the script you supply to
+          ``hod batch`` or check the details of the HOD distribution you use via :ref:`cmdline_clone`.
 
 To run this script on a Hadoop cluster, we can submit it via ``hod batch``::
 
