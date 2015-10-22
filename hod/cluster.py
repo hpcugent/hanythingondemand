@@ -162,7 +162,7 @@ def cluster_jobid(label):
 
 def cluster_workdir(label):
     """Return workdir for cluster with specified label."""
-    return open(_cluster_info(label, 'workdir')).read()
+    return os.path.expandvars(open(_cluster_info(label, 'workdir')).read())
 
 
 def _find_pbsjob(jobid, pbsjobs):
