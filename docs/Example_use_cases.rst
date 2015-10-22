@@ -26,14 +26,20 @@ Configuring HOD
 
 
 You can/should configure HOD by defining the HOD work directory and specifying which module should be loaded
-in the HOD job being submitted (see also :ref:`cmdline_create_options`)::
+in the HOD job being submitted (see also :ref:`cmdline_create_options`).
 
-    # for 'hod batch'
+To configure ``hod batch``, you can set the following environment variables::
+
     $ export HOD_BATCH_HOD_MODULE=hanythingondemand/3.0.0-intel-2015b-Python-2.7.10
     $ export HOD_BATCH_WORKDIR=$VSC_SCRATCH/hod
-    # for 'hod create'
+
+Likewise, for ``hod create``::
+
     $ export HOD_CREATE_HOD_MODULE=hanythingondemand/3.0.0-intel-2015b-Python-2.7.10
     $ export HOD_CREATE_WORKDIR=$VSC_SCRATCH/hod
+
+If HOD is being provided via an environment module, it is likely that the module provides decent default values for
+these already.
 
 The examples below will assume that this configuration is in place already.
 
