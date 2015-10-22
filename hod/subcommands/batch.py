@@ -31,6 +31,8 @@ all started, run a job, and tear down the cluster when it's done.
 @author: Ewan Higgs (Universiteit Gent)
 """
 import copy
+import os
+import stat
 import sys
 
 from vsc.utils import fancylogger
@@ -93,6 +95,19 @@ class BatchSubCommand(SubCommand):
         if optparser.options.script is None:
             sys.stderr.write('Missing script. Exiting.\n')
             return 1
+
+        if not os.path.exists(optparser.options.script):
+            sys.stderr.write("Specified script does not exist: %s. Exiting.\n" % optparser.options.script)
+            return 1
+
+        # resolve script path to absolute path
+        optparser.options.script = os.path.abspath(optparser.options.script)
+
+        # make sure script is executable
+        cur_perms = os.stat(optparser.options.script)[stat.ST_MODE]
+        if not (cur_perms & stat.S_IXUSR):
+            print "Specified script %s is not executable yet, fixing that..." % optparser.options.script
+            os.chmod(optparser.options.script, cur_perms|stat.S_IXUSR)
 
         label = options.label
 
