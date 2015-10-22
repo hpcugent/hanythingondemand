@@ -101,7 +101,7 @@ PACKAGE = {
     'scripts': ['bin/hod'],
     'cmdclass' : {'test': TestCommand},
     'long_description': open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
-    'zip_safe': False,
+    'zip_safe': True,
 }
 
 if __name__ == '__main__':
