@@ -26,9 +26,11 @@
 """
 @author: Ewan Higgs (Universiteit Gent)
 """
-
-import unittest
+import os
+import shutil
 import pytest
+import tempfile
+import unittest
 
 from hod.subcommands.batch import BatchSubCommand
 
@@ -57,22 +59,35 @@ class TestBatchSubCommand(unittest.TestCase):
             with patch('hod.cluster.mk_cluster_info'):
                 with patch('hod.cluster.validate_hodconf_or_dist', return_value=True):
                     app = BatchSubCommand()
-                    self.assertEqual(0, app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand', '--script=some-script.sh']))
-
+                    # script *must* exist (hod batch will stat it, chmod if needed)
+                    tmpdir = tempfile.mkdtemp()
+                    script = os.path.join(tmpdir, 'some-script.sh')
+                    with open(script, 'w') as f:
+                        f.write('echo hello')
+                    self.assertEqual(0, app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir',
+                                                 '--hod-module=hanythingondemand', '--script=some-script.sh']))
+                    shutil.rmtree(tmpdir)
 
     def test_run_with_dist(self):
         with patch('hod.subcommands.batch.PbsHodJob'):
             with patch('hod.cluster.mk_cluster_info'):
                 with patch('hod.cluster.validate_hodconf_or_dist', return_value=True):
                     app = BatchSubCommand()
-                    self.assertEqual(0, app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir', '--hod-module=hanythingondemand', '--script=some-script.sh']))
-
+                    # script *must* exist (hod batch will stat it, chmod if needed)
+                    tmpdir = tempfile.mkdtemp()
+                    script = os.path.join(tmpdir, 'some-script.sh')
+                    with open(script, 'w') as f:
+                        f.write('echo hello')
+                    self.assertEqual(0, app.run(['--dist=Hadoop-2.3.0', '--workdir=workdir',
+                                                 '--hod-module=hanythingondemand', '--script=some-script.sh']))
+                    shutil.rmtree(tmpdir)
 
     def test_run_fails_with_config_and_dist_arg(self):
         with patch('hod.subcommands.batch.PbsHodJob'):
             with patch('hod.cluster.validate_hodconf_or_dist', return_value=True):
                 app = BatchSubCommand()
-                self.assertEqual(1, app.run(['--hodconf=hod.conf', '--dist=Hadoop-2.3.0', '--hod-module=hanythingondemand', '--workdir=workdir']))
+                self.assertEqual(1, app.run(['--hodconf=hod.conf', '--dist=Hadoop-2.3.0',
+                                             '--hod-module=hanythingondemand', '--workdir=workdir']))
 
     def test_usage(self):
         app = BatchSubCommand()
