@@ -43,16 +43,18 @@ def tmpscript(script):
     # set up tmpdir and script in tmpdir
     tmpdir = tempfile.mkdtemp()
     script = os.path.join(tmpdir, script)
-    with open(script, 'w') as f:
-        f.write('echo hello')
-    # change to tmpdir
-    cwd = os.getcwd()
-    os.chdir(tmpdir)
-    # execute 'with' body
-    yield
-    # cleanup
-    os.chdir(cwd)
-    shutil.rmtree(tmpdir)
+    try:
+        with open(script, 'w') as f:
+            f.write('echo hello')
+        # change to tmpdir
+        cwd = os.getcwd()
+        os.chdir(tmpdir)
+        # execute 'with' body
+        yield
+    finally:
+        # cleanup
+        os.chdir(cwd)
+        shutil.rmtree(tmpdir)
 
 
 class TestBatchSubCommand(unittest.TestCase):
