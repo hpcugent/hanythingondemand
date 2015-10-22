@@ -213,6 +213,7 @@ The classic Hadoop WordCount can be run using the following script (``wordcount.
           To check which modules are/will be available, you can use ``module list`` in the script you supply to
           ``hod batch`` or check the details of the HOD distribution you use via :ref:`cmdline_clone`.
 
+
 To run this script on a Hadoop cluster, we can submit it via ``hod batch``::
 
     $ hod batch --dist Hadoop-2.5.0-cdh5.3.1-native --script $PWD/wordcount.sh --label wordcount
@@ -229,7 +230,7 @@ Once the script is finished, the HOD cluster will destroy itself, and the job ru
     Cluster label	Job ID                         	    State          	Hosts
     wordcount    	12345.master15.delcatty.gent.vsc	<job-not-found>	<none>
 
-Hence, the results should be available (see last command in submitted script)::
+Hence, the results should be available (see the ``cp`` at the end of the submitted script)::
 
     $ ls $HOME/HOD_wordcount.12345.master15.delcatty.gent.vsc
     total 416
@@ -263,9 +264,9 @@ For example:
 * determine head node of HOD cluster::
 
     $ hod list
-
     Cluster label	Job ID                         	    State	Hosts
     ipython_example 12345.master15.delcatty.gent.vsc	R    	node2001.delcatty.gent.vsc
 
 * connect to IPython notebook by pointing your web browser to http://localhost:8888, using a SOCKS proxy over
-  an SSH tunnel to the head node ``node2001.delcatty.gent.vsc``, see :ref:`connecting_to_web_uis`
+  an SSH tunnel to the head node ``node2001.delcatty.gent.vsc`` (see :ref:`connecting_to_web_uis` for detailed
+  information)
