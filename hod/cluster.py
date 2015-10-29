@@ -146,11 +146,11 @@ def _cluster_info(label, info_file):
     """
     labels = known_cluster_labels()
     if label in labels:
-        info_file = os.path.join(cluster_info_dir(), label, info_file)
-        if os.path.exists(info_file):
-            return info_file
+        info_filepath = os.path.join(cluster_info_dir(), label, info_file)
+        if os.path.exists(info_filepath):
+            return info_filepath
         else:
-            raise ValueError("No 'env' file found for cluster with label '%s'" % label)
+            raise ValueError("No '%s' file found for cluster with label '%s'" % (info_file, label))
     else:
         raise ValueError("Unknown cluster label '%s': %s" % (label, labels))
 
