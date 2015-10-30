@@ -53,7 +53,7 @@ class ConfiguredService(Work):
             self.log.info('Prestarting %s service on rank %s: No work.',
                 self._config.name, rank)
             return
-        env = os.environ
+        env = os.environ.copy()
         env.update(self._config.env)
         env.update(self._master_env)
 
@@ -66,7 +66,7 @@ class ConfiguredService(Work):
 
     def start_work_service(self):
         """Start service by running the ExecStart script."""
-        env = os.environ
+        env = os.environ.copy()
         env.update(self._config.env)
         env.update(self._master_env)
         rank = self.svc.rank
@@ -82,7 +82,7 @@ class ConfiguredService(Work):
 
     def stop_work_service(self):
         """Stop service by running the ExecStop script."""
-        env = os.environ
+        env = os.environ.copy()
         env.update(self._config.env)
         env.update(self._master_env)
         rank = self.svc.rank

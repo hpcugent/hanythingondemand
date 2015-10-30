@@ -100,7 +100,7 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
             'mympirun',
             '--output=$None/hod.output.$None',
             '--hybrid=1',
-            '--variablesprefix=HOD',
+            '--variablesprefix=HOD,PBS',
             'python -m hod.local',
             '--hodconf=hod.conf',
         ])
