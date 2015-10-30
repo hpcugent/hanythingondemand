@@ -50,7 +50,7 @@ class HodJob(Job):
         self.pythonexe = 'python'
         self.hodargs = self.options.generate_cmd_line(ignore='^(%s)_' % '|'.join(self.OPTION_IGNORE_PREFIX))
 
-        self.hodenvvarprefix = ['HOD']
+        self.hodenvvarprefix = ['HOD', 'PBS']
 
         self.set_type_class()
 
