@@ -1,3 +1,9 @@
+# 3.0.1
+* Fix for multi node configurations where `PBS_` were not being passed to MPI
+  slave environments. This prevented multi node configurations from working
+  correctly because they use PBS_JOBID in finding the localworkdir..
+* Minor fix to error reporting in `hod clean`.
+
 # 3.0.0
 * [Command line reorganization](http://hod.readthedocs.org/en/latest/Command_line_interface.html). 
   `hod` now uses a command/subcommand style interface which reduces the number of possible conflicting flags.
