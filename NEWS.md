@@ -1,7 +1,8 @@
 # 3.0.1
-* Fix for multi node configurations where `PBS_` were not being passed to MPI
-  slave environments. This prevented multi node configurations from working
-  correctly because they use PBS_JOBID in finding the localworkdir..
+* Fix for multi node configurations where `PBS_` environment variables were not
+  being passed to MPI slave environments. This prevented multi node
+  configurations from working correctly because they use `$PBS_JOBID` in finding
+  the localworkdir..
 * Minor fix to error reporting in `hod clean`.
 
 # 3.0.0
