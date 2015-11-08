@@ -506,3 +506,14 @@ def resolve_config_paths(config, dist):
         raise RuntimeError('A config or a dist must be provided')
 
     return path
+
+def load_hod_config(filenames, workdir, modules):
+    '''
+    Load the manifest config (hod.conf) files.
+    '''
+    m_config_filenames = parse_comma_delim_list(filenames)
+    _log.info('Loading "%s" manifest config', m_config_filenames)
+    m_config = PreServiceConfigOpts.from_file_list(m_config_filenames,
+            workdir=workdir, modules=modules)
+    _log.debug('Loaded manifest config: %s', str(m_config))
+    return m_config

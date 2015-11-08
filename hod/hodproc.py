@@ -30,9 +30,11 @@ import os
 from errno import EEXIST
 from os.path import join as mkpath
 from hod.mpiservice import MpiService, Task, MASTERRANK
+import hod.cluster as hc
 from hod.config.config import (PreServiceConfigOpts, ConfigOpts, 
         ConfigOptsParams, env2str, service_config_fn, write_service_config,
-        parse_comma_delim_list, resolve_config_paths, RUNS_ON_MASTER)
+        parse_comma_delim_list, resolve_config_paths, RUNS_ON_MASTER,
+        load_hod_config)
 from hod.commands.command import NO_TIMEOUT
 from hod.config.template import (TemplateRegistry, TemplateResolver,
         register_templates)
@@ -73,17 +75,6 @@ def _setup_config_paths(precfg, resolver):
         _log.info("Copying config %s file to '%s'", cfg, precfg.configdir)
         dest_path = mkpath(precfg.configdir, dest_file)
         write_service_config(dest_path, cfg, config_writer, resolver)
-
-def load_hod_config(filenames, workdir, modules):
-    '''
-    Load the manifest config (hod.conf) files.
-    '''
-    m_config_filenames = parse_comma_delim_list(filenames)
-    _log.info('Loading "%s" manifest config', m_config_filenames)
-    m_config = PreServiceConfigOpts.from_file_list(m_config_filenames,
-            workdir=workdir, modules=modules)
-    _log.debug('Loaded manifest config: %s', str(m_config))
-    return m_config
 
 def _setup_template_resolver(m_config, master_template_args):
     '''
@@ -146,10 +137,13 @@ class ConfiguredMaster(MpiService):
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
 
         if hasattr(self.options, 'script') and self.options.script is not None:
+            label = self.options.label
+            env_script = 'source ' + hc.cluster_env_file(label)
             script = self.options.script
-            script_stdout, script_stderr = _script_output_paths(script, self.options.label)
+            script_stdout, script_stderr = _script_output_paths(script, label)
             redirection = ' > %s 2> %s' % (script_stdout, script_stderr)
-            start_script = script + redirection + '; qdel $PBS_JOBID'
+            start_script = env_script + '; ' + script + redirection + '; qdel $PBS_JOBID'
+            self.log.debug('Adding script Task: %s', start_script)
             # TODO: How can we test this?
             config = ConfigOpts(script, RUNS_ON_MASTER, '', start_script, '', master_env, resolver, timeout=NO_TIMEOUT)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))

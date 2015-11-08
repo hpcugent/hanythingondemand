@@ -36,7 +36,7 @@ from collections import namedtuple
 from vsc.utils import fancylogger
 
 from hod.config.config import resolve_config_paths
-import hod.hodproc as hh
+import hod.config.config as hc
 
 
 _log = fancylogger.getLogger(fname=False)
@@ -46,12 +46,13 @@ CLUSTER_ENV_TEMPLATE = """
 # make sure session is properly set up (e.g., that 'module' command is defined)
 source /etc/profile
 
+module load %(modules)s
+
 # set up environment
 export HADOOP_CONF_DIR='%(hadoop_conf_dir)s'
 export HBASE_CONF_DIR='%(hadoop_conf_dir)s'
 export HOD_LOCALWORKDIR='%(hod_localworkdir)s'
 # TODO: HADOOP_LOG_DIR?
-module load %(modules)s
 
 echo "Welcome to your hanythingondemand cluster (label: %(label)s)"
 echo
@@ -214,7 +215,7 @@ def gen_cluster_info(label, options):
     """Generate cluster info as a dict, intended to use as template values for CLUSTER_ENV_TEMPLATE."""
     # list of modules that should be loaded: modules for selected service + extra modules specified via --modules
     config_path = resolve_config_paths(options.hodconf, options.dist)
-    hodconf = hh.load_hod_config(config_path, options.workdir, options.modules)
+    hodconf = hc.load_hod_config(config_path, options.workdir, options.modules)
     cluster_info = {
         'hadoop_conf_dir': hodconf.configdir,
         'hod_localworkdir': hodconf.localworkdir,
