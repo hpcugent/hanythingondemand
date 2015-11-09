@@ -25,7 +25,7 @@
 """
 @author: Ewan Higgs (University of Ghent)
 """
-from common import XML_PREAMBLE, HADOOP_STYLESHEET, kv2xml
+from common import XML_PREAMBLE, HADOOP_STYLESHEET, kv2xml, write_whitespace_delimited_file
 
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
@@ -53,6 +53,8 @@ def _write_masters(outfile, options, template_resolver):
         output += '%s\n' % (value)
     return output
  
+def _write_text_file(outfile, options, template_resolver):
+    return options
 
 def hadoop_xml(outfile, options, template_resolver):
     """Given a dict of options, write the resulting .xml or .properties file.
@@ -74,6 +76,8 @@ def hadoop_xml(outfile, options, template_resolver):
         return _write_properties(outfile, options, template_resolver)
     elif outfile.endswith('masters'):
         return _write_masters(outfile, options, template_resolver)
+    elif outfile.endswith('spark-defaults.conf'):
+        return write_whitespace_delimited_file(outfile, options, template_resolver)
     else:
         _log.error('Unrecognized hadoop file type: %s', outfile)
         raise RuntimeError('Unrecognized hadoop file type: %s' % outfile)

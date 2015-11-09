@@ -11,3 +11,21 @@ def kv2xml(name, value):
     <value>%s</value>
 </property>
 ''' % (name, value)
+
+def write_whitespace_delimited_file(_, options, template_resolver):
+    """
+    Write a whitespace delimited file. e.g.:
+
+    property1 value1
+    property2 value2
+
+    "spark-defaults.conf" is one such example:
+    https://spark.apache.org/docs/latest/configuration.html#dynamically-loading-spark-properties
+    """
+    output = ""
+
+    for k, v in sorted(options.items()):
+        name = template_resolver(k)
+        value = template_resolver(v)
+        output += '%s %s\n' % (name, value)
+    return output

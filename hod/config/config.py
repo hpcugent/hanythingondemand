@@ -455,7 +455,10 @@ def service_config_fn(policy_path):
     module_name = '.'.join(policy_path_list[:-1])
     parent_pkg = '.'.join(policy_path_list[:-2])
     fn = policy_path_list[-1]
-    module = __import__(module_name, fromlist=[parent_pkg])
+    try:
+        module = __import__(module_name, fromlist=[parent_pkg])
+    except ImportError as err:
+        _log.error('Could not import module "%s" from "%s": %s', module_name, parent_pkg, err)
     return getattr(module, fn)
 
 

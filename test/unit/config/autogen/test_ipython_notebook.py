@@ -29,11 +29,16 @@ Tests for IPython Notebook autoconfiguration.
 """
 
 import hod.config.autogen.ipython_notebook as hcip
+import hod.config.autogen.common as hcc
 
 import unittest
 class TestIpythonNodebook(unittest.TestCase):
-    def test_ipython_notebook_config(self):
-        cfg = hcip.ipython_notebook_config('/', {})
-        self.assertTrue(isinstance(cfg, basestring))
-        self.assertTrue(cfg.startswith("\nc = get_config()"))
-
+    def test_spark_defaults(self):
+        node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
+                    cores=16, totalcores=16, usablecores=range(16), num_nodes=6,
+                    memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
+        dflts = hcip.spark_defaults(None, node)
+        self.assertTrue(len(dflts), 3)
+        self.assertEqual(dflts['spark.executor.instances'], 17)
+        self.assertEqual(dflts['spark.executor.cores'], 5)
+        self.assertEqual(hcc.parse_memory(dflts['spark.executor.memory']), hcc.parse_memory('18G'))

@@ -28,32 +28,28 @@ IPython Notebook autoconfiguration.
 @author: Ewan Higgs (Ghent University)
 """
 
-import string
+import hod.config.autogen.hadoop as hcah
+import hod.config.autogen.common as hcac
 
-def ipython_notebook_config(workdir, _):
+def spark_defaults(_, node_info):
     '''
-    Generate config 
+    Generate spark defaults so spark uses all the resources that yarn is able to
+    provide.
     '''
-    template = r"""
-c = get_config()
-
-# Kernel config
-c.IPKernelApp.pylab = 'inline'  # if you want plotting support always
-
-# Notebook config
-c.NotebookApp.open_browser = False
-c.NotebookApp.password = u'sha1:{hashed_password}'
-# It is a good idea to put it on a known, fixed port
-c.NotebookApp.port = 8888
-c.NotebookApp.ipython_dir = u'{workdir}'
-c.NotebookApp.notebook_dir = u'{workdir}'
-"""
-    template = string.Template(template)
-    # IPython.lib.passwd('hanythingondemand')
-    # 'sha1:906f33be372a:2c33c548645189cfa7a37ea0b77ccfb65852ba28'
-    passwd_hash = '906f33be372a:2c33c548645189cfa7a37ea0b77ccfb65852ba28'
-    file_contents = template.substitute(hashed_password=passwd_hash, workdir=workdir)
-    return file_contents
+    memory_defaults = hcah.memory_defaults(node_info)
+    num_nodes = node_info['num_nodes']
+    instances_per_node = 3
+    # -1 because we want one less executor instance on the application master
+    instances = (num_nodes * instances_per_node) - 1
+    cores = (node_info['cores'] / instances_per_node)
+    memory = hcac.round_mb(memory_defaults.available_memory / instances_per_node)
+    dflts = {
+        'spark.executor.instances': instances,
+        'spark.executor.cores': cores,
+        'spark.executor.memory':  str(memory) + 'M',
+        'spark.local.dir': '$localworkdir'
+    }
+    return dflts
 
 def autogen_config(workdir, node_info):
     '''
@@ -64,7 +60,15 @@ def autogen_config(workdir, node_info):
     lazily from hod.config.config.
     '''
     cfg2fn = {
-        'ipython_notebook.config.py': ipython_notebook_config,
+    }
+    cfg2fn = {
+        # Pulled in from Hadoop
+        'core-site.xml': hcah.core_site_xml_defaults,
+        'mapred-site.xml': hcah.mapred_site_xml_defaults,
+        'yarn-site.xml': hcah.yarn_site_xml_defaults,
+        'capacity-scheduler.xml': hcah.capacity_scheduler_xml_defaults,
+        # Spark/IPython notebook specific
+        'spark-defaults.conf': spark_defaults,
     }
     config_dict = dict()
     for cfg, fn in cfg2fn.items():

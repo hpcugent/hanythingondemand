@@ -226,9 +226,9 @@ class Node(object):
         self.usablecores = None
         self.totalcores = None
 
-        self.topology = [0] # default topology plain set
-
         self.memory = {}
+        self.num_nodes = -1
+
 
     def __str__(self):
         return "FQDN %s PID %s" % (self.fqdn, self.pid)
@@ -245,6 +245,8 @@ class Node(object):
 
         self.memory = get_memory()
 
+        self.num_nodes = int(os.getenv('PBS_NUM_NODES', 1))
+
         descr = {
             'fqdn': self.fqdn,
             'network': self.network,
@@ -252,7 +254,7 @@ class Node(object):
             'cores': self.cores,
             'usablecores': self.usablecores,
             'totalcores': self.totalcores,
-            'topology': self.topology,
+            'num_nodes': self.num_nodes,
             'memory': self.memory,
         }
         return descr

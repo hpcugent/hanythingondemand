@@ -85,3 +85,17 @@ yarn.option.nested=123
                 "templated.value": "$somename"
                 }
         self.assertRaises(RuntimeError, hcw.hadoop_xml, 'file.ini', vals, tr)
+
+    def test_spark_defaults_conf(self):
+        tr = hct.TemplateResolver(somename="potato", workdir='')
+        vals = {"fs.defaultFs": "file:///",
+                "yarn.option.nested": "123",
+                "templated.value": "$somename"
+                }
+        expected = """fs.defaultFs file:///
+templated.value potato
+yarn.option.nested 123
+"""
+        output = hcw.hadoop_xml('spark-defaults.conf', vals, tr)
+        self.assertEqual(output, expected)
+
