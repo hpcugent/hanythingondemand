@@ -24,8 +24,8 @@ def write_whitespace_delimited_file(_, options, template_resolver):
     """
     output = ""
 
-    for k, v in sorted(options.items()):
-        name = template_resolver(k)
-        value = template_resolver(v)
+    for key, val in sorted(options.items()):
+        name = template_resolver(key)
+        value = template_resolver(val)
         output += '%s %s\n' % (name, value)
     return output

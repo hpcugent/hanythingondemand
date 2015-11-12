@@ -30,7 +30,9 @@ from common import XML_PREAMBLE, HADOOP_STYLESHEET, kv2xml, write_whitespace_del
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
 
+
 def _write_xml(outfile, options, template_resolver):
+    """Return string of XML file in Hadoop configuration format."""
     output = XML_PREAMBLE + HADOOP_STYLESHEET + "<configuration>\n"
 
     for k, v in sorted(options.items()):
@@ -40,21 +42,23 @@ def _write_xml(outfile, options, template_resolver):
     output += "</configuration>"
     return output
 
+
 def _write_properties(outfile, options, template_resolver):
+    """Return string of property file in format used by log4j."""
     output = ''
     for k, v in sorted(options.items()):
         output += '%s=%s\n' % (k, v)
     return output
 
+
 def _write_masters(outfile, options, template_resolver):
+    """Write the Hadoop master file out"""
     output = ''
-    for k, v in sorted(options.items()):
+    for _, v in sorted(options.items()):
         value = template_resolver(v)
         output += '%s\n' % (value)
     return output
- 
-def _write_text_file(outfile, options, template_resolver):
-    return options
+
 
 def hadoop_xml(outfile, options, template_resolver):
     """Given a dict of options, write the resulting .xml or .properties file.

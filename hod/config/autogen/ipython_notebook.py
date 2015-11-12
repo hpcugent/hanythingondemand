@@ -35,6 +35,9 @@ def spark_defaults(_, node_info):
     '''
     Generate spark defaults so spark uses all the resources that yarn is able to
     provide.
+
+    Defaults here are based on Cloudera's recommendations here: 
+    http://blog.cloudera.com/blog/2015/03/how-to-tune-your-apache-spark-jobs-part-2/
     '''
     memory_defaults = hcah.memory_defaults(node_info)
     num_nodes = node_info['num_nodes']
@@ -44,8 +47,8 @@ def spark_defaults(_, node_info):
     cores = (node_info['cores'] / instances_per_node)
     memory = hcac.round_mb(memory_defaults.available_memory / instances_per_node)
     dflts = {
-        'spark.executor.instances': instances,
         'spark.executor.cores': cores,
+        'spark.executor.instances': instances,
         'spark.executor.memory':  str(memory) + 'M',
         'spark.local.dir': '$localworkdir'
     }
@@ -63,10 +66,10 @@ def autogen_config(workdir, node_info):
     }
     cfg2fn = {
         # Pulled in from Hadoop
+        'capacity-scheduler.xml': hcah.capacity_scheduler_xml_defaults,
         'core-site.xml': hcah.core_site_xml_defaults,
         'mapred-site.xml': hcah.mapred_site_xml_defaults,
         'yarn-site.xml': hcah.yarn_site_xml_defaults,
-        'capacity-scheduler.xml': hcah.capacity_scheduler_xml_defaults,
         # Spark/IPython notebook specific
         'spark-defaults.conf': spark_defaults,
     }
