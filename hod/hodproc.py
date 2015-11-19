@@ -142,7 +142,7 @@ class ConfiguredMaster(MpiService):
             script = self.options.script
             script_stdout, script_stderr = _script_output_paths(script, label)
             redirection = ' > %s 2> %s' % (script_stdout, script_stderr)
-            start_script = env_script + '; ' + script + redirection + '; qdel $PBS_JOBID'
+            start_script = env_script + ' && ' + script + redirection + '; qdel $PBS_JOBID'
             self.log.debug('Adding script Task: %s', start_script)
             # TODO: How can we test this?
             config = ConfigOpts(script, RUNS_ON_MASTER, '', start_script, '', master_env, resolver, timeout=NO_TIMEOUT)
