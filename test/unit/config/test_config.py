@@ -131,7 +131,7 @@ autogen=hadoop
         precfg = hcc.PreServiceConfigOpts(config)
         self.assertEqual(len(precfg.service_configs), 0)
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
-                cores=24, totalcores=24, usablecores=range(24), topology=[0],
+                cores=24, totalcores=24, usablecores=range(24), num_nodes=1,
                 memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         with patch('hod.node.node.Node.go', return_value=node):
             precfg.autogen_configs()
@@ -162,7 +162,7 @@ yarn.nodemanager.hostname = 192.167.0.1
         precfg = hcc.PreServiceConfigOpts(config)
         self.assertEqual(len(precfg.service_configs), 1)
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
-                cores=24, totalcores=24, usablecores=range(24), topology=[0],
+                cores=24, totalcores=24, usablecores=range(24), num_nodes=1,
                 memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         with patch('hod.node.node.Node.go', return_value=node):
             precfg.autogen_configs()

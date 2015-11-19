@@ -119,7 +119,7 @@ class TestConfigAutogenCommon(unittest.TestCase):
     def test_available_memory_entire_machine(self):
         total_mem = 68719476736
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
-                cores=24, totalcores=24, usablecores=range(24), topology=[0],
+                cores=24, totalcores=24, usablecores=range(24), num_nodes=1,
                 memory=dict(meminfo=dict(memtotal=total_mem), ulimit='unlimited'))
         avail = total_mem - hcc.parse_memory('8g')
         self.assertEqual(hcc.available_memory(node), avail)
@@ -127,14 +127,14 @@ class TestConfigAutogenCommon(unittest.TestCase):
     def test_available_memory_ulimit(self):
         total_mem = 68719476736
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
-                cores=8, totalcores=24, usablecores=range(24), topology=[0],
+                cores=8, totalcores=24, usablecores=range(24), num_nodes=1,
                 memory=dict(meminfo=dict(memtotal=total_mem), ulimit='12345'))
         self.assertEqual(hcc.available_memory(node), 12345)
 
     def test_available_memory_one_third(self):
         total_mem = 68719476736
         node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
-                cores=8, totalcores=24, usablecores=range(24), topology=[0],
+                cores=8, totalcores=24, usablecores=range(24), num_nodes=1,
                 memory=dict(meminfo=dict(memtotal=total_mem), ulimit='unlimited'))
         avail = total_mem - hcc.parse_memory('8g')
         self.assertEqual(hcc.available_memory(node), int(avail * 1./3))
