@@ -1,3 +1,9 @@
+# 3.0.2
+* Fix for `hod batch` so it has the same environment as a shell started with
+  `hod connect`. This is required to use YARN instead of Hadoop LocalJobRunner.
+* Enhancements to IPython/Spark so Spark starts up with more executors, memory,
+  and cores than the paltry defaults.
+
 # 3.0.1
 * Fix for multi node configurations where `PBS_` environment variables were not
   being passed to MPI slave environments. This prevented multi node
