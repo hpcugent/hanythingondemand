@@ -1,3 +1,8 @@
+# 3.0.3
+* Autogenerate Yarn vcore settings. Otherwise the hard coded default of '8' is
+  chosen, which is not ideal.
+* Roll IPython, matplotlib, etc, modules to use intel-2015b toolchain.
+
 # 3.0.2
 * Fix for `hod batch` so it has the same environment as a shell started with
   `hod connect`. This is required to use YARN instead of Hadoop LocalJobRunner.
