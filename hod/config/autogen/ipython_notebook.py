@@ -43,15 +43,27 @@ def spark_defaults(_, node_info):
     num_nodes = node_info['num_nodes']
     instances_per_node = 3
     # -1 because we want one less executor instance on the application master
-    instances = (num_nodes * instances_per_node) - 1
     cores = (node_info['cores'] / instances_per_node)
-    memory = hcac.round_mb(memory_defaults.available_memory / instances_per_node)
-    dflts = {
-        'spark.executor.cores': cores,
-        'spark.executor.instances': instances,
-        'spark.executor.memory':  str(memory) + 'M',
-        'spark.local.dir': '$localworkdir'
-    }
+    # If we have only one node then we don't expect the driver to be very busy, so
+    # we can give the executors more memory.
+    if num_nodes == 1:
+        driver_mem = hcac.parse_memory('512M')
+        memory = hcac.round_mb((memory_defaults.available_memory - driver_mem) / instances_per_node)
+        dflts = {
+            'spark.executor.cores': cores,
+            'spark.executor.instances': instances_per_node,
+            'spark.executor.memory':  str(memory) + 'M',
+            'spark.local.dir': '$localworkdir'
+        }
+    else:
+        instances = (num_nodes * instances_per_node) - 1
+        memory = hcac.round_mb(memory_defaults.available_memory / instances_per_node)
+        dflts = {
+            'spark.executor.cores': cores,
+            'spark.executor.instances': instances,
+            'spark.executor.memory':  str(memory) + 'M',
+            'spark.local.dir': '$localworkdir'
+        }
     return dflts
 
 def autogen_config(workdir, node_info):

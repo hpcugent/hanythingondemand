@@ -42,3 +42,15 @@ class TestIpythonNodebook(unittest.TestCase):
         self.assertEqual(dflts['spark.executor.instances'], 17)
         self.assertEqual(dflts['spark.executor.cores'], 5)
         self.assertEqual(hcc.parse_memory(dflts['spark.executor.memory']), hcc.parse_memory('18G'))
+
+    def test_spark_defaults_single_node(self):
+        node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
+                    cores=16, totalcores=16, usablecores=range(16), num_nodes=1,
+                    memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
+        dflts = hcip.spark_defaults(None, node)
+        self.assertTrue(len(dflts), 3)
+        self.assertEqual(dflts['spark.executor.instances'], 3)
+        self.assertEqual(dflts['spark.executor.cores'], 5)
+        memory = hcc.round_mb((hcc.parse_memory('56G') - hcc.parse_memory('512M')) / 3)
+        memory = hcc.parse_memory('%sM' % memory)
+        self.assertEqual(hcc.parse_memory(dflts['spark.executor.memory']), memory)
