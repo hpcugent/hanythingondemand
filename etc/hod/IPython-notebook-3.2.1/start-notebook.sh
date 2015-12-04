@@ -3,9 +3,9 @@
 # exit as soon as an error occurs
 set -e
 
-module load IPython/3.2.1-intel-2015b-Python-2.7.10
-module load matplotlib/1.4.3-intel-2015b-Python-2.7.10
-module load Spark/1.5.0
+#module load IPython/3.2.1-intel-2015a-Python-2.7.10
+#module load matplotlib/1.4.3-intel-2015a-Python-2.7.10
+#module load Spark/1.5.0
 
 ipython profile create nbserver
 
