@@ -139,9 +139,7 @@ def yarn_site_xml_defaults(workdir, node_info):
         'yarn.resourcemanager.webapp.https.address': '$masterhostaddress:8090',
         'yarn.resourcemanager.scheduler.class': 'org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler',
         'yarn.scheduler.capacity.allocation.file': 'capacity-scheduler.xml',
-        'yarn.app.mapreduce.am.resource.cpu-vcores': '1',
         'yarn.scheduler.maximum-allocation-vcores': str(ncores),
-
         'yarn.scheduler.minimum-allocation-vcores': '1',
         'yarn.nodemanager.resource.cpu-vcores': str(ncores),
     }
