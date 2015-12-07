@@ -72,15 +72,15 @@ The rest of the requirements can be installed using
 `EasyBuild <https://github.com/hpcugent/easybuild>`__:
 
 -  Python and various libraries.
--  ```mpi4py`` <http://mpi4py.scipy.org/>`__
+-  `mpi4py <http://mpi4py.scipy.org/>`__
 -  eg. on fedora ``yum install -y mpi4py-mpich2``
 -  If you build this yourself, you will probably need to set the $MPICC
    environment variable.
--  ```vsc-base`` <https://github.com/hpcugent/vsc-base>`__ - Used for
+-  `vsc-base <https://github.com/hpcugent/vsc-base>`__ - Used for
    command line parsing.
--  ```vsc-mympirun`` <https://github.com/hpcugent/vsc-mympirun>`__ -
+-  `vsc-mympirun <https://github.com/hpcugent/vsc-mympirun>`__ -
    Used for setting up the MPI job.
--  ```pbs_python`` <https://oss.trac.surfsara.nl/pbs_python>`__ - Used
+-  `pbs_python <https://oss.trac.surfsara.nl/pbs_python>`__ - Used
    for interacting with the PBS (aka Torque) server.
 -  `netifaces <https://pypi.python.org/pypi/netifaces>`__
 -  `netaddr <https://pypi.python.org/pypi/netaddr/>`__
