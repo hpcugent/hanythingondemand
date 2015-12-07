@@ -3,9 +3,8 @@
 # exit as soon as an error occurs
 set -e
 
-#module load IPython/3.2.1-intel-2015a-Python-2.7.10
-#module load matplotlib/1.4.3-intel-2015a-Python-2.7.10
-#module load Spark/1.5.0
+# This requires IPython, matplotlib, and Spark to be loaded. These are set in
+# the hod.conf file.
 
 ipython profile create nbserver
 
