@@ -84,6 +84,7 @@ def main(args):
             # if no label is specified, use job ID;
             # if $PBS_JOBID is not set, generate a random string (10 chars)
             label = os.getenv('PBS_JOBID', ''.join(random.choice(string.letters + string.digits) for _ in range(10)))
+            optparser.options.label = label
 
         _log.debug("Creating cluster info using label '%s'", label)
         cluster_info = gen_cluster_info(label, optparser.options)
