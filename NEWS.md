@@ -1,3 +1,7 @@
+# 3.0.3
+* Autogenerate Yarn vcore settings. Otherwise the hard coded default of '8' is
+  chosen, which is not ideal.
+
 # 3.0.2
 * Fix for `hod batch` so it has the same environment as a shell started with
   `hod connect`. This is required to use YARN instead of Hadoop LocalJobRunner.

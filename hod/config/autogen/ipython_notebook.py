@@ -31,6 +31,7 @@ IPython Notebook autoconfiguration.
 import hod.config.autogen.hadoop as hcah
 import hod.config.autogen.common as hcac
 
+
 def spark_defaults(_, node_info):
     '''
     Generate spark defaults so spark uses all the resources that yarn is able to
@@ -38,19 +39,24 @@ def spark_defaults(_, node_info):
 
     Defaults here are based on Cloudera's recommendations here: 
     http://blog.cloudera.com/blog/2015/03/how-to-tune-your-apache-spark-jobs-part-2/
+
+    We use 2 cores per executor based on discussion found here:
+    http://stackoverflow.com/questions/24622108/apache-spark-the-number-of-cores-vs-the-number-of-executors
     '''
     memory_defaults = hcah.memory_defaults(node_info)
     num_nodes = node_info['num_nodes']
-    instances_per_node = 3
+    cores_per_executor = min(2, node_info['cores'])
+    instances_per_node = node_info['cores'] / cores_per_executor
     # -1 because we want one less executor instance on the application master
-    instances = (num_nodes * instances_per_node) - 1
-    cores = (node_info['cores'] / instances_per_node)
+    # If we have only one node then we don't expect the driver to be very busy, so
+    # we can give the executors more memory.
+    instances = max((num_nodes * instances_per_node) - 1, 1)
     memory = hcac.round_mb(memory_defaults.available_memory / instances_per_node)
     dflts = {
-        'spark.executor.cores': cores,
+        'spark.executor.cores': cores_per_executor,
         'spark.executor.instances': instances,
         'spark.executor.memory':  str(memory) + 'M',
-        'spark.local.dir': '$localworkdir'
+        'spark.local.dir': '$localworkdir',
     }
     return dflts
 

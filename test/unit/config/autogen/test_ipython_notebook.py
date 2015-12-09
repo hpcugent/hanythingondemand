@@ -39,6 +39,26 @@ class TestIpythonNodebook(unittest.TestCase):
                     memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
         dflts = hcip.spark_defaults(None, node)
         self.assertTrue(len(dflts), 3)
-        self.assertEqual(dflts['spark.executor.instances'], 17)
-        self.assertEqual(dflts['spark.executor.cores'], 5)
-        self.assertEqual(hcc.parse_memory(dflts['spark.executor.memory']), hcc.parse_memory('18G'))
+        self.assertEqual(dflts['spark.executor.instances'], 47) # 6 nodes * 8 cores -1 core used for driver
+        self.assertEqual(dflts['spark.executor.cores'], 2)
+        self.assertEqual(hcc.parse_memory(dflts['spark.executor.memory']), hcc.parse_memory('7G'))
+
+    def test_spark_defaults_single_node(self):
+        node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
+                    cores=16, totalcores=16, usablecores=range(16), num_nodes=1,
+                    memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
+        dflts = hcip.spark_defaults(None, node)
+        self.assertTrue(len(dflts), 3)
+        self.assertEqual(dflts['spark.executor.instances'], 7)
+        self.assertEqual(dflts['spark.executor.cores'], 2)
+        self.assertEqual(hcc.parse_memory(dflts['spark.executor.memory']), hcc.parse_memory('7G'))
+
+    def test_spark_defaults_single_core(self):
+        node = dict(fqdn='hosty.domain.be', network='ib0', pid=1234,
+                    cores=1, totalcores=1, usablecores=range(1), num_nodes=1,
+                    memory=dict(meminfo=dict(memtotal=68719476736), ulimit='unlimited'))
+        dflts = hcip.spark_defaults(None, node)
+        self.assertTrue(len(dflts), 3)
+        self.assertEqual(dflts['spark.executor.instances'], 1)
+        self.assertEqual(dflts['spark.executor.cores'], 1)
+        self.assertEqual(hcc.parse_memory(dflts['spark.executor.memory']), hcc.parse_memory('56G'))
