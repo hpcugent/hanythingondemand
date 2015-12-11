@@ -56,7 +56,7 @@ def spark_defaults(_, node_info):
         'spark.executor.cores': cores_per_executor,
         'spark.executor.instances': instances,
         'spark.executor.memory':  str(memory) + 'M',
-        'spark.local.dir': '$localworkdir',
+        'spark.local.dir': '/tmp',
     }
     return dflts
 
