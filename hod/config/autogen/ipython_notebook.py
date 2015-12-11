@@ -30,6 +30,7 @@ IPython Notebook autoconfiguration.
 
 import hod.config.autogen.hadoop as hcah
 import hod.config.autogen.common as hcac
+import tempfile
 
 
 def spark_defaults(_, node_info):
@@ -56,7 +57,7 @@ def spark_defaults(_, node_info):
         'spark.executor.cores': cores_per_executor,
         'spark.executor.instances': instances,
         'spark.executor.memory':  str(memory) + 'M',
-        'spark.local.dir': '/tmp',
+        'spark.local.dir': tempfile.gettempdir(),
     }
     return dflts
 
