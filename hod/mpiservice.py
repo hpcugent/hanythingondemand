@@ -194,7 +194,7 @@ def run_tasks(svc):
     """Make communicators for tasks and execute the work there"""
     # Based on initial dist, create the groups and communicators and map with work
     active_work = []
-    wait_iter_sleep = 60  # run through all active work, then wait wait_iter_sleep seconds
+    wait_iter_sleep = 15  # run through all active work, then wait wait_iter_sleep seconds
 
     for task in svc.tasks:
         # pass any existing previous work
