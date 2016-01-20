@@ -1,3 +1,8 @@
+# 3.0.4
+* IPython 3.2.3 with Spark 1.6 is now bundled as an available distribution.
+* Faster startup time on multiple nodes.
+* Fix a bug for multinode Spark clusters where the localworkdir was shared.
+
 # 3.0.3
 * Autogenerate Yarn vcore settings. Otherwise the hard coded default of '8' is
   chosen, which is not ideal.
