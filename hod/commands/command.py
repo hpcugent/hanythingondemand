@@ -39,10 +39,14 @@ import pty
 import signal
 import time
 
-from vsc import fancylogger
+from vsc.utils import fancylogger
 
 
-COMMAND_TIMEOUT = 120  # timeout
+COMMAND_TIMEOUT = 120  # timeout in seconds
+NO_TIMEOUT = None # No timeout
+
+TIMEOUT_POLL_TIME = 1
+NO_TIMEOUT_POLL_TIME = 10
 
 
 class Command(object):
@@ -122,16 +126,21 @@ class Command(object):
         timedout = False
         while p.poll() is None:
             if os.path.exists("/proc/%s" % (p.pid)):
-                now = datetime.datetime.now()
-                if (now - start).seconds > self.timeout:
-                    if timedout is False:
-                        os.kill(p.pid, signal.SIGTERM)
-                        self.log.debug("Timeout occured with cmd %s. took more than %i secs to complete.",
-                                self.command, self.timeout)
-                        timedout = True
-                    else:
-                        os.kill(p.pid, signal.SIGKILL)
-            time.sleep(1)
+                if self.timeout == NO_TIMEOUT:
+                    self.log.debug("There is no timeout for cmd %s and it is still running" % self.command)
+                    time.sleep(NO_TIMEOUT_POLL_TIME)
+                    continue
+                else:
+                    now = datetime.datetime.now()
+                    if (now - start).seconds > self.timeout:
+                        if timedout is False:
+                            os.kill(p.pid, signal.SIGTERM)
+                            self.log.debug("Timeout occured with cmd %s. took more than %i secs to complete.",
+                                    self.command, self.timeout)
+                            timedout = True
+                        else:
+                            os.kill(p.pid, signal.SIGKILL)
+            time.sleep(TIMEOUT_POLL_TIME)
 
         if self.fake_pty:
             # # no stdout/stderr
@@ -177,6 +186,14 @@ class KillPidFile(Command):
         self.command = ['kill', pid]
         Command.run(self)
 
+class ULimit(Command):
+    '''
+    Find the user limit for the given flag.
+    e.g. ULimit('-v') will produce the virtual memory limit.
+    '''
+    def __init__(self, flag):
+        Command.__init__(self)
+        self.command = ['ulimit', flag]
 
 class ScreenDaemon(Command):
     """Start a named screen session in background"""

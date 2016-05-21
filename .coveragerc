@@ -3,6 +3,8 @@ omit =
     */test_*
     *__init__.py
     */.tox/*
+    */.virtualenvs/*
+    test/*
 
 [paths]
 source = 
@@ -10,6 +12,7 @@ source =
 
 [report]
 exclude_lines =
+    pragma: no cover
     def __repr__
     raise NotImplementedError
     raise AssertionError

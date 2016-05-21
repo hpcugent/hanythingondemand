@@ -53,7 +53,7 @@ class ConfiguredService(Work):
             self.log.info('Prestarting %s service on rank %s: No work.',
                 self._config.name, rank)
             return
-        env = os.environ
+        env = os.environ.copy()
         env.update(self._config.env)
         env.update(self._master_env)
 
@@ -66,7 +66,7 @@ class ConfiguredService(Work):
 
     def start_work_service(self):
         """Start service by running the ExecStart script."""
-        env = os.environ
+        env = os.environ.copy()
         env.update(self._config.env)
         env.update(self._master_env)
         rank = self.svc.rank
@@ -75,14 +75,14 @@ class ConfiguredService(Work):
                 self._config.name, rank, self._config.start_script)
         self.log.info("Env for %s service on rank %s: %s",
                 self._config.name, rank, env2str(env))
-        command = Command(self._config.start_script, env=env)
+        command = Command(self._config.start_script, env=env, timeout=self._config.timeout)
         output = command.run()
         self.log.info('Ran %s service on rank %s start script. Output: "%s"',
                 self._config.name, rank, output)
 
     def stop_work_service(self):
         """Stop service by running the ExecStop script."""
-        env = os.environ
+        env = os.environ.copy()
         env.update(self._config.env)
         env.update(self._master_env)
         rank = self.svc.rank
@@ -98,7 +98,7 @@ class ConfiguredService(Work):
         self.controldir = mkpath(self._config.localworkdir, 'controldir')
         try:
             os.makedirs(self.controldir)
-        except OSError, e:
+        except OSError as e:
             if e.errno == EEXIST:
                 pass
             else:

@@ -34,7 +34,7 @@ import pwd
 import socket
 import string
 
-import hod.node as node
+import hod.node.node as node
 
 from vsc.utils import fancylogger
 _log = fancylogger.getLogger(fname=False)
@@ -72,14 +72,25 @@ class TemplateRegistry(object):
         return kwargs
 
 
-def register_templates(template_registry, workdir):
+def register_templates(template_registry, config_opts):
     '''
     Register the common templates.
+    Params
+    ------
+    template_registry : `TemplateRegistry`
+        Registry to update.
+
+    config_opts : `hod.mpiservice.ConfigOptsParams`
+        Configuration structure holding our config options.
     '''
+    workdir = config_opts.workdir
+    modules = config_opts.modules
     local_data_network = node.sorted_network(node.get_networks())[0]
     templates = [
         _config_template_stub('masterhostname', 'Hostname bound to the Fully Qualified Domain Name (FQDN) of the master node.'),
+        _config_template_stub('masterhostaddress', 'Address bound to the Fully Qualified Domain Name (FQDN) of the master node.'),
         _config_template_stub('masterdataname', 'Hostname bound to the Infiniband adaptor on the master node if available'),
+        _config_template_stub('masterdataaddress', 'Address bound to the Infiniband adaptor on the master node if available'),
         ConfigTemplate('hostname', socket.getfqdn, 'Fully Qualified Domain Name (FQDN)'),
         ConfigTemplate('hostaddress', lambda: socket.gethostbyname(socket.getfqdn()), 'IP address registered as the FQDN'),
         ConfigTemplate('dataname', local_data_network.hostname, 'Infiniband hostname if available'),
@@ -88,6 +99,7 @@ def register_templates(template_registry, workdir):
         ConfigTemplate('localworkdir', lambda: mklocalworkdir(workdir), 'Subdirectory of workdir with user, host, and pid in the name to make it distinct from other workdirs for use on shared file systems'),
         ConfigTemplate('user', _current_user, 'Current user'),
         ConfigTemplate('pid', os.getpid, 'PID for the current process'),
+        ConfigTemplate('modules', lambda: ' '.join(modules), 'Modules listed in the hod.conf'),
         ]
 
     for ct in templates:
@@ -100,9 +112,12 @@ def mklocalworkdir(workdir):
     '''
     user = _current_user()
     pid = os.getpid()
+    jobid = os.getenv('PBS_JOBID')
+    if jobid is None:
+        raise RuntimeError('$PBS_JOBID must be defined to create a localworkdir.')
     hostname = socket.getfqdn()
-    dir_name = ".".join([user, hostname, str(pid)])
-    return mkpath(workdir, 'hod', dir_name)
+    dir_name = '.'.join([user, hostname, str(pid)])
+    return mkpath(workdir, 'hod', jobid, dir_name)
 
 def _current_user():
     '''
@@ -115,9 +130,17 @@ def resolve_config_str(s, **template_kwargs):
     '''
     Given a string, resolve the templates based on template_dict and
     template_kwargs.
+
+    If a non string is provided, the original value is returned.
     '''
+    if not isinstance(s, basestring):
+        return s
     template = string.Template(s)
-    return template.substitute(template_kwargs)
+    try:
+        retval = template.substitute(template_kwargs)
+    except TypeError, e:
+        raise TypeError('Error processing "%s": %s' % (str(s), e.message))
+    return retval
 
 class TemplateResolver(object):
     '''

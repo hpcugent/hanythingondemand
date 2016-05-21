@@ -28,13 +28,13 @@
 Setup for Hanything on Demand
 """
 import os
-from os.path import join as mkpath
 import sys
 import subprocess
+from os.path import join as mkpath
 from setuptools import setup, Command
 
-if sys.version_info[:2] < (2, 7):
-    raise RuntimeError("Python version 2.7 required.")
+import hod
+
 
 def setup_openmpi_libpath():
     libpath = os.getenv('LD_LIBRARY_PATH')
@@ -53,19 +53,8 @@ class TestCommand(BaseCommand):
     def run(self):
         # Cheeky cheeky LD_LIBRARY_PATH hack for Fedora
         setup_openmpi_libpath()
-        ret = subprocess.call("python -m unittest discover -b -s test/unit -v".split(' '))
+        ret = subprocess.call(["coverage", "run",  "-m", "pytest", "--cov-config=.coveragerc"])
         sys.exit(ret)
-
-class CoverageCommand(BaseCommand):
-    description = "Run unit tests."
-
-    def run(self):
-        setup_openmpi_libpath()
-        ret = subprocess.call(["coverage", "run", "-m", "unittest", "discover", "-v", "-b", "-s", "test/unit/"])
-        if not ret:
-            ret = subprocess.call(["coverage", "report"])
-        sys.exit(ret)
-
 
 def find_files(*dirs):
     results = []
@@ -75,31 +64,44 @@ def find_files(*dirs):
     return results
 
 PACKAGE = {
-    'name': 'hanythingondemand',
-    'version': '2.1.4',
+    'name': hod.NAME,
+    'version': hod.VERSION,
     'author': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'maintainer': ['stijn.deweirdt@ugent.be', 'jens.timmerman@ugent.be', 'ewan.higgs@ugent.be'],
     'license': "GPL v2",
+    'classifiers' : [
+        'Programming Language :: Python :: 2'
+    ],
     'install_requires': [
-        'vsc-base >= 1.7.3',
-        'mpi4py',
+        # stick with vsc-base 2.4.2 for now;
+        # last tagged release before split between vsc-base and vsc-install causing problems
+        # note: vsc-base version is also pinned in tox.ini!
+        'vsc-base == 2.4.2',
+        'setuptools',
+        # pin mpi4py to 1.3.1 since it's the last of the 1.x series and we don't want to pick up 2.0.0
+        # note: mpi4py version is also pinned in tox.ini!
+        'mpi4py == 1.3.1',
         'pbs-python',
         'netifaces',
         'netaddr',
     ],
-    'tests_require': ['tox', 'pytest', 'coverage', 'mock'],
+    'tests_require': ['tox', 'pytest', 'pytest-cov', 'coverage', 'mock'],
     'packages': [
         'hod',
-        'hod.work',
         'hod.commands',
         'hod.config',
+        'hod.config.autogen',
         'hod.config.writer',
+        'hod.node',
         'hod.rmscheduler',
+        'hod.subcommands',
+        'hod.work',
     ],
     'data_files': find_files('etc'),
-    'scripts': ['bin/hod_main.py', 'bin/hod_pbs.py'],
-    'cmdclass' : {'test': TestCommand, 'cov': CoverageCommand},
-    'long_description': open(os.path.join(os.path.dirname(__file__), 'README.md')).read(),
+    'scripts': ['bin/hod'],
+    'cmdclass' : {'test': TestCommand},
+    'long_description': open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
+    'zip_safe': True,
 }
 
 if __name__ == '__main__':

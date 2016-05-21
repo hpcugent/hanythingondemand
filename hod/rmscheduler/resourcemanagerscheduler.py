@@ -27,7 +27,7 @@ This module specifies the interface to implement for a ResourceNamagerScheduler
 
 @author: Stijn De Weirdt (University of Ghent)
 """
-from vsc import fancylogger
+from vsc.utils import fancylogger
 
 
 class ResourceManagerScheduler(object):
@@ -66,4 +66,5 @@ class ResourceManagerScheduler(object):
         ppn = ppn (-1 = full node)
         walltime = time in hours (can be float)
         """
-        self.log.error("header not implemented")
+        self.log.info("Using empty header (default implementation).")
+        return ""

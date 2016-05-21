@@ -29,10 +29,13 @@
 import os
 from errno import EEXIST
 from os.path import join as mkpath
-from hod.mpiservice import MpiService, Task, MASTERRANK, ConfigOptsParams
-from hod.config.config import (PreServiceConfigOpts, ConfigOpts,
-        env2str, service_config_fn, write_service_config,
-        preserviceconfigopts_from_file_list, parse_comma_delim_list)
+from hod.mpiservice import MpiService, Task, MASTERRANK
+import hod.cluster as hc
+from hod.config.config import (PreServiceConfigOpts, ConfigOpts, 
+        ConfigOptsParams, env2str, service_config_fn, write_service_config,
+        parse_comma_delim_list, resolve_config_paths, RUNS_ON_MASTER,
+        load_hod_config)
+from hod.commands.command import NO_TIMEOUT
 from hod.config.template import (TemplateRegistry, TemplateResolver,
         register_templates)
 from hod.work.config_service import ConfiguredService
@@ -73,6 +76,33 @@ def _setup_config_paths(precfg, resolver):
         dest_path = mkpath(precfg.configdir, dest_file)
         write_service_config(dest_path, cfg, config_writer, resolver)
 
+def _setup_template_resolver(m_config, master_template_args):
+    '''
+    Build a template resovler using the template args from the master node.
+    '''
+    reg = TemplateRegistry()
+    register_templates(reg, m_config)
+    for ct in master_template_args:
+        reg.register(ct)
+    return TemplateResolver(**reg.to_kwargs())
+
+def _script_output_paths(script_name, label=None):
+    """
+    Given a script path, return the path to the output files. This uses a
+    sceheme mirroring how PBS actually works where jobs have
+    '$PBS_O_WORKDIR/<script-name>.[eo]<$PBS_JOBID>'
+    """
+    script_basename = os.path.basename(script_name)
+    if label is None:
+        output_label = 'hod-%s' % script_basename
+    else:
+        output_label = 'hod-%s-%s' % (label, script_basename)
+
+    script_stdout = mkpath('$PBS_O_WORKDIR', '%s.o${PBS_JOBID}' % output_label)
+    script_stderr = mkpath('$PBS_O_WORKDIR', '%s.e${PBS_JOBID}' % output_label)
+    return (script_stdout, script_stderr)
+
+
 class ConfiguredMaster(MpiService):
     """
     Use config to setup services.
@@ -84,33 +114,42 @@ class ConfiguredMaster(MpiService):
     def distribution(self, *master_template_args, **kwargs):
         """Master makes the distribution"""
         self.tasks = []
-        m_config_filenames = self.options.options.config_config
-        m_config_filenames = parse_comma_delim_list(m_config_filenames)
-        self.log.info('Loading "%s" manifest config', m_config_filenames)
+        config_path = resolve_config_paths(self.options.hodconf, self.options.dist)
+        m_config = load_hod_config(config_path, self.options.workdir, self.options.modules)
+        m_config.autogen_configs()
 
-        m_config = preserviceconfigopts_from_file_list(m_config_filenames)
-        self.log.debug('Loaded manifest config: %s', str(m_config))
-
-        reg = TemplateRegistry()
-        register_templates(reg, m_config.workdir)
-        for ct in master_template_args:
-            reg.register(ct)
-        resolver = TemplateResolver(**reg.to_kwargs())
+        resolver = _setup_template_resolver(m_config, master_template_args)
         _setup_config_paths(m_config, resolver)
 
         master_env = dict([(v, os.getenv(v)) for v in m_config.master_env])
+        # There may be scripts in the hod.conf dir so add it to the PATH
+        master_env['PATH'] = master_env.get('PATH', os.getenv('PATH')) + os.pathsep + m_config.hodconfdir
         self.log.debug('MasterEnv is: %s', env2str(master_env))
 
         svc_cfgs = m_config.service_files
         self.log.info('Loading %d service configs.', len(svc_cfgs))
         for config_filename in svc_cfgs:
             self.log.info('Loading "%s" service config', config_filename)
-            config = ConfigOpts(open(config_filename, 'r'), resolver)
+            config = ConfigOpts.from_file(open(config_filename, 'r'), resolver)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
-            self.log.debug('Adding ConfiguredService Task to work with config: %s',
-                    str(config))
-            cfg_opts = ConfigOptsParams(config_filename, m_config.workdir, master_template_args)
+            self.log.debug('Adding ConfiguredService Task to work with config: %s', str(config))
+            cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
+
+        if hasattr(self.options, 'script') and self.options.script is not None:
+            label = self.options.label
+            env_script = 'source ' + hc.cluster_env_file(label)
+            script = self.options.script
+            script_stdout, script_stderr = _script_output_paths(script, label)
+            redirection = ' > %s 2> %s' % (script_stdout, script_stderr)
+            start_script = env_script + ' && ' + script + redirection + '; qdel $PBS_JOBID'
+            self.log.debug('Adding script Task: %s', start_script)
+            # TODO: How can we test this?
+            config = ConfigOpts(script, RUNS_ON_MASTER, '', start_script, '', master_env, resolver, timeout=NO_TIMEOUT)
+            ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
+            cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
+            self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
+
 
 class ConfiguredSlave(MpiService):
     """
@@ -126,16 +165,8 @@ class ConfiguredSlave(MpiService):
 
         This only needs to run if there are more than 1 node (self.size>1)
         """
-        m_config_filenames = self.options.options.config_config
-        m_config_filenames = parse_comma_delim_list(m_config_filenames)
-
-        self.log.info('Loading "%s" manifest config', m_config_filenames)
-        m_config = preserviceconfigopts_from_file_list(m_config_filenames)
-        self.log.debug('Loaded manifest config: %s', str(m_config))
-
-        reg = TemplateRegistry()
-        register_templates(reg, m_config.workdir)
-        for ct in master_template_args:
-            reg.register(ct)
-        resolver = TemplateResolver(**reg.to_kwargs())
+        config_path = resolve_config_paths(self.options.hodconf, self.options.dist)
+        m_config = load_hod_config(config_path, self.options.workdir, self.options.modules)
+        m_config.autogen_configs()
+        resolver = _setup_template_resolver(m_config, master_template_args)
         _setup_config_paths(m_config, resolver)

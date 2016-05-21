@@ -67,6 +67,7 @@ class Work(object):
             self.log.debug("Work started at %s, now is %s, which is more then max_age %s",
                     time.localtime(self.work_start_time), time.localtime(now), self.work_max_age)
             return True  # wait is over
+        return False
 
     def do_work_start(self):
         """Start the work"""

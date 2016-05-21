@@ -1,5 +1,5 @@
 # #
-# Copyright 2009-2013 Ghent University
+# Copyright 2009-2015 Ghent University
 #
 # This file is part of hanythingondemand
 # originally created by the HPC team of Ghent University (http://ugent.be/hpc/en),
@@ -23,33 +23,37 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
+Supporting MPI functionality
 
 @author: Stijn De Weirdt (Ghent University)
+@author: Ewan Higgs (Ghent University)
+@author: Kenneth Hoste (Ghent University)
 """
-
-from collections import namedtuple
-from hod.config.template import (ConfigTemplate, TemplateRegistry,
-        TemplateResolver, register_templates)
-from hod.config.config import ConfigOpts
-from mpi4py import MPI
-from vsc import fancylogger
-
 import socket
 import time
-
-import hod.node as node
-
+from collections import namedtuple
 from vsc.utils import fancylogger
+
+import hod.node.node as node
+from hod.config.config import ConfigOpts
+from hod.config.template import ConfigTemplate, TemplateRegistry, TemplateResolver, register_templates
+from hod.utils import only_if_module_is_available
+
+# optional packages, not always required
+try:
+    from mpi4py import MPI
+except ImportError:
+    pass
+
+
 _log = fancylogger.getLogger(fname=False)
 
-__all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_tasks',
-        'run_tasks']
+
+
+__all__ = ['MASTERRANK', 'Task', 'barrier', 'MpiService', 'setup_tasks', 'run_tasks']
 
 MASTERRANK = 0
 
-# Parameters to send over the network to allow slaves to construct hod.config.ConfigOpts
-# objects
-ConfigOptsParams = namedtuple('ConfigOptsParams', ['filename', 'workdir', 'master_template_kwargs'])
 Task = namedtuple('Task', ['type', 'name', 'ranks', 'config_opts', 'master_env'])
 
 def _who_is_out_there(comm, rank):
@@ -58,6 +62,8 @@ def _who_is_out_there(comm, rank):
     _log.debug("Are out there %s on comm %s", others, comm)
     return others
 
+
+@only_if_module_is_available('mpi4py')
 def _check_comm(comm, txt):
     """Report details about communicator"""
     if comm == MPI.COMM_NULL:
@@ -71,17 +77,20 @@ def _check_comm(comm, txt):
         else:
             _log.debug("%scomm %s size %d rank %d", txt, comm, mysize, myrank)
 
+
 def barrier(comm, txt):
     """Perform MPI.barrier"""
     _log.debug("%s with barrier", txt)
     comm.barrier()
     _log.debug("%s with barrier DONE", txt)
 
+
 def _check_group(group, txt):
     """Report details about group"""
     myrank = group.Get_rank()
     mysize = group.Get_size()
     _log.debug("%s group %s size %d rank %d", txt, group, mysize, myrank)
+
 
 def _make_comm_group(comm, ranks):
     """Make a new communicator based on set of ranks"""
@@ -96,6 +105,8 @@ def _make_comm_group(comm, ranks):
 
     return newcomm
 
+
+@only_if_module_is_available('mpi4py')
 def _stop_comm(comm):
     """Stop a single communicator"""
     _check_comm(comm, 'Stopping')
@@ -112,27 +123,47 @@ def _stop_comm(comm):
         _log.debug("Stop disconnect")
         comm.Disconnect()
 
+
 def _master_spread(comm, tasks):
     retval = comm.bcast(tasks, root=MASTERRANK)
     _log.debug("Distributed '%s' from masterrank %s", tasks, MASTERRANK)
     return retval
+
 
 def _slave_spread(comm):
     tasks = comm.bcast(root=MASTERRANK)
     _log.debug("Received '%s' from masterrank %s", tasks, MASTERRANK)
     return tasks
 
+
+def master_template_opts(stub_config_opts=None):
+    '''
+    Generate template options for the master node.
+
+    If stub_config_opts is given, this function pulls the doctrings from the existing
+    configuration
+    '''
+    data_interface = node.sorted_network(node.get_networks())[0]
+    master_dataname = data_interface.hostname
+    master_dataaddress = data_interface.addr
+    fqdn = socket.getfqdn()
+    docs = dict()
+    if stub_config_opts is not None:
+        docs = dict([(opt.name, opt.doc) for opt in stub_config_opts])
+    return [
+        ConfigTemplate('masterhostname', fqdn, docs.get('masterhostname', '')),
+        ConfigTemplate('masterhostaddress', socket.gethostbyname(fqdn), docs.get('masterhostaddress', '')),
+        ConfigTemplate('masterdataname', master_dataname, docs.get('masterdataname', '')),
+        ConfigTemplate('masterdataaddress', master_dataaddress, docs.get('masterdataaddress', '')),
+        ]
+ 
 def setup_tasks(svc):
     """Setup the per node services and spread the tasks out."""
     _log.debug("No tasks found. Running distribution and spread.")
 
     # Configure
     if svc.rank == MASTERRANK:
-        master_dataname = node.sorted_network(node.get_networks())[0].hostname
-        master_template_kwargs = [
-                ConfigTemplate('masterhostname',socket.getfqdn(),''),
-                ConfigTemplate('masterdataname', master_dataname, '')
-                ]
+        master_template_kwargs = master_template_opts()
         _master_spread(svc.comm, master_template_kwargs)
     else:
         master_template_kwargs = _slave_spread(svc.comm)
@@ -147,41 +178,44 @@ def setup_tasks(svc):
     else:
         svc.tasks = _slave_spread(svc.comm)
 
+
 def _mkconfigopts(cfg_opts):
     reg = TemplateRegistry()
-    register_templates(reg, cfg_opts.workdir)
+    register_templates(reg, cfg_opts)
     for ct  in cfg_opts.master_template_kwargs:
         reg.register(ct)
 
     resolver = TemplateResolver(**reg.to_kwargs())
-    return ConfigOpts(open(cfg_opts.filename, 'r'), resolver)
+    return ConfigOpts.from_params(cfg_opts, resolver)
 
+
+@only_if_module_is_available('mpi4py')
 def run_tasks(svc):
     """Make communicators for tasks and execute the work there"""
     # Based on initial dist, create the groups and communicators and map with work
     active_work = []
-    wait_iter_sleep = 60  # run through all active work, then wait wait_iter_sleep seconds
+    wait_iter_sleep = 15  # run through all active work, then wait wait_iter_sleep seconds
 
-    for wrk in svc.tasks:
+    for task in svc.tasks:
         # pass any existing previous work
-        _log.debug("newcomm  for ranks %s for work %s: %s", wrk.ranks, wrk.name, wrk.type)
-        newcomm = _make_comm_group(svc.comm, wrk.ranks)
+        _log.debug("newcomm  for ranks %s for work %s: %s", task.ranks, task.name, task.type)
+        newcomm = _make_comm_group(svc.comm, task.ranks)
 
         if newcomm == MPI.COMM_NULL:
-            _log.debug('Skipping work setup for rank %d of this type %s', svc.rank, wrk.type)
+            _log.debug('Skipping work setup for rank %d of this type %s', svc.rank, task.type)
             continue
 
-        _log.debug('Setting up rank %d of this type %s', svc.rank, wrk.type)
+        _log.debug('Setting up rank %d of this type %s', svc.rank, task.type)
         svc.tempcomm.append(newcomm)
-        cfg = _mkconfigopts(wrk.config_opts)
-        work = wrk.type(cfg, wrk.master_env)
-        svc.log.debug("work %s begin", wrk.type.__name__)
+        cfg = _mkconfigopts(task.config_opts)
+        work = task.type(cfg, task.master_env)
+        _log.debug("work %s begin", task.type.__name__)
         work.prepare_work_cfg()
         # adding started work
         active_work.append(work)
 
     for act_work in active_work:
-        svc.log.debug("work %s start", act_work.__class__.__name__)
+        _log.debug("work %s start", act_work.__class__.__name__)
         act_work.do_work_start()
 
     # all work is started now
@@ -203,8 +237,11 @@ def run_tasks(svc):
             time.sleep(wait_iter_sleep)
     _log.debug("No more active work left.")
 
+
 class MpiService(object):
     """Basic mpi based service class"""
+
+    @only_if_module_is_available('mpi4py')
     def __init__(self, log=None):
         self.log = log
         if self.log is None:
