@@ -13,13 +13,13 @@ if [[ ! -d "$1" ]] ; then
     exit 1
 fi
 
-config_dir="$1/conf/ipython_notebook"
+config_dir="$1/conf/jupyter_notebook"
 log_dir="$1/log"
 
 mkdir -p "$config_dir"
 mkdir -p "$log_dir"
 
-cat <<EOF > "${config_dir}/ipython_notebook_config.py"
+cat <<EOF > "${config_dir}/jupyter_notebook_config.py"
 c = get_config()
 
 # Kernel config
@@ -39,8 +39,11 @@ export PYTHONPATH="$EBROOTSPARK/python/:$EBROOTSPARK/python/lib/py4j-0.9-src.zip
 
 export PYTHONPATH=$PYTHONPATH:$EBROOTPYTHON/lib/python2.7/site-packages/ 
 
-# Start IPython notebook through pyspark's scripts.
-export PYSPARK_DRIVER_PYTHON=ipython 
-export PYSPARK_DRIVER_PYTHON_OPTS="notebook --profile-dir=${config_dir}" 
+# specify location of Jupyter notebook configuration directory
+export JUPYTER_CONFIG_DIR="${config_dir}"
+
+# Start Jupyter notebook through pyspark's scripts.
+export PYSPARK_DRIVER_PYTHON=jupyter
+export PYSPARK_DRIVER_PYTHON_OPTS="notebook"
 export PYSPARK_SUBMIT_ARGS="--master yarn --deploy-mode client"
 nohup pyspark --master yarn >"$log_dir/pyspark.stdout" 2>"$log_dir/pyspark.stderr" &
