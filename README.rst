@@ -116,5 +116,5 @@ Creating an HOD cluster:
     # Run a batch job on 1 node:
     $ hod batch --dist Hadoop-2.3.0-cdh5.0 --label my-cluster --script=my-script.sh
 
-.. |Build Status| image:: https://jenkins1.ugent.be/job/hanythingondemand/badge/icon
-   :target: https://jenkins1.ugent.be/job/hanythingondemand/
+.. |Build Status| image:: https://travis-ci.org/hpcugent/hanythingondemand.svg?branch=master
+   :target: https://travis-ci.org/hpcugent/hanythingondemand
