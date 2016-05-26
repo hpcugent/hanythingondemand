@@ -73,10 +73,7 @@ PACKAGE = {
         'Programming Language :: Python :: 2'
     ],
     'install_requires': [
-        # stick with vsc-base 2.4.2 for now;
-        # last tagged release before split between vsc-base and vsc-install causing problems
-        # note: vsc-base version is also pinned in tox.ini!
-        'vsc-base == 2.4.2',
+        'vsc-base',
         'setuptools',
         # pin mpi4py to 1.3.1 since it's the last of the 1.x series and we don't want to pick up 2.0.0
         # note: mpi4py version is also pinned in tox.ini!

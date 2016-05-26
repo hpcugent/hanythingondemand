@@ -29,4 +29,4 @@ Nothing here for now.
 @author: Ewan Higgs (Ghent University)
 """
 NAME = 'hanythingondemand'
-VERSION = '3.0.4'
+VERSION = '3.1.0'
