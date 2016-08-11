@@ -138,11 +138,11 @@ class PreServiceConfigOpts(object):
     aka hod.conf or hodconf.
     """
     __slots__ = ['version', 'workdir', 'config_writer', 'directories',
-                 'autogen', 'modules', 'service_configs', 'service_files', 
+                 'autogen', 'modulepaths', 'modules', 'service_configs', 'service_files',
                  'master_env', '_hodconfdir'
                 ]
 
-    OPTIONAL_FIELDS = ['master_env', 'modules', 'service_configs', 'directories', 'autogen']
+    OPTIONAL_FIELDS = ['master_env', 'modulepaths', 'modules', 'service_configs', 'directories', 'autogen']
 
     @staticmethod
     def from_file_list(filenames, **kwargs):
@@ -175,6 +175,7 @@ class PreServiceConfigOpts(object):
                 lst.extend(parse_comma_delim_list(kwargs[name]))
             return lst
 
+        self.modulepaths = _get_list('modulepaths')
         self.modules = _get_list('modules')
         self.master_env = _get_list('master_env')
         self.service_files = _get_list('services')
@@ -218,10 +219,10 @@ class PreServiceConfigOpts(object):
             self.service_configs = new_configs
 
     def __str__(self):
-        return 'PreServiceConfigOpts(version=%s, workdir=%s, modules=%s, ' \
+        return 'PreServiceConfigOpts(version=%s, workdir=%s, modulepaths=%s, modules=%s, ' \
                 'master_env=%s, service_files=%s, directories=%s, ' \
                 'config_writer=%s, service_configs=%s)' % (self.version,
-                        self.workdir, self.modules, self.master_env,
+                        self.workdir, self.modulepaths, self.modules, self.master_env,
                         self.service_files, self.directories,
                         self.config_writer, self.service_configs)
 
@@ -324,10 +325,11 @@ class ConfigOpts(object):
 
         return ConfigOpts(name, runs_on, pre_start_script, start_script, stop_script, env, template_resolver)
 
-    def to_params(self, workdir, modules, master_template_args):
+    def to_params(self, workdir, modulepaths, modules, master_template_args):
         """Create a ConfigOptsParams object from the ConfigOpts instance"""
         return ConfigOptsParams(self.name, self._runs_on, self._pre_start_script, self._start_script,
-                                self._stop_script, self._env, workdir, modules, master_template_args, self.timeout)
+                                self._stop_script, self._env, workdir, modulepaths, modules,
+                                master_template_args, self.timeout)
 
     @staticmethod
     def from_params(params, template_resolver):
@@ -413,6 +415,7 @@ ConfigOptsParams = namedtuple('ConfigOptsParams', [
     'stop_script',
     'env',
     'workdir',
+    'modulepaths',
     'modules',
     'master_template_kwargs',
     'timeout',
@@ -511,12 +514,13 @@ def resolve_config_paths(config, dist):
 
     return path
 
-def load_hod_config(filenames, workdir, modules):
+def load_hod_config(filenames, workdir, modulepaths, modules):
     '''
     Load the manifest config (hod.conf) files.
     '''
     m_config_filenames = parse_comma_delim_list(filenames)
     _log.info('Loading "%s" manifest config', m_config_filenames)
-    m_config = PreServiceConfigOpts.from_file_list(m_config_filenames, workdir=workdir, modules=modules)
+    m_config = PreServiceConfigOpts.from_file_list(m_config_filenames, workdir=workdir,
+                                                   modulepaths=modulepaths, modules=modules)
     _log.debug('Loaded manifest config: %s', str(m_config))
     return m_config
