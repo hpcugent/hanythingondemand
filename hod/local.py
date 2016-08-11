@@ -43,7 +43,7 @@ from hod.config.config import resolve_config_paths
 from hod.cluster import gen_cluster_info, save_cluster_info
 from hod.hodproc import ConfiguredSlave, ConfiguredMaster
 from hod.mpiservice import MASTERRANK, run_tasks, setup_tasks
-from hod.options import GENERAL_HOD_OPTIONS
+from hod.options import COMMON_HOD_CONFIG_OPTIONS, GENERAL_HOD_OPTIONS
 from hod.utils import only_if_module_is_available
 
 # optional packages, not always required
@@ -63,9 +63,8 @@ class LocalOptions(GeneralOption):
     def config_options(self):
         """Add general configuration options."""
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
+        opts.update(COMMON_HOD_CONFIG_OPTIONS)
         opts.update({
-            'modulepaths': ("Extra paths to take into account for loading modules", 'string', 'store', None),
-            'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
             'script': ("Script to run on the cluster", "string", "store", None),
         })
         descr = ["Local configuration", "Configuration options for the 'genconfig' subcommand"]

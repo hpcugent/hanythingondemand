@@ -31,6 +31,11 @@ Hanythingondemand main program.
 """
 from vsc.utils import fancylogger
 
+COMMON_HOD_CONFIG_OPTIONS = {
+    'modulepaths': ("Extra paths to take into account for loading modules", 'string', 'store', None),
+    'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
+}
+
 GENERAL_HOD_OPTIONS = {
     'dist': ("Prepackaged Hadoop distribution (e.g.  Hadoop/2.5.0-cdh5.3.1-native). "
              "This cannot be set if --hodconf is set", 'string', 'store', None),
