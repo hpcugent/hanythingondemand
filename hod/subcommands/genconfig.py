@@ -38,7 +38,7 @@ from vsc.utils.generaloption import GeneralOption
 from hod import VERSION as HOD_VERSION
 from hod.hodproc import ConfiguredMaster
 from hod.mpiservice import setup_tasks
-from hod.options import GENERAL_HOD_OPTIONS, validate_required_option
+from hod.options import COMMON_HOD_CONFIG_OPTIONS, GENERAL_HOD_OPTIONS, validate_required_option
 from hod.subcommands.subcommand import SubCommand
 from hod.utils import setup_diagnostic_environment
 
@@ -53,9 +53,7 @@ class GenConfigOptions(GeneralOption):
     def config_options(self):
         """Add general configuration options."""
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
-        opts.update({
-            'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
-        })
+        opts.update(COMMON_HOD_CONFIG_OPTIONS)
         descr = ["Genconfig configuration", "Configuration options for the 'genconfig' subcommand"]
 
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)

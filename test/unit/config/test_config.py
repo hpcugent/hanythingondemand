@@ -341,7 +341,7 @@ ExecStop=stopper
 [Environment]
 SOME_ENV=123""")
         cfg = hcc.ConfigOpts.from_file(config, hct.TemplateResolver(workdir=''))
-        cfgparams = cfg.to_params('workdir', 'modules', dict(master='template_args'))
+        cfgparams = cfg.to_params('workdir', 'modulepaths', 'modules', dict(master='template_args'))
         remade_cfg = loads(dumps(cfgparams))
         self.assertEqual(cfgparams.name, remade_cfg.name)
         self.assertEqual(cfgparams.start_script, remade_cfg.start_script)
@@ -365,7 +365,7 @@ SOME_ENV=123""")
         self.assertEqual(cfg.start_script, '$MYPATH/starter')
         self.assertEqual(cfg.stop_script, '$MYPATH/stopper')
 
-        params = cfg.to_params(workdir='', modules='', master_template_args=dict())
+        params = cfg.to_params(workdir='', modulepaths='', modules='', master_template_args=dict())
         cfg2 = hcc.ConfigOpts.from_params(params, hct.TemplateResolver(workdir=''))
         self.assertEqual(cfg2.start_script, '$MYPATH/starter')
         self.assertEqual(cfg2.stop_script, '$MYPATH/stopper')

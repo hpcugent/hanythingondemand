@@ -40,7 +40,7 @@ from vsc.utils.generaloption import GeneralOption
 
 import hod.cluster as hc
 from hod import VERSION as HOD_VERSION
-from hod.options import GENERAL_HOD_OPTIONS, RESOURCE_MANAGER_OPTIONS, validate_pbs_option
+from hod.options import COMMON_HOD_CONFIG_OPTIONS, GENERAL_HOD_OPTIONS, RESOURCE_MANAGER_OPTIONS, validate_pbs_option
 from hod.rmscheduler.hodjob import PbsHodJob
 from hod.subcommands.subcommand import SubCommand
 
@@ -69,9 +69,7 @@ class BatchOptions(GeneralOption):
     def config_options(self):
         """Add general configuration options."""
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
-        opts.update({
-            'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
-        })
+        opts.update(COMMON_HOD_CONFIG_OPTIONS)
         descr = ["Batch job creation configuration", "Configuration options for the 'batch' subcommand"]
 
         self.log.debug("Add config option parser descr %s opts %s", descr, opts)
