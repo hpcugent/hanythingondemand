@@ -133,7 +133,7 @@ class ConfiguredMaster(MpiService):
             config = ConfigOpts.from_file(open(config_filename, 'r'), resolver)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
             self.log.debug('Adding ConfiguredService Task to work with config: %s', str(config))
-            cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
+            cfg_opts = config.to_params(m_config.workdir, m_config.modulepaths, m_config.modules, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
 
         if hasattr(self.options, 'script') and self.options.script is not None:
@@ -147,7 +147,7 @@ class ConfiguredMaster(MpiService):
             # TODO: How can we test this?
             config = ConfigOpts(script, RUNS_ON_MASTER, '', start_script, '', master_env, resolver, timeout=NO_TIMEOUT)
             ranks_to_run = config.runs_on(MASTERRANK, range(self.size))
-            cfg_opts = config.to_params(m_config.workdir, m_config.modules, master_template_args)
+            cfg_opts = config.to_params(m_config.workdir, m_config.modulepaths, m_config.modules, master_template_args)
             self.tasks.append(Task(ConfiguredService, config.name, ranks_to_run, cfg_opts, master_env))
 
 
