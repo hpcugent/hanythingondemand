@@ -54,6 +54,7 @@ class GenConfigOptions(GeneralOption):
         """Add general configuration options."""
         opts = copy.deepcopy(GENERAL_HOD_OPTIONS)
         opts.update({
+            'modulepaths': ("Extra paths to take into account for loading modules", 'string', 'store', None),
             'modules': ("Extra modules to load in each service environment", 'string', 'store', None),
         })
         descr = ["Genconfig configuration", "Configuration options for the 'genconfig' subcommand"]

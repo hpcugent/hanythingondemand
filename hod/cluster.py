@@ -46,6 +46,11 @@ CLUSTER_ENV_TEMPLATE = """
 # make sure session is properly set up (e.g., that 'module' command is defined)
 source /etc/profile
 
+for modpath in %(modpaths)s;
+do
+    module use modpath
+done
+
 module load %(modules)s
 
 # set up environment
@@ -57,7 +62,7 @@ export HOD_LOCALWORKDIR='%(hod_localworkdir)s'
 echo "Welcome to your hanythingondemand cluster (label: %(label)s)"
 echo
 echo "Relevant environment variables:"
-env | egrep '^HADOOP_|^HOD_|PBS_JOBID' | sort
+env | egrep '^HADOOP_|^HOD_|PBS_JOBID|MODULEPATH' | sort
 echo
 echo "List of loaded modules:"
 module list 2>&1
@@ -220,6 +225,7 @@ def gen_cluster_info(label, options):
         'hadoop_conf_dir': hodconf.configdir,
         'hod_localworkdir': hodconf.localworkdir,
         'label': label,
+        'modpaths': ' '.join(hodconf.modulepaths),
         'modules': ' '.join(hodconf.modules),
         'workdir': options.workdir
     }
