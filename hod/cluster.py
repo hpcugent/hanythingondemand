@@ -46,10 +46,7 @@ CLUSTER_ENV_TEMPLATE = """
 # make sure session is properly set up (e.g., that 'module' command is defined)
 source /etc/profile
 
-for modpath in %(modpaths)s;
-do
-    module use modpath
-done
+for modpath in %(modpaths)s; do module use $modpath; done
 
 module load %(modules)s
 
