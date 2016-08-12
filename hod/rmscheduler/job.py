@@ -45,6 +45,7 @@ class Job(object):
 
         self.type = None
 
+        self.modulepaths = []
         self.modules = []
 
         self.run_in_cwd = True
@@ -104,6 +105,11 @@ class Job(object):
         Generate the module statements. Returns a list.
         Elements that are string or 1 long are assumed to be load requests
         """
+        cmds = []
+
+        for mp in self.modulepaths:
+            cmds.append("module use %s" % mp)
+
         allmods = []
         for md in self.modules:
             if type(md) in (str,):
@@ -117,7 +123,9 @@ class Job(object):
                 self.log.error("Unknown module type %s (%s)", type(md), md)
 
         self.log.debug("Going to generate string for modules %s", allmods)
-        return ['module %s' % (" ".join(md)) for md in allmods]
+        cmds.extend(['module %s' % (" ".join(md)) for md in allmods])
+
+        return cmds
 
     @classmethod
     def _is_job_for(cls, name):
