@@ -1,3 +1,13 @@
+# 3.1.2
+* also take --modulepaths into account for HOD jobs (not just for interactive sessions)
+
+# 3.1.1
+* add support for --modulepaths to specify the location of custom modules
+
+# 3.1.0
+* add dist with IPython 4.2.0
+* add Travis configuration
+
 # 3.0.4
 * IPython 3.2.3 with Spark 1.6 is now bundled as an available distribution.
 * Faster startup time on multiple nodes.
