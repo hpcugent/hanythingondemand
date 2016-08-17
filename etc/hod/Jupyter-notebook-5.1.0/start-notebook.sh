@@ -35,7 +35,7 @@ c.NotebookApp.port = 8888
 EOF
 
 # Add the PySpark classes to the Python path (partially taken from pyspark script):
-export PYTHONPATH="$EBROOTSPARK/python/:$EBROOTSPARK/python/lib/py4j-0.9-src.zip:$PYTHONPATH"
+export PYTHONPATH="$EBROOTSPARK/python/:$EBROOTSPARK/python/lib/py4j-0.10.1-src.zip:$PYTHONPATH"
 
 export PYTHONPATH=$PYTHONPATH:$EBROOTPYTHON/lib/python2.7/site-packages/ 
 
