@@ -27,7 +27,7 @@
 
 @author: Stijn De Weirdt (Ghent University)
 @author: Ewan Higgs (Ghent University)
-@author: Ewan Higgs (Ghent University)
+@author: Kenneth Hoste (Ghent University)
 """
 NAME = 'hanythingondemand'
 VERSION = '3.1.3'
