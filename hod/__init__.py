@@ -23,10 +23,11 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 ##
 """
-Nothing here for now.
+'hod' namespace declaration, also specifies HOD version
 
 @author: Stijn De Weirdt (Ghent University)
 @author: Ewan Higgs (Ghent University)
+@author: Kenneth Hoste (Ghent University)
 """
 NAME = 'hanythingondemand'
-VERSION = '3.1.2'
+VERSION = '3.1.3'
