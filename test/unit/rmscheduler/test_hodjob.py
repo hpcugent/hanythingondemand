@@ -41,7 +41,8 @@ version = 1
 [Config]
 workdir=/tmp
 master_env= 
-modules=
+modules=mod1,mod2
+modulepaths=/mod/path/one
 services=svc.conf
 config_writer=some.module.function
 directories=
@@ -93,6 +94,7 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
         o = hrh.MympirunHod(self.opt)
 
     def test_mympirunhod_generate_exe(self):
+        '''test MympirunHod generate_exe method'''
         o = hrh.MympirunHod(self.mpiopt)
         exe = o.generate_exe()
         # not sure we want SNone/hod.output.SNone or a bunch of these defaults here.
@@ -105,6 +107,38 @@ class HodRMSchedulerHodjobTestCase(unittest.TestCase):
             '--hodconf=hod.conf',
         ])
         self.assertEqual(exe[0], expected)
+
+    def test_pbshod_generate_environment(self):
+        '''test MympirunHod generate_environment method'''
+        with patch('hod.rmscheduler.hodjob.resolve_config_paths', side_effect=['hod.conf']):
+            with patch('__builtin__.open', side_effect=_mock_open):
+                env = hrh.PbsHodJob(self.mpiopt).generate_environment()
+                expected = [
+                    'module use /mod/path/one',
+                    'module load mod1',
+                    'module load mod2',
+                ]
+                self.assertEqual(env, expected)
+
+        with patch('hod.rmscheduler.hodjob.resolve_config_paths', side_effect=['hod.conf']):
+            with patch('__builtin__.open', side_effect=_mock_open):
+                args = [
+                    'progname',
+                    '--hodconf=hod.conf',
+                    '--modules=three',
+                    '--modulepaths=/two,/3/4',
+                ]
+                opt = CreateOptions(go_args=args)
+                env = hrh.PbsHodJob(opt).generate_environment()
+                expected = [
+                    'module use /mod/path/one',
+                    'module use /two',
+                    'module use /3/4',
+                    'module load mod1',
+                    'module load mod2',
+                    'module load three',
+                ]
+                self.assertEqual(env, expected)
 
     def test_pbshodjob_init(self):
         '''test pbshodjob init function'''

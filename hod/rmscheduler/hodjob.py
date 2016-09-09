@@ -127,7 +127,9 @@ class PbsHodJob(MympirunHod):
         self.log.info('Loading "%s" manifest config', config_filenames)
         # If the user mistypes the --dist argument (e.g. Haddoop-...) then this will
         # raise; TODO: cleanup the error reporting. 
-        precfg = PreServiceConfigOpts.from_file_list(config_filenames, workdir=options.options.workdir)
+        precfg = PreServiceConfigOpts.from_file_list(config_filenames, workdir=options.options.workdir,
+                                                     modulepaths=options.options.modulepaths,
+                                                     modules=options.options.modules)
         for modulepath in precfg.modulepaths:
             self.log.debug("Adding extra module path '%s' to startup script", modulepath)
             self.modulepaths.append(modulepath)
