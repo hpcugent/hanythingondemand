@@ -24,48 +24,46 @@
 # along with hanythingondemand. If not, see <http://www.gnu.org/licenses/>.
 # #
 """
-Connect to a hod cluster.
+Destroy an HOD cluster.
 
-@author: Ewan Higgs (Ghent University)
 @author: Kenneth Hoste (Ghent University)
 """
-
 import os
-import os.path
 import sys
 
 from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
-from hod.cluster import cluster_env_file, cluster_jobid
-from hod.subcommands.subcommand import SubCommand
 import hod
 import hod.rmscheduler.rm_pbs as rm_pbs
+from hod.cluster import cluster_info_exists, cluster_jobid, rm_cluster_info, rm_cluster_localworkdir
+from hod.subcommands.subcommand import SubCommand
 
 
-_log = fancylogger.getLogger(fname=False)
+_log = fancylogger.getLogger('destroy', fname=False)
 
-class ConnectOptions(GeneralOption):
+
+class DestroyOptions(GeneralOption):
     """Option parser for 'destroy' subcommand."""
     VERSION = hod.VERSION
     ALLOPTSMANDATORY = False # let us use optionless arguments.
 
 
-class ConnectSubCommand(SubCommand):
+class DestroySubCommand(SubCommand):
     """
-    Implementation of HOD 'connect' subcommand.
-    Jobs must satisfy three constraints:
-        1. Job must exist in the hod.d directory.
-        2. The job must exist according to PBS.
-        3. The job much be in running state.
+    Implementation of HOD 'destroy' subcommand;
+    destroys HOD cluster with specified label, regardless of cluster state, i.e.:
+    * delete job (if it is still present)
+    * remove hod.d directory corresponding to this cluster
+    * remove local work directory used by this cluster
     """
-    CMD = 'connect'
-    HELP = "Connect to a hod cluster."
-    EXAMPLE = "hod connect <label>"
+    CMD = 'destroy'
+    HELP = "Destroy an HOD cluster."
+    EXAMPLE = "hod destroy <label>"
 
     def run(self, args):
-        """Run 'connect' subcommand."""
-        optparser = ConnectOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
+        """Run 'destroy' subcommand."""
+        optparser = DestroyOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
             if len(optparser.args) > 1:
                 label = optparser.args[1]
@@ -73,46 +71,53 @@ class ConnectSubCommand(SubCommand):
                 _log.error("No label provided.")
                 sys.exit(1)
 
-            print "Connecting to HOD cluster with label '%s'..." % label
+            print "Destroying HOD cluster with label '%s'..." % label
 
             try:
                 jobid = cluster_jobid(label)
-                env_script = cluster_env_file(label)
-            except ValueError as err:
-                _log.error(err)
+            except ValueError as e:
+                _log.error(e.message)
                 sys.exit(1)
 
-            print "Job ID found: %s" % jobid
+            print "Job ID: %s" % jobid
+
+            # try to figure out job state
+            job_state = None
 
             pbs = rm_pbs.Pbs(optparser)
             jobs = pbs.state()
             pbsjobs = [job for job in jobs if job.jobid == jobid]
+            _log.debug("Matching jobs for job ID '%s': %s", jobid, pbsjobs)
 
-            if len(pbsjobs) == 0:
-                _log.error("Job with job ID '%s' not found by pbs.", jobid)
-                sys.exit(1)
-            elif len(pbsjobs) > 1:
+            if len(pbsjobs) == 1:
+                job_state = pbsjobs[0].state 
+                print "Job status: %s" % job_state
+
+            elif len(pbsjobs) == 0:
+                print "(job no longer found)"
+
+            else:
                 _log.error("Multiple jobs found with job ID '%s': %s", jobid, pbsjobs)
                 sys.exit(1)
 
-            pbsjob = pbsjobs[0]
-            if pbsjob.state == ['Q', 'H']:
-                # This should never happen since the hod.d/<jobid>/env file is
-                # written on cluster startup. Maybe someone hacked the dirs.
-                _log.error("Cannot connect to cluster with job ID '%s' yet. It is still queued.", jobid)
-                sys.exit(1)
-            else:
-                print "HOD cluster '%s' @ job ID %s appears to be running..." % (label, jobid)
+            if job_state == 'R':
+                resp = raw_input("Confirm destroying the *running* HOD cluster with label '%s'? [y/n]: ", label)
+                if resp != 'y':
+                    print "(destruction aborted)"
+                    return
 
-            print "Setting up SSH connection to %s..." % pbsjob.hosts
+            # actually destroy HOD cluster by deleting job and removing cluster info dir and local work dir
+            if job_state is not None:
+                pbs.remove(jobid)
 
-            # -i: interactive non-login shell
-            cmd = ['ssh', '-t', pbsjob.hosts, 'exec', 'bash', '--rcfile', env_script, '-i']
-            _log.info("Logging in using command: %s", ' '.join(cmd))
-            os.execvp('/usr/bin/ssh', cmd)
-            return 0 # pragma: no cover
+            rm_cluster_localworkdir(label)
+
+            if cluster_info_exists(label):
+                rm_cluster_info(label)
+
+            print "\nHOD cluster with label '%s' (job ID: %s) destroyed." % (label, jobid)
 
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
-            _log.raiseException(err)
+            _log.raiseException(err.message)
