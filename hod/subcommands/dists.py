@@ -50,6 +50,7 @@ class DistsSubCommand(SubCommand):
         lines = []
         dists = avail_dists()
         for dist in dists:
+            modules = None
             try:
                 cfg_fp = open(resolve_dist_path(dist))
                 modules = load_service_config(cfg_fp).get('Config', 'modules').split(',')
@@ -57,10 +58,10 @@ class DistsSubCommand(SubCommand):
             except IOError as err:
                 _log.error("Failed to get list of modules for dist '%s': %s", dist, err)
 
-            lines.extend([
-                "* %s" % dist,
-                "    modules: %s" % ', '.join(modules),
-                '',
-            ])
+            lines.append("* " + dist)
+            if modules:
+                lines.append("    modules: " + ', '.join(modules))
+            lines.append('')
+
         print '\n'.join(lines)
         return 0
