@@ -31,7 +31,7 @@ List available distributions known to hanythingondemand.
 """
 from vsc.utils.generaloption import GeneralOption
 
-from hod.config.config import avail_dists
+from hod.config.config import avail_dists, load_service_config, resolve_dist_path
 from hod.subcommands.subcommand import SubCommand
 
 
@@ -42,5 +42,9 @@ class DistsSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'dists' subcommand."""
-        print '\n'.join(avail_dists())
-        return 0
+        dists = avail_dists()
+        for dist in dists:
+            cfg_fp = open(resolve_dist_path(dist))
+            modules = load_service_config(cfg_fp).get('Config', 'modules').split(',')
+            cfg_fp.close()
+            print "%s (modules: %s)" % (dist, ', '.join(modules))
