@@ -29,6 +29,7 @@
 
 import unittest
 import pytest
+from cStringIO import StringIO
 from mock import patch
 from ..util import capture
 from hod.subcommands.dists import DistsSubCommand
@@ -37,8 +38,9 @@ from hod.subcommands.dists import DistsSubCommand
 class TestDistsSubCommand(unittest.TestCase):
     def test_run(self):
         app = DistsSubCommand()
+        mocked_fp = StringIO("[Config]\nmodules=Hadoop/1.2.3")
         with patch('os.listdir', return_value=['Hadoop-1.2.3']):
-            with patch('open', return_value=['[Config]\nmodules=Hadoop/1.2.3']):
+            with patch('__builtin__.open', return_value=mocked_fp):
                 with capture(app.run, []) as (out, err):
                     self.assertTrue('* Hadoop-1.2.3\n    modules: Hadoop/1.2.3' in out)
 
