@@ -29,10 +29,15 @@ List available distributions known to hanythingondemand.
 @author: Ewan Higgs (Ghent University)
 @author: Kenneth Hoste (Ghent University)
 """
+import sys
+from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
-from hod.config.config import avail_dists
+from hod.config.config import avail_dists, load_service_config, resolve_dist_path
 from hod.subcommands.subcommand import SubCommand
+
+
+_log = fancylogger.getLogger('dists', fname=False)
 
 
 class DistsSubCommand(SubCommand):
@@ -42,5 +47,23 @@ class DistsSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'dists' subcommand."""
-        print '\n'.join(avail_dists())
+        lines = []
+        dists = avail_dists()
+        for dist in dists:
+            modules = None
+            try:
+                cfg_fp = open(resolve_dist_path(dist))
+                modules = load_service_config(cfg_fp).get('Config', 'modules').split(',')
+                cfg_fp.close()
+            except IOError as err:
+                _log.error("Failed to get list of modules for dist '%s': %s", dist, err)
+                continue
+
+            lines.extend([
+                "* %s" % dist,
+                "    modules: %s" % ', '.join(modules),
+                '',
+            ])
+
+        print '\n'.join(lines)
         return 0
