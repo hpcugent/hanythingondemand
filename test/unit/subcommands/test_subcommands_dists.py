@@ -38,8 +38,9 @@ class TestDistsSubCommand(unittest.TestCase):
     def test_run(self):
         app = DistsSubCommand()
         with patch('os.listdir', return_value=['Hadoop-1.2.3']):
-            with capture(app.run, []) as (out, err):
-                self.assertTrue('Hadoop-1.2.3' in out)
+            with patch('open', return_value=['[Config]\nmodules=Hadoop/1.2.3']):
+                with capture(app.run, []) as (out, err):
+                    self.assertTrue('* Hadoop-1.2.3\n    modules: Hadoop/1.2.3' in out)
 
     def test_usage(self):
         app = DistsSubCommand()

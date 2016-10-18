@@ -54,3 +54,4 @@ class DistsSubCommand(SubCommand):
                 '',
             ])
         print '\n'.join(lines)
+        return 0
