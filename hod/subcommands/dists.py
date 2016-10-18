@@ -42,9 +42,15 @@ class DistsSubCommand(SubCommand):
 
     def run(self, args):
         """Run 'dists' subcommand."""
+        lines = []
         dists = avail_dists()
         for dist in dists:
             cfg_fp = open(resolve_dist_path(dist))
             modules = load_service_config(cfg_fp).get('Config', 'modules').split(',')
             cfg_fp.close()
-            print "%s (modules: %s)" % (dist, ', '.join(modules))
+            lines.extend([
+                "* %s" % dist,
+                "    modules: %s" % ', '.join(modules),
+                '',
+            ])
+        print '\n'.join(lines)
