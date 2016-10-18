@@ -57,11 +57,13 @@ class DistsSubCommand(SubCommand):
                 cfg_fp.close()
             except IOError as err:
                 _log.error("Failed to get list of modules for dist '%s': %s", dist, err)
+                continue
 
-            lines.append("* " + dist)
-            if modules:
-                lines.append("    modules: " + ', '.join(modules))
-            lines.append('')
+            lines.extend([
+                "* %s" % dist,
+                "    modules: %s" % ', '.join(modules),
+                '',
+            ])
 
         print '\n'.join(lines)
         return 0
