@@ -24,7 +24,7 @@ Running ``hod`` without arguments is equivalent to ``hod --help``, and results i
 .. code::
 
     $ hod
-    hanythingondemand version 3.0.0 - Run services within an HPC cluster
+    hanythingondemand version 3.2.0 - Run services within an HPC cluster
     usage: hod <subcommand> [subcommand options]
     Available subcommands (one of these must be specified!):
         batch           Submit a job to spawn a cluster on a PBS job controller, run a job script, and tear down the cluster when it's done
@@ -32,6 +32,7 @@ Running ``hod`` without arguments is equivalent to ``hod --help``, and results i
         clone           Write hod configs to a directory for editing purposes.
         connect         Connect to a hod cluster.
         create          Submit a job to spawn a cluster on a PBS job controller
+        destroy         Destroy an HOD cluster.
         dists           List the available distributions
         genconfig       Write hod configs to a directory for diagnostic purposes
         help-template   Print the values of the configuration templates based on the current machine.
@@ -84,6 +85,7 @@ Available subcommands:
 * :ref:`cmdline_clone`
 * :ref:`cmdline_connect`
 * :ref:`cmdline_create`
+* :ref:`cmdline_destroy`
 * :ref:`cmdline_dists`
 * :ref:`cmdline_genconfig`
 * :ref:`cmdline_helptemplate`
@@ -153,6 +155,19 @@ Jobs that have completed will remain in the output of ``hod list`` with a job id
 is run (see :ref:`cmdline_clean`).
 
 .. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
+
+
+.. _cmdline_destroy:
+
+``hod destroy <cluster-label>``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Destroy the HOD cluster with the specified label.
+
+This involves deleting the job, and removing the working directory and cluster info directory
+(``$HOME/.config/hod.d/<label>``) corresponding to this cluster, if they are still in place.
+
+In case the cluster is currently *running*, confirmation will be requested.
 
 
 .. _cmdline_create_options:
