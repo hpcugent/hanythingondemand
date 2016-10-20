@@ -104,10 +104,11 @@ Next to ``--script`` (which is mandatory with ``batch``), all configuration opti
 also supported for ``batch``, see :ref:`cmdline_create_options`.
 When used with ``batch``, these options can also be specified via ``$HOD_BATCH_*``.
 
-Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<job-not-found>`` until ``hod clean`` 
-is run (see :ref:`cmdline_clean`).
+Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<job-not-found>``
+until ``hod clean``  is run (see :ref:`cmdline_clean`), or until the cluster is destroyed using ``hod destroy``
+(see :ref:`cmdline_destroy`).
 
-.. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
+.. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` **must** be specified.
 
 
 .. _cmdline_clean:
@@ -115,8 +116,8 @@ is run (see :ref:`cmdline_clean`).
 ``hod clean``
 ~~~~~~~~~~~~~
 
-Remove cluster info directory for clusters that are no longer available, i.e.  those marked with ``<job-not-found>`` in the 
-output of ``hod list``.
+Remove cluster info directory for clusters that are no longer available,
+i.e. those marked with ``<job-not-found>`` in the output of ``hod list``.
 
 
 .. _cmdline_clone:
@@ -152,22 +153,9 @@ Create a hanythingondemand cluster, with the specified label (optional) and clus
 The configuration file can be a filepath, or one of the included cluster configuration files (see :ref:`cmdline_dists`).
 
 Jobs that have completed will remain in the output of ``hod list`` with a job id of ``<job-not-found>`` until ``hod clean`` 
-is run (see :ref:`cmdline_clean`).
+is run (see :ref:`cmdline_clean`), or until the cluster is destroyed using ``hod destroy`` (see :ref:`cmdline_destroy`).
 
 .. note:: ``--hod-module``, ``--workdir``, and either ``--hodconf`` or ``--dist`` must be specified.
-
-
-.. _cmdline_destroy:
-
-``hod destroy <cluster-label>``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Destroy the HOD cluster with the specified label.
-
-This involves deleting the job, and removing the working directory and cluster info directory
-(``$HOME/.config/hod.d/<label>``) corresponding to this cluster, if they are still in place.
-
-In case the cluster is currently *running*, confirmation will be requested.
 
 
 .. _cmdline_create_options:
@@ -261,6 +249,19 @@ The resources being requested for the job that is submitted can be controlled vi
 see :ref:`cmdline_job_options`.
 
 
+.. _cmdline_destroy:
+
+``hod destroy <cluster-label>``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Destroy the HOD cluster with the specified label.
+
+This involves deleting the job, and removing the working directory and cluster info directory
+(``$HOME/.config/hod.d/<label>``) corresponding to this cluster, if they are still in place.
+
+In case the cluster is currently *running*, confirmation will be requested.
+
+
 .. _cmdline_dists:
 
 ``hod dists``
@@ -301,9 +302,8 @@ Print the values for the configuration templates based on the current machine.
 Print a list of existing clusters, and their state ('``queued``' or '``running``').
 
 Jobs that have completed running will remain in the list with ``<job-not-found>`` until
-``hod clean`` is run.
-
-See :ref:`cmdline_clean`.
+``hod clean`` is run (see :ref:`cmdline_clean`), or until the HOD cluster is destroyed using ``hod destroy``
+(see :ref:`cmdline_destroy`).
 
 
 .. _cmdline_relabel:
