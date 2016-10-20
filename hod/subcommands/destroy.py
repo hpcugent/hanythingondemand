@@ -77,8 +77,8 @@ class DestroySubCommand(SubCommand):
             try:
                 jobid = cluster_jobid(label)
                 print "Job ID: %s" % jobid
-            except ValueError as e:
-                _log.error(e.message)
+            except ValueError as err:
+                _log.error(err)
                 sys.exit(1)
 
             # try to figure out job state
@@ -125,4 +125,4 @@ class DestroySubCommand(SubCommand):
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
-            _log.raiseException(err.message)
+            _log.raiseException(err)
