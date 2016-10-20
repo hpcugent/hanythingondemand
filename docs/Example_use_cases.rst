@@ -54,14 +54,10 @@ use ``hod dists`` (slightly trimmed output)::
     $ hod dists
     * HBase-1.0.2
         modules: HBase/1.0.2, Hadoop/2.6.0-cdh5.4.5-native
-
     ...
-
     * Hadoop-2.6.0-cdh5.4.5-native
         modules: Hadoop/2.6.0-cdh5.4.5-native
-
     ...
-
     * Jupyter-notebook-5.1.0
         modules: Hadoop/2.6.0-cdh5.8.0-native, Spark/2.0.0, IPython/5.1.0-intel-2016b-Python-2.7.12, matplotlib/1.5.1-intel-2016b-Python-2.7.12
 
