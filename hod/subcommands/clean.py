@@ -64,4 +64,4 @@ class CleanSubCommand(SubCommand):
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
-            _log.raiseException(err.message)
+            _log.raiseException(err)

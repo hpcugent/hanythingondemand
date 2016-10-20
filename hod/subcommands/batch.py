@@ -122,7 +122,7 @@ class BatchSubCommand(SubCommand):
             jobs = j.state()
             hc.post_job_submission(label, jobs, optparser.options.workdir)
             return 0
-        except StandardError as e:
+        except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
-            _log.raiseException(e.message)
+            _log.raiseException(err)

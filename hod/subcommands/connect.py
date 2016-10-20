@@ -78,8 +78,8 @@ class ConnectSubCommand(SubCommand):
             try:
                 jobid = cluster_jobid(label)
                 env_script = cluster_env_file(label)
-            except ValueError as e:
-                _log.error(e.message)
+            except ValueError as err:
+                _log.error(err)
                 sys.exit(1)
 
             print "Job ID found: %s" % jobid
@@ -115,4 +115,4 @@ class ConnectSubCommand(SubCommand):
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
-            _log.raiseException(err.message)
+            _log.raiseException(err)
