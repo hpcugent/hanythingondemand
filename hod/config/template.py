@@ -126,20 +126,20 @@ def _current_user():
     '''
     return pwd.getpwuid(os.getuid()).pw_name
 
-def resolve_config_str(s, **template_kwargs):
+def resolve_config_str(tmpl_str, **template_kwargs):
     '''
     Given a string, resolve the templates based on template_dict and
     template_kwargs.
 
     If a non string is provided, the original value is returned.
     '''
-    if not isinstance(s, basestring):
-        return s
-    template = string.Template(s)
+    if not isinstance(tmpl_str, basestring):
+        return tmpl_str
+    template = string.Template(tmpl_str)
     try:
         retval = template.substitute(template_kwargs)
-    except TypeError, e:
-        raise TypeError('Error processing "%s": %s' % (str(s), e.message))
+    except TypeError as err:
+        raise TypeError('Error processing "%s": %s' % (tmpl_str, err))
     return retval
 
 class TemplateResolver(object):
@@ -152,6 +152,6 @@ class TemplateResolver(object):
         self._template_kwargs = template_kwargs
         self._template_kwargs.update(os.environ)
 
-    def __call__(self, s):
+    def __call__(self, tmpl_str):
         '''Given a string with template placeholders, return the resolved string'''
-        return resolve_config_str(s, **self._template_kwargs)
+        return resolve_config_str(tmpl_str, **self._template_kwargs)

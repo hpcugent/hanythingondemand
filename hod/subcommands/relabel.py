@@ -59,21 +59,20 @@ class RelabelSubCommand(SubCommand):
         optparser = RelabelOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
             if len(optparser.args) != 3:
-                sys.stderr.write(self.usage())
+                _log.error(self.usage())
                 sys.exit(1)
 
             labels = hc.known_cluster_labels()
             if optparser.args[1] not in labels:
-                sys.stderr.write('Cluster with label "%s" not found\n' % optparser.args[1])
+                _log.error("Cluster with label '%s' not found", optparser.args[1])
                 sys.exit(1)
             try:
                 hc.mv_cluster_info(optparser.args[1], optparser.args[2])
             except (IOError, OSError) as err:
-                sys.stderr.write('Could not change label "%s" to "%s": "%s"\n' %
-                    (optparser.args[1], optparser.args[2], err.message))
+                _log.error("Could not change label '%s' to '%s': %s", optparser.args[1], optparser.args[2], err)
                 sys.exit(1)
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
-            _log.raiseException(err.message)
+            _log.raiseException(err)
         return 0
