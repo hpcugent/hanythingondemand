@@ -65,21 +65,21 @@ class DestroySubCommand(SubCommand):
         """Run 'destroy' subcommand."""
         optparser = DestroyOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
+            label, jobid = None, None
+
             if len(optparser.args) > 1:
                 label = optparser.args[1]
+                print "Destroying HOD cluster with label '%s'..." % label
             else:
                 _log.error("No label provided.")
                 sys.exit(1)
 
-            print "Destroying HOD cluster with label '%s'..." % label
-
             try:
                 jobid = cluster_jobid(label)
+                print "Job ID: %s" % jobid
             except ValueError as e:
                 _log.error(e.message)
                 sys.exit(1)
-
-            print "Job ID: %s" % jobid
 
             # try to figure out job state
             job_state = None
@@ -108,7 +108,9 @@ class DestroySubCommand(SubCommand):
 
             # actually destroy HOD cluster by deleting job and removing cluster info dir and local work dir
             if job_state is not None:
-                pbs.remove(jobid)
+                # if job was not successfully deleted, pbs.remove will print an error message
+                if pbs.remove(jobid):
+                    print "Job with ID %s deleted." % jobid
 
             rm_cluster_localworkdir(label)
 

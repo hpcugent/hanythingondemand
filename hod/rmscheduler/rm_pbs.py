@@ -280,6 +280,8 @@ class Pbs(ResourceManagerScheduler):
         else:
             self.log.debug("Succesfully deleted job %s", jobid)
 
+        return result == 0
+
     def header(self):
         """Return the script header that requests the properties.
            nodes = number of nodes

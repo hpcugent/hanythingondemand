@@ -46,7 +46,7 @@ import hod.rmscheduler.rm_pbs as rm_pbs
 _log = fancylogger.getLogger(fname=False)
 
 class ConnectOptions(GeneralOption):
-    """Option parser for 'destroy' subcommand."""
+    """Option parser for 'connect' subcommand."""
     VERSION = hod.VERSION
     ALLOPTSMANDATORY = False # let us use optionless arguments.
 
