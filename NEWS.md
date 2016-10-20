@@ -1,3 +1,14 @@
+# 3.2.0
+* stop using deprecated .message on exceptions
+* implement support for 'destroy' subcommand
+* include list of modules corresponding to each dist in 'hod dists' output
+
+# 3.1.4
+* also consider additional modules and module paths passed via command line options
+
+# 3.1.3
+* add dist for Jupyter notebook 5.1.0 w/ Spark 2.0.0
+
 # 3.1.2
 * also take --modulepaths into account for HOD jobs (not just for interactive sessions)
 
