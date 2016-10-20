@@ -274,11 +274,13 @@ class Pbs(ResourceManagerScheduler):
         if jobid is None:
             jobid = self.jobid
 
-        result = pbs.pbs_deljob(self.pbsconn, self.jobid, '')  # use empty string, not NULL (one can pass the deldelay=nnnn option)
+        result = pbs.pbs_deljob(self.pbsconn, jobid, '')  # use empty string, not NULL (one can pass the deldelay=nnnn option)
         if result:
             self.log.error("Failed to delete job %s: error %s", jobid, result)
         else:
             self.log.debug("Succesfully deleted job %s", jobid)
+
+        return result == 0
 
     def header(self):
         """Return the script header that requests the properties.

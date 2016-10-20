@@ -32,7 +32,7 @@ Hanythingondemand main program.
 import sys
 
 import hod
-from hod.subcommands import (batch, connect, clean, clone, create, dists, genconfig,
+from hod.subcommands import (batch, connect, clean, clone, create, destroy, dists, genconfig,
         helptemplate, listcmd, relabel)
 
 
@@ -42,6 +42,7 @@ SUBCOMMANDS = [
     clone.CloneSubCommand,
     connect.ConnectSubCommand,
     create.CreateSubCommand,
+    destroy.DestroySubCommand,
     dists.DistsSubCommand,
     genconfig.GenConfigSubCommand,
     helptemplate.HelpTemplateSubCommand,
