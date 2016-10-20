@@ -11,8 +11,6 @@ https://github.com/hpcugent/hanythingondemand
 
 This documentation is intended for hanythingondemand version |version|, and was last rebuilt on |today|.
 
-**This documentation is very much a work in progress.**
-
 .. _contents:
 
 Introductory topics
