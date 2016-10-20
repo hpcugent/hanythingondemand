@@ -107,6 +107,10 @@ class DestroySubCommand(SubCommand):
                     print "(destruction aborted)"
                     return
 
+            elif job_state in ['C', 'E']:
+                print "(job has already ended/completed)"
+                job_state = None
+
             print "\nStarting actual destruction of HOD cluster with label '%s'...\n" % label
 
             # actually destroy HOD cluster by deleting job and removing cluster info dir and local work dir
