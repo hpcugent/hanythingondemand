@@ -100,11 +100,14 @@ class DestroySubCommand(SubCommand):
                 _log.error("Multiple jobs found with job ID '%s': %s", jobid, pbsjobs)
                 sys.exit(1)
 
+            # request confirmation is case the job is currently running
             if job_state == 'R':
-                resp = raw_input("Confirm destroying the *running* HOD cluster with label '%s'? [y/n]: ", label)
+                resp = raw_input("Confirm destroying the *running* HOD cluster with label '%s'? [y/n]: " % label)
                 if resp != 'y':
                     print "(destruction aborted)"
                     return
+
+            print "\nStarting actual destruction of HOD cluster with label '%s'...\n" % label
 
             # actually destroy HOD cluster by deleting job and removing cluster info dir and local work dir
             if job_state is not None:
