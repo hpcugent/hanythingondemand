@@ -228,6 +228,16 @@ can also be specified via ``$HOD_CREATE_LABEL``.
 The label can be used to later connect to the cluster while it is running (see :ref:`cmdline_connect`).
 
 
+.. _cmdline_create_options_modulepaths:
+
+``hod create --modulepaths <paths>``
+++++++++++++++++++++++++++++++++++++
+
+Add additional locations for modules that need to be loaded (see :ref:`cmdline_create_options_modules`).
+
+Can also be specified via ``$HOD_CREATE_MODULEPATHS``.
+
+
 .. _cmdline_create_options_modules:
 
 ``hod create --modules <module names>``
@@ -241,13 +251,14 @@ kernels (or through Spark) they will need to be added here.
 Can also be specified via ``$HOD_CREATE_MODULES``.
 
 
+
 .. _cmdline_create_options_job:
 
 ``hod create --job-*``
 ++++++++++++++++++++++
 
 The resources being requested for the job that is submitted can be controlled via the available ``--job`` options,
-see :ref:`cmdline_job_options`; can also be specified via ``$HOD_CREATE_JOB_*``.
+see :ref:`cmdline_job_options`.
 
 
 .. _cmdline_dists:
@@ -255,8 +266,10 @@ see :ref:`cmdline_job_options`; can also be specified via ``$HOD_CREATE_JOB_*``.
 ``hod dists``
 ~~~~~~~~~~~~~
 
-Print a list of available cluster configuration files.
+Print a list of available cluster configurations ('*distributions*'),
+along with the list of modules that correspond to each of them.
 
+See for example :ref:`example_use_cases_common_available_dists`.
 
 .. _cmdline_genconfig:
 
@@ -299,3 +312,72 @@ See :ref:`cmdline_clean`.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Change the label for a hod cluster that is queued or running.
+
+
+.. -----------
+.. JOB OPTIONS
+.. -----------
+
+.. _cmdline_job_options:
+
+``--job`` options for ``hod create`` / ``hod batch``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``create`` and ``batch`` subcommands accept the following options to specify requested job resources.
+
+These can also be specified via ``$HOD_BATCH_JOB_*`` (for ``hod batch``) or ``$HOD_CREATE_JOB_*`` (for ``hod create``).
+
+
+.. _cmdline_job_options_mail:
+
+``--job-mail``/``-m <string>``
+++++++++++++++++++++++++++++++
+
+Send a mail when the cluster has started (``b`` for '*begin*'), stopped (``e`` for '*ended*') or got aborted (``a``).
+
+For example, using ``-m a`` will result in receiving a mail whn the cluster has started running.
+
+.. _cmdline_job_options_mail_others:
+
+``--job-mailothers``/``-M <main addresses>``
+++++++++++++++++++++++++++++++++++++++++++++
+
+List of other mail adresses to send mails to.
+
+.. _cmdline_job_options_name:
+
+``--job-name``/``-N <name>``
+++++++++++++++++++++++++++++
+
+Specify the name for the job that will be submitted.
+
+.. _cmdline_job_options_nodes:
+
+``--job-nodes``/``-n <int>``
+++++++++++++++++++++++++++++
+
+The number of (full) workernodes to request for the job being submitted (default: 1).
+
+
+.. _cmdline_job_options_ppn:
+
+``--job-ppn <int>``
++++++++++++++++++++
+
+The number of cores per workernode to request; by default: ``-1``, i.e. full workernodes (request all available cores).
+
+
+.. _cmdline_job_options_queue:
+
+``--job-queue``/``-q <int>``
+++++++++++++++++++++++++++++
+
+Name of job queue to submit to (default: none specified).
+
+
+.. _cmdline_job_options_walltime:
+
+``--job-walltime``/``-l <int>``
++++++++++++++++++++++++++++++++
+
+Number of hours of walltime to request (default: 48).

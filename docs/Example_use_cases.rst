@@ -49,16 +49,21 @@ Available distributions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 To get an overview of readily available HOD distributions, to select a value to specify to ``--dist``,
-use ``hod dists``::
+use ``hod dists`` (slightly trimmed output)::
 
     $ hod dists
-    HBase-1.0.2
-    Hadoop-2.3.0-cdh5.0.0
-    Hadoop-2.5.0-cdh5.3.1-gpfs
-    Hadoop-2.5.0-cdh5.3.1-native
-    Hadoop-2.6.0-cdh5.4.5-native
-    Hadoop-on-lustre2
-    IPython-notebook-3.2.1
+    * HBase-1.0.2
+        modules: HBase/1.0.2, Hadoop/2.6.0-cdh5.4.5-native
+
+    ...
+
+    * Hadoop-2.6.0-cdh5.4.5-native
+        modules: Hadoop/2.6.0-cdh5.4.5-native
+
+    ...
+
+    * Jupyter-notebook-5.1.0
+        modules: Hadoop/2.6.0-cdh5.8.0-native, Spark/2.0.0, IPython/5.1.0-intel-2016b-Python-2.7.12, matplotlib/1.5.1-intel-2016b-Python-2.7.12
 
 .. _example_use_cases_interactive_hadoop:
 
