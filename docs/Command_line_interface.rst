@@ -178,7 +178,7 @@ Configuration options for ``hod create``
 .. _cmdline_create_options_hod_module:
 
 ``hod create --hod-module <module name>``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++++++++++++++++++++++++++++++++++++++++++
 
 **must be specified**
 
@@ -189,7 +189,7 @@ can also be specified via ``$HOD_CREATE_HOD_MODULE``.
 .. _cmdline_create_options_workdir:
 
 ``hod create --workdir <path>``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++++++++++++++++++++++++++++++++
 
 **must be specified**
 
@@ -199,7 +199,7 @@ Specify the top-level working directory to use; can also be specified via ``$HOD
 .. _cmdline_create_options_hodconf:
 
 ``hod create --hodconf <path>``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++++++++++++++++++++++++++++++++
 
 **either** ``--dist`` **or this must be specified**
 
@@ -209,7 +209,7 @@ Specify location of cluster configuration file; can also be specified via ``$HOD
 .. _cmdline_create_options_dist:
 
 ``hod create --dist <dist>``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++++++++++
 
 **either** ``--hodconf`` **or this must be specified**
 
@@ -331,7 +331,7 @@ These can also be specified via ``$HOD_BATCH_JOB_*`` (for ``hod batch``) or ``$H
 .. _cmdline_job_options_mail:
 
 ``--job-mail``/``-m <string>``
-++++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Send a mail when the cluster has started (``b`` for '*begin*'), stopped (``e`` for '*ended*') or got aborted (``a``).
 
@@ -340,21 +340,21 @@ For example, using ``-m a`` will result in receiving a mail whn the cluster has 
 .. _cmdline_job_options_mail_others:
 
 ``--job-mailothers``/``-M <main addresses>``
-++++++++++++++++++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 List of other mail adresses to send mails to.
 
 .. _cmdline_job_options_name:
 
 ``--job-name``/``-N <name>``
-++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Specify the name for the job that will be submitted.
 
 .. _cmdline_job_options_nodes:
 
 ``--job-nodes``/``-n <int>``
-++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The number of (full) workernodes to request for the job being submitted (default: 1).
 
@@ -362,7 +362,7 @@ The number of (full) workernodes to request for the job being submitted (default
 .. _cmdline_job_options_ppn:
 
 ``--job-ppn <int>``
-+++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^
 
 The number of cores per workernode to request; by default: ``-1``, i.e. full workernodes (request all available cores).
 
@@ -370,7 +370,7 @@ The number of cores per workernode to request; by default: ``-1``, i.e. full wor
 .. _cmdline_job_options_queue:
 
 ``--job-queue``/``-q <int>``
-++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Name of job queue to submit to (default: none specified).
 
@@ -378,6 +378,6 @@ Name of job queue to submit to (default: none specified).
 .. _cmdline_job_options_walltime:
 
 ``--job-walltime``/``-l <int>``
-+++++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Number of hours of walltime to request (default: 48).
