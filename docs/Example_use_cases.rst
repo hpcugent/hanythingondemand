@@ -258,17 +258,17 @@ Hence, the results should be available (see the ``cp`` at the end of the submitt
 
 .. _example_use_cases_ipython:
 
-Connecting to an IPython notebook running on an HOD cluster
+Connecting to an Jupyter notebook running on an HOD cluster
 -----------------------------------------------------------
 
-Running an IPython notebook on an HOD cluster is as simple as creating an HOD cluster using the appropriate
-distribution, and then connecting to the IPython notebook over an SSH tunnel.
+Running an Jupyter notebook on an HOD cluster is as simple as creating an HOD cluster using the appropriate
+distribution, and then connecting to the Jupyter notebook over an SSH tunnel.
 
 For example:
 
-* create HOD cluster using an IPython HOD distribution::
+* create HOD cluster using a Jupyter HOD distribution::
 
-    $ hod create --dist IPython-notebook-3.2.1 --label ipython_example
+    $ hod create --dist Jupyter-notebook-5.1.0 --label ipython_example
     Submitting HOD cluster with label 'ipython_example'...
     Job submitted: Jobid 12345.master15.delcatty.gent.vsc state Q ehosts
 
@@ -278,6 +278,6 @@ For example:
     Cluster label	Job ID                         	    State	Hosts
     ipython_example 12345.master15.delcatty.gent.vsc	R    	node2001.delcatty.gent.vsc
 
-* connect to IPython notebook by pointing your web browser to http://localhost:8888, using a SOCKS proxy over
+* connect to Jupyter notebook by pointing your web browser to http://localhost:8888, using a SOCKS proxy over
   an SSH tunnel to the head node ``node2001.delcatty.gent.vsc`` (see :ref:`connecting_to_web_uis` for detailed
   information)
