@@ -258,10 +258,10 @@ Hence, the results should be available (see the ``cp`` at the end of the submitt
 
 .. _example_use_cases_ipython:
 
-Connecting to an Jupyter notebook running on an HOD cluster
------------------------------------------------------------
+Connecting to a Jupyter notebook running on an HOD cluster
+----------------------------------------------------------
 
-Running an Jupyter notebook on an HOD cluster is as simple as creating an HOD cluster using the appropriate
+Running a Jupyter notebook on an HOD cluster is as simple as creating an HOD cluster using the appropriate
 distribution, and then connecting to the Jupyter notebook over an SSH tunnel.
 
 For example:
