@@ -102,9 +102,9 @@ Example: Hadoop WordCount
 In the example below, we create a Hadoop HOD cluster, connect to it, and run the `standard WordCount example Hadoop job
 <https://hadoop.apache.org/docs/current/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html#Example:_WordCount_v1.0>`_.
 
-* create a Hadoop HOD cluster labelled ``hod_hadoop``::
+* create a Hadoop HOD cluster labelled ``hod_hadoop``, requesting 1 workernode::
 
-    $ hod create --dist Hadoop-2.5.0-cdh5.3.1-native --label hod_hadoop
+    $ hod create --dist Hadoop-2.5.0-cdh5.3.1-native --label hod_hadoop --job-nodes 1
 
     Submitting HOD cluster with label 'hod_hadoop'...
     Job submitted: Jobid 12345.master15.delcatty.gent.vsc state Q ehosts 
@@ -143,6 +143,10 @@ In the example below, we create a Hadoop HOD cluster, connect to it, and run the
       1) cluster/delcatty(default)        2) Java/1.7.0_76                  3) Hadoop/2.5.0-cdh5.3.1-native
 
 * run Hadoop WordCount example
+
+  * copy-paste the source code for the WordCount example from https://hadoop.apache.org/docs/current/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html#Example:_WordCount_v1.0 into a file named ``WordCount.java`` in your home directory::
+
+        $ nano $HOME/WordCount.java
 
   * change to local work directory of this cluster::
 
@@ -196,14 +200,14 @@ The classic Hadoop WordCount can be run using the following script (``wordcount.
     #!/bin/bash
 
     # move to (local) the local working directory of HOD cluster on which this script is run
-    export WORKDIR=$VSC_SCRATCH/$PBS_JOBID
-    mkdir -p $WORKDIR
-    cd $WORKDIR
+    cd $HOD_LOCALWORKDIR
 
     # download example input file for wordcount
     curl http://www.gutenberg.org/files/98/98.txt -o tale-of-two-cities.txt
 
-    # build WordCount.jar (note: assumes that ``$HOME/WordCount.java`` is available)
+    # build WordCount.jar
+    # note: assumes that ``$HOME/WordCount.java`` is available, copy-paste the source code from
+    # https://hadoop.apache.org/docs/current/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html#Example:_WordCount_v1.0
     cp $HOME/WordCount.java .
     javac -classpath $(hadoop classpath) WordCount.java
     jar cf WordCount.jar WordCount*.class
@@ -212,7 +216,7 @@ The classic Hadoop WordCount can be run using the following script (``wordcount.
     hadoop jar WordCount.jar WordCount tale-of-two-cities.txt wordcount.out
 
     # copy results
-    cp -a wordcount.out $HOME/$PBS_JOBNAME.$PBS_JOBID
+    cp -a wordcount.out $PBS_O_WORKDIR/wordcount_${PBS_JOBID}.out
 
 .. note:: No modules need to be loaded in order to make sure the required software is available (i.e., Java, Hadoop).
           Setting up the working environment in which the job will be run is done right after starting the HOD cluster.
@@ -254,17 +258,17 @@ Hence, the results should be available (see the ``cp`` at the end of the submitt
 
 .. _example_use_cases_ipython:
 
-Connecting to an IPython notebook running on an HOD cluster
------------------------------------------------------------
+Connecting to a Jupyter notebook running on an HOD cluster
+----------------------------------------------------------
 
-Running an IPython notebook on an HOD cluster is as simple as creating an HOD cluster using the appropriate
-distribution, and then connecting to the IPython notebook over an SSH tunnel.
+Running a Jupyter notebook on an HOD cluster is as simple as creating an HOD cluster using the appropriate
+distribution, and then connecting to the Jupyter notebook over an SSH tunnel.
 
 For example:
 
-* create HOD cluster using an IPython HOD distribution::
+* create HOD cluster using a Jupyter HOD distribution::
 
-    $ hod create --dist IPython-notebook-3.2.1 --label ipython_example
+    $ hod create --dist Jupyter-notebook-5.1.0 --label ipython_example
     Submitting HOD cluster with label 'ipython_example'...
     Job submitted: Jobid 12345.master15.delcatty.gent.vsc state Q ehosts
 
@@ -274,6 +278,6 @@ For example:
     Cluster label	Job ID                         	    State	Hosts
     ipython_example 12345.master15.delcatty.gent.vsc	R    	node2001.delcatty.gent.vsc
 
-* connect to IPython notebook by pointing your web browser to http://localhost:8888, using a SOCKS proxy over
+* connect to Jupyter notebook by pointing your web browser to http://localhost:8888, using a SOCKS proxy over
   an SSH tunnel to the head node ``node2001.delcatty.gent.vsc`` (see :ref:`connecting_to_web_uis` for detailed
   information)
