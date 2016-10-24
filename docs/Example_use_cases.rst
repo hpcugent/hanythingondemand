@@ -30,16 +30,19 @@ in the HOD job being submitted (see also :ref:`cmdline_create_options`).
 
 To configure ``hod batch``, you can set the following environment variables::
 
-    $ export HOD_BATCH_HOD_MODULE=hanythingondemand/3.0.0-intel-2015b-Python-2.7.10
-    $ export HOD_BATCH_WORKDIR=$VSC_SCRATCH/hod
+    $ env | grep HOD_BATCH
+    HOD_BATCH_HOD_MODULE=hanythingondemand/3.0.0-intel-2015b-Python-2.7.10
+    HOD_BATCH_WORKDIR=$VSC_SCRATCH/hod
 
 Likewise, for ``hod create``::
 
-    $ export HOD_CREATE_HOD_MODULE=hanythingondemand/3.0.0-intel-2015b-Python-2.7.10
-    $ export HOD_CREATE_WORKDIR=$VSC_SCRATCH/hod
+    $ env | grep HOD_CREATE
+    HOD_CREATE_HOD_MODULE=hanythingondemand/3.0.0-intel-2015b-Python-2.7.10
+    HOD_CREATE_WORKDIR=$VSC_SCRATCH/hod
 
-If HOD is being provided via an environment module, it is likely that the module provides decent default values for
-these already.
+.. note: If HOD is being provided via an environment module, it is likely that the module
+         provides decent default values for these already. If so, you should *not* change them
+         unless you need to.
 
 The examples below will assume that this configuration is in place already.
 
