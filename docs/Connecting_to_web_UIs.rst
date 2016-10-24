@@ -65,7 +65,7 @@ For example, to configure SSH that it should tunnel via the HPC login node ``log
 that start with ``node`` and end with ``.gent.vsc``, using ``vsc40000`` as a user name, the following lines should be added::
 
   Host node*.gent.vsc
-      ProxyCommand ssh -q login.hpc.ugent.be 'exec nc -w 21600s %h %p'
+      ProxyCommand ssh -q vsc40000@login.hpc.ugent.be 'exec nc -w 21600s %h %p'
       User vsc40000
 
 
