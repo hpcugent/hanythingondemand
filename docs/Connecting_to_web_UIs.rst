@@ -64,9 +64,18 @@ your ``$HOME/.ssh/config`` file.
 For example, to configure SSH that it should tunnel via the HPC login node ``login.hpc.ugent.be`` for all FQDNs
 that start with ``node`` and end with ``.gent.vsc``, using ``vsc40000`` as a user name, the following lines should be added::
 
-  Host node*.gent.vsc
-      ProxyCommand ssh -q vsc40000@login.hpc.ugent.be 'exec nc -w 21600s %h %p'
+  Host login.hpc.ugent.be hpc
+      Hostname login.hpc.ugent.be
       User vsc40000
+      IdentityFile ~/.ssh/id_rsa
+
+  Host node*.gent.vsc
+      ProxyCommand ssh -q login.hpc.ugent.be 'exec nc -w 21600s %h %p'
+      User vsc40000
+      IdentityFile ~/.ssh/id_rsa
+
+Make sure to point it to your ssh private key (``~/.ssh/id_rsa`` in this example). If you only have a single private key,
+this line can be dropped.
 
 
 .. _ssh_tunnel_client_configuration_windows:
