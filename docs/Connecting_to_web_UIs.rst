@@ -75,7 +75,7 @@ that start with ``node`` and end with ``.gent.vsc``, using ``vsc40000`` as a use
       IdentityFile ~/.ssh/id_rsa
 
 Make sure to point it to your ssh private key (``~/.ssh/id_rsa`` in this example). If you only have a single private key,
-this line can be dropped.
+this line can be dropped. Adjust ``vsc40000`` to your own VSC username.
 
 
 .. _ssh_tunnel_client_configuration_windows:
