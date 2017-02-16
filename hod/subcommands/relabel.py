@@ -74,5 +74,5 @@ class RelabelSubCommand(SubCommand):
         except StandardError as err:
             fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
             fancylogger.logToScreen(enable=True)
-            _log.raiseException(err)
+            _log.raiseException(str(err))
         return 0
