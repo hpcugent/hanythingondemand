@@ -77,8 +77,7 @@ class CloneSubCommand(SubCommand):
                 sys.stderr.write('Error: Input dist not found: "%s".\n' % dist)
                 sys.exit(1)
             shutil.copytree(src, output_dir)
-            return 0
-        except Exception as err:
-            _log.error("Failed to copy dist: %s", str(err))
-            _log.exception("hod clone failed")
-            sys.exit(1)
+        except StandardError as err:
+            self._log_and_raise(err)
+
+        return 0
