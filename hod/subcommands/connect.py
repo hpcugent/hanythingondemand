@@ -34,7 +34,6 @@ import os
 import os.path
 import sys
 
-from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
 from hod.cluster import cluster_env_file, cluster_jobid
@@ -42,8 +41,6 @@ from hod.subcommands.subcommand import SubCommand
 import hod
 import hod.rmscheduler.rm_pbs as rm_pbs
 
-
-_log = fancylogger.getLogger(fname=False)
 
 class ConnectOptions(GeneralOption):
     """Option parser for 'connect' subcommand."""
@@ -70,8 +67,7 @@ class ConnectSubCommand(SubCommand):
             if len(optparser.args) > 1:
                 label = optparser.args[1]
             else:
-                _log.error("No label provided.")
-                sys.exit(1)
+                self.report_error("No label provided.")
 
             print "Connecting to HOD cluster with label '%s'..." % label
 
@@ -79,8 +75,7 @@ class ConnectSubCommand(SubCommand):
                 jobid = cluster_jobid(label)
                 env_script = cluster_env_file(label)
             except ValueError as err:
-                _log.error(err)
-                sys.exit(1)
+                self.report_error(err)
 
             print "Job ID found: %s" % jobid
 
@@ -89,18 +84,15 @@ class ConnectSubCommand(SubCommand):
             pbsjobs = [job for job in jobs if job.jobid == jobid]
 
             if len(pbsjobs) == 0:
-                _log.error("Job with job ID '%s' not found by pbs.", jobid)
-                sys.exit(1)
+                self.report_error("Job with job ID '%s' not found by pbs.", jobid)
             elif len(pbsjobs) > 1:
-                _log.error("Multiple jobs found with job ID '%s': %s", jobid, pbsjobs)
-                sys.exit(1)
+                self.report_error("Multiple jobs found with job ID '%s': %s", jobid, pbsjobs)
 
             pbsjob = pbsjobs[0]
             if pbsjob.state == ['Q', 'H']:
                 # This should never happen since the hod.d/<jobid>/env file is
                 # written on cluster startup. Maybe someone hacked the dirs.
-                _log.error("Cannot connect to cluster with job ID '%s' yet. It is still queued.", jobid)
-                sys.exit(1)
+                self.report_error("Cannot connect to cluster with job ID '%s' yet. It is still queued.", jobid)
             else:
                 print "HOD cluster '%s' @ job ID %s appears to be running..." % (label, jobid)
 
@@ -108,11 +100,8 @@ class ConnectSubCommand(SubCommand):
 
             # -i: interactive non-login shell
             cmd = ['ssh', '-t', pbsjob.hosts, 'exec', 'bash', '--rcfile', env_script, '-i']
-            _log.info("Logging in using command: %s", ' '.join(cmd))
+            self.log.info("Logging in using command: %s", ' '.join(cmd))
             os.execvp('/usr/bin/ssh', cmd)
-            return 0 # pragma: no cover
 
         except StandardError as err:
-            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
-            fancylogger.logToScreen(enable=True)
-            _log.raiseException(str(err))
+            self._log_and_raise(err)

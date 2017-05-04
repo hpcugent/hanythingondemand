@@ -28,12 +28,12 @@ Generate a PBS job script using pbs_python. Will use mympirun to get the all sta
 
 @author: Stijn De Weirdt (Universiteit Gent)
 @author: Ewan Higgs (Universiteit Gent)
+@author: Kenneth Hoste (Ghent University)
 """
 import os
 import copy
 import sys
 
-from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
 import hod.cluster as hc
@@ -41,9 +41,6 @@ from hod import VERSION as HOD_VERSION
 from hod.options import COMMON_HOD_CONFIG_OPTIONS, GENERAL_HOD_OPTIONS, RESOURCE_MANAGER_OPTIONS, validate_pbs_option
 from hod.rmscheduler.hodjob import PbsHodJob
 from hod.subcommands.subcommand import SubCommand
-
-
-_log = fancylogger.getLogger('create', fname=False)
 
 
 class CreateOptions(GeneralOption):
@@ -98,8 +95,5 @@ class CreateSubCommand(SubCommand):
             j.run()
             jobs = j.state()
             hc.post_job_submission(label, jobs, optparser.options.workdir)
-            return 0
         except StandardError as err:
-            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
-            fancylogger.logToScreen(enable=True)
-            _log.raiseException(str(err))
+            self._log_and_raise(err)
