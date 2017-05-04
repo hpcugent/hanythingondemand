@@ -31,7 +31,6 @@ Destroy an HOD cluster.
 import os
 import sys
 
-from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
 import hod
@@ -39,8 +38,6 @@ import hod.rmscheduler.rm_pbs as rm_pbs
 from hod.cluster import cluster_info_exists, cluster_jobid, rm_cluster_info, rm_cluster_localworkdir
 from hod.subcommands.subcommand import SubCommand
 
-
-_log = fancylogger.getLogger('destroy', fname=False)
 
 
 class DestroyOptions(GeneralOption):
@@ -71,15 +68,13 @@ class DestroySubCommand(SubCommand):
                 label = optparser.args[1]
                 print "Destroying HOD cluster with label '%s'..." % label
             else:
-                _log.error("No label provided.")
-                sys.exit(1)
+                self.report_error("No label provided.")
 
             try:
                 jobid = cluster_jobid(label)
                 print "Job ID: %s" % jobid
             except ValueError as err:
-                _log.error(err)
-                sys.exit(1)
+                self.report_error(err)
 
             # try to figure out job state
             job_state = None
@@ -97,8 +92,7 @@ class DestroySubCommand(SubCommand):
                 print "(job no longer found)"
 
             else:
-                _log.error("Multiple jobs found with job ID '%s': %s", jobid, pbsjobs)
-                sys.exit(1)
+                self.report_error("Multiple jobs found with job ID '%s': %s", jobid, pbsjobs)
 
             # request confirmation is case the job is currently running
             if job_state == 'R':
@@ -127,6 +121,6 @@ class DestroySubCommand(SubCommand):
             print "\nHOD cluster with label '%s' (job ID: %s) destroyed." % (label, jobid)
 
         except StandardError as err:
-            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
-            fancylogger.logToScreen(enable=True)
-            _log.raiseException(err)
+            self._log_and_raise(err)
+
+        return 0

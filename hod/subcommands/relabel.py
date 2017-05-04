@@ -27,19 +27,16 @@
 Relabel a cluster.
 
 @author: Ewan Higgs (Universiteit Gent)
+@author: Kenneth Hoste (Universiteit Gent)
 """
 
 import sys
 
-from vsc.utils import fancylogger
 from vsc.utils.generaloption import GeneralOption
 
 from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
 import hod.cluster as hc
-
-
-_log = fancylogger.getLogger(fname=False)
 
 
 class RelabelOptions(GeneralOption):
@@ -59,20 +56,17 @@ class RelabelSubCommand(SubCommand):
         optparser = RelabelOptions(go_args=args, envvar_prefix=self.envvar_prefix, usage=self.usage_txt)
         try:
             if len(optparser.args) != 3:
-                _log.error(self.usage())
-                sys.exit(1)
+                self.report_error(self.usage())
 
             labels = hc.known_cluster_labels()
             if optparser.args[1] not in labels:
-                _log.error("Cluster with label '%s' not found", optparser.args[1])
-                sys.exit(1)
+                self.report_error("Cluster with label '%s' not found", optparser.args[1])
+
             try:
                 hc.mv_cluster_info(optparser.args[1], optparser.args[2])
             except (IOError, OSError) as err:
-                _log.error("Could not change label '%s' to '%s': %s", optparser.args[1], optparser.args[2], err)
-                sys.exit(1)
+                self.report_error("Could not change label '%s' to '%s': %s", optparser.args[1], optparser.args[2], err)
         except StandardError as err:
-            fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
-            fancylogger.logToScreen(enable=True)
-            _log.raiseException(err)
+            self._log_and_raise(err)
+
         return 0

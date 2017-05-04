@@ -28,8 +28,11 @@ Abstract base class for subcommand support.
 
 @author: Ewan Higgs (Universiteit Gent)
 """
-
+import sys
 from abc import abstractmethod
+
+from vsc.utils import fancylogger
+
 
 class SubCommand(object):
     """Abstract base class for subcommand support."""
@@ -42,6 +45,7 @@ class SubCommand(object):
         """Class constructor."""
         self.envvar_prefix = 'HOD_%s' % self.CMD.upper().replace('-', '_')
         self.usage_txt = 'hod %s [options]' % self.CMD
+        self.log = fancylogger.getLogger(name=self.__class__.__name__, fname=False)
 
     def usage(self):
         """Return usage of this subcommand."""
@@ -49,6 +53,17 @@ class SubCommand(object):
         if self.EXAMPLE:
             usage += "hod %s %s\n" % (self.CMD, self.EXAMPLE)
         return usage
+
+    def _log_and_raise(self, err):
+        """Report error that occured, and raise Exception"""
+        fancylogger.setLogFormat(fancylogger.TEST_LOGGING_FORMAT)
+        fancylogger.logToScreen(enable=True)
+        self.log.raiseException(str(err))
+
+    def report_error(self, msg, *args):
+        """Report error and exit"""
+        self.log.error(msg, *args)
+        sys.exit(1)
 
     @abstractmethod
     def run(self, args):
