@@ -60,3 +60,5 @@ class CleanSubCommand(SubCommand):
             hc.clean_cluster_info(rm_master, info)
         except StandardError as err:
             self._log_and_raise(err)
+
+        return 0

@@ -85,3 +85,5 @@ class HelpTemplateSubCommand(SubCommand):
         headers = ('Parameter name', 'Value', 'Documentation')
         formatted_rows = format_rows(reg.fields, resolver)
         print ht.format_table(formatted_rows, headers)
+
+        return 0

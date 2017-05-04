@@ -121,3 +121,5 @@ class BatchSubCommand(SubCommand):
             hc.post_job_submission(label, jobs, optparser.options.workdir)
         except StandardError as err:
             self._log_and_raise(err)
+
+        return 0

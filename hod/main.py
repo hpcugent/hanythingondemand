@@ -77,8 +77,7 @@ def main(args):
     """Parse options and run specified subcommand."""
     subcmd, args = init_subcmd(args)
     if subcmd is not None:
-        subcmd.run(args)
-        return 0
+        return subcmd.run(args)
 
     elif len([arg for arg in args if not arg.startswith('-')]) > 1:
         sys.stderr.write("ERROR: No known subcommand specified\n")

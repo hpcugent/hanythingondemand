@@ -122,3 +122,5 @@ class DestroySubCommand(SubCommand):
 
         except StandardError as err:
             self._log_and_raise(err)
+
+        return 0

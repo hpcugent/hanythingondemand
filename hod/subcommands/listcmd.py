@@ -83,3 +83,5 @@ class ListSubCommand(SubCommand):
             print ht.format_table(info_rows, headers)
         except StandardError as err:
             self._log_and_raise(err)
+
+        return 0

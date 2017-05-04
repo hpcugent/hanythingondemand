@@ -68,3 +68,5 @@ class RelabelSubCommand(SubCommand):
                 self.report_error("Could not change label '%s' to '%s': %s", optparser.args[1], optparser.args[2], err)
         except StandardError as err:
             self._log_and_raise(err)
+
+        return 0

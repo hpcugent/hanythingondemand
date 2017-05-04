@@ -80,8 +80,7 @@ class GenConfigSubCommand(SubCommand):
         svc = ConfiguredMaster(optparser.options)
         try:
             setup_tasks(svc)
-            return 0
-        except Exception as e:
-            _log.error("Failed to setup hod tasks: %s", str(e))
-            _log.exception("hod genconfig failed")
-            sys.exit(1)
+        except StandardError as err:
+            self._log_and_raise(err)
+
+        return 0

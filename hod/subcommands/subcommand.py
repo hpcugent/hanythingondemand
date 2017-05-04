@@ -60,9 +60,9 @@ class SubCommand(object):
         fancylogger.logToScreen(enable=True)
         self.log.raiseException(str(err))
 
-    def report_error(self, msg):
+    def report_error(self, msg, *args):
         """Report error and exit"""
-        self.log.error(msg)
+        self.log.error(msg, *args)
         sys.exit(1)
 
     @abstractmethod
