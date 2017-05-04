@@ -133,13 +133,18 @@ def known_cluster_labels():
     """
     Return list of known cluster labels.
     """
+    res = []
     path = cluster_info_dir()
     if os.path.exists(path):
-        return os.listdir(path)
+        for entry in os.listdir(path):
+            if os.path.isdir(entry):
+                res.append(entry)
+            else:
+                _log.error("Found unexpected non-directory element in %s: %s", path, entry)
     else:
         _log.warning("No cluster config directory '%s' (yet)", path)
-        return []
 
+    return res
 
 def _cluster_info(label, info_file):
     """
@@ -192,8 +197,9 @@ def mk_cluster_info_dict(labels, pbsjobs, master=None):
             job = _find_pbsjob(jobid, pbsjobs)
             if job is not None:
                 seen_jobs.add(jobid)
-        except ValueError as e:
-            job = None
+        except ValueError as err:
+            _log.error("Exception occured when fetching cluster info for cluster with label '%s': %s", label, err)
+            jobid, job = None, None
         info.append(ClusterInfo(label, jobid, job))
 
     return info

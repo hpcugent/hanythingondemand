@@ -73,13 +73,19 @@ class TestCluster(unittest.TestCase):
         with patch('hod.cluster.cluster_info_dir', return_value='/'):
             with patch('os.path.exists', return_value=True):
                 with patch('os.listdir', return_value=['a']):
-                    self.assertEqual(['a'], hc.known_cluster_labels())
+                    with patch('os.path.isdir', return_value=True):
+                        self.assertEqual(['a'], hc.known_cluster_labels())
+
+        with patch('hod.cluster.cluster_info_dir', return_value='/'):
+            with patch('os.path.exists', return_value=True):
+                with patch('os.listdir', return_value=['notadir']):
+                    with patch('os.path.isdir', return_value=False):
+                        self.assertEqual([], hc.known_cluster_labels())
 
     def test_known_cluster_labels_not_found(self):
         with patch('hod.cluster.cluster_info_dir', return_value='/'):
             with patch('os.path.exists', return_value=False):
                 self.assertEqual([], hc.known_cluster_labels())
-            
 
     def test_cluster_info(self):
         with patch('hod.cluster.cluster_info_dir', return_value='/'):
