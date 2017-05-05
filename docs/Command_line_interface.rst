@@ -367,6 +367,13 @@ The number of (full) workernodes to request for the job being submitted (default
 The number of cores per workernode to request; by default: ``-1``, i.e. full workernodes (request all available cores).
 
 
+.. _cmdline_job_options_reservation:
+
+``--job-reservation <reservation ID>``
+
+Reservation ID to submit job to (equivalent with using ``-W x=FLAGS:ADVRES:...`` with ``qsub``).
+
+
 .. _cmdline_job_options_queue:
 
 ``--job-queue``/``-q <int>``

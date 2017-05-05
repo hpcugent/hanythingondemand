@@ -131,13 +131,16 @@ class Pbs(ResourceManagerScheduler):
                     tmpattropl[0].name = "Mail_Users"
                     tmpattropl[0].value = tmp['others']
             elif arg in ('queue',):
-                # # use destination field of pbs_submit
+                # use destination field of pbs_submit
                 pass
             elif arg in ('account',):
                 tmpattropl = pbs.new_attropl(1)
                 tmpattropl[0].name = pbs.ATTR_A 
                 tmpattropl[0].value = tmp
-                #continue 
+            elif arg in ('reservation',):
+                tmpattropl = pbs.new_attropl(1)
+                tmpattropl[0].name = 'x'
+                tmpattropl[0].value = 'FLAGS:ADVRES:%s' % tmp
             else:
                 self.log.error('Unknown arg %s', arg)
                 tmpattropl = pbs.new_attropl(0)
@@ -296,6 +299,7 @@ class Pbs(ResourceManagerScheduler):
         queue = self.options.get('queue', 'default')
         partition = self.options.get('partition', 'default')
         account = self.options.get('account', 'default')
+        reservation = self.options.get('reservation', None)
 
         self.log.debug("Arguments nodes %s, ppn %s, walltime %s, mail %s, mail_others %s, queue %s, partition %s, account %s",
                 nodes, ppn, walltime, mail, mail_others, queue, partition, account)
@@ -341,6 +345,9 @@ class Pbs(ResourceManagerScheduler):
             if mail_others:
                 self.args['mail']['others'] = ','.join(mail_others)
 
+        if reservation:
+            self.args['reservation'] = reservation
+
         self.log.debug("Create args %s", self.args)
 
         # # creating the header. Not used in submission!!
@@ -359,6 +366,9 @@ class Pbs(ResourceManagerScheduler):
             elif arg in ('account',):
                 if self.args[arg]:
                     opts.append('-A %s' % self.args[arg])
+            elif arg in ('reservation',):
+                if self.args[arg]:
+                    opts.append('-W x=FLAGS:ADVRES:%s' % self.args[arg])
             else:
                 self.log.debug("Unknown arg %s. Not adding to args.", arg)
 

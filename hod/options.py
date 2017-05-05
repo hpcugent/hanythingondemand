@@ -55,6 +55,7 @@ RESOURCE_MANAGER_OPTIONS = {
     'queue': ("Queue name (empty string is default queue)", "string", "store", "", "q"),
     'partition': ("Partition name (empty string is default partition)", "string", "store", "", "p"),
     'account': ("Account name (empty string is default Account)", "string", "store", "", "A"),
+    'reservation': ("ID of reservation to submit job into", 'string', 'store', ''),
 }
 
 _log = fancylogger.getLogger('create', fname=False)
