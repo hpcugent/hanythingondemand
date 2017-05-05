@@ -137,7 +137,7 @@ def known_cluster_labels():
     path = cluster_info_dir()
     if os.path.exists(path):
         for entry in os.listdir(path):
-            if os.path.isdir(entry):
+            if os.path.isdir(os.path.join(path, entry)):
                 res.append(entry)
             else:
                 _log.error("Found unexpected non-directory element in %s: %s", path, entry)
