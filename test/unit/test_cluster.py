@@ -24,10 +24,12 @@
 # #
 """
 @author: Ewan Higgs (Universiteit Gent)
+@author: Kenneth Hoste (Universiteit Gent)
 """
 
-import os.path
+import os
 import unittest
+import tempfile
 from mock import patch, Mock
 from contextlib import contextmanager
 from cStringIO import StringIO
@@ -81,6 +83,12 @@ class TestCluster(unittest.TestCase):
                 with patch('os.listdir', return_value=['notadir']):
                     with patch('os.path.isdir', return_value=False):
                         self.assertEqual([], hc.known_cluster_labels())
+
+        tmpdir = tempfile.mkdtemp()
+        testdir = os.path.join(tmpdir, 'test123')
+        os.mkdir(testdir)
+        with patch('hod.cluster.cluster_info_dir', return_value=tmpdir):
+            self.assertEqual(['test123'], hc.known_cluster_labels())
 
     def test_known_cluster_labels_not_found(self):
         with patch('hod.cluster.cluster_info_dir', return_value='/'):
