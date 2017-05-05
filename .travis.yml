@@ -1,8 +1,11 @@
 language: python
+python:
+    - '2.6'
+    - '2.7'
 before_install:
     - sudo apt-get update && sudo apt-get install -y python-dev torque-server libtorque2-dev libopenmpi-dev openmpi-bin
 install:
     - pip install --upgrade pip
     - pip install tox
 script:
-    - tox
+    - tox -e $(echo py$TRAVIS_PYTHON_VERSION | tr -d .)
