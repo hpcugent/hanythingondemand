@@ -82,7 +82,7 @@ class DestroySubCommand(SubCommand):
             pbs = rm_pbs.Pbs(optparser)
             jobs = pbs.state()
             pbsjobs = [job for job in jobs if job.jobid == jobid]
-            _log.debug("Matching jobs for job ID '%s': %s", jobid, pbsjobs)
+            self.log.debug("Matching jobs for job ID '%s': %s", jobid, pbsjobs)
 
             if len(pbsjobs) == 1:
                 job_state = pbsjobs[0].state 
