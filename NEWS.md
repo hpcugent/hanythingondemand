@@ -1,3 +1,10 @@
+# 3.2.2
+* fix undefined variable in mk_cluster_info_dict, report non-directory entries in cluster info dir
+* add support for specifying reservation to submit to via --job-reservation
+
+# 3.2.1
+* fix bug in error reporting used by running subcommands
+
 # 3.2.0
 * stop using deprecated .message on exceptions
 * implement support for 'destroy' subcommand
