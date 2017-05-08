@@ -37,9 +37,6 @@ from hod.config.config import avail_dists, load_service_config, resolve_dist_pat
 from hod.subcommands.subcommand import SubCommand
 
 
-_log = fancylogger.getLogger('dists', fname=False)
-
-
 class DistsSubCommand(SubCommand):
     """Implementation of HOD 'dists' subcommand."""
     CMD = 'dists'
@@ -56,7 +53,7 @@ class DistsSubCommand(SubCommand):
                 modules = load_service_config(cfg_fp).get('Config', 'modules').split(',')
                 cfg_fp.close()
             except IOError as err:
-                _log.error("Failed to get list of modules for dist '%s': %s", dist, err)
+                self.log.error("Failed to get list of modules for dist '%s': %s", dist, err)
                 continue
 
             lines.extend([

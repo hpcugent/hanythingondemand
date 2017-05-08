@@ -43,9 +43,6 @@ from hod.subcommands.subcommand import SubCommand
 from hod.utils import setup_diagnostic_environment
 
 
-_log = fancylogger.getLogger('genconfig', fname=False)
-
-
 class GenConfigOptions(GeneralOption):
     """Option parser for 'genconfig' subcommand."""
     VERSION = HOD_VERSION

@@ -40,9 +40,6 @@ from hod import VERSION as HOD_VERSION
 from hod.subcommands.subcommand import SubCommand
 
 
-_log = fancylogger.getLogger('clone', fname=False)
-
-
 class CloneOptions(GeneralOption):
     """Option parser for 'clone' subcommand."""
     VERSION = HOD_VERSION
