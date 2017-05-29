@@ -51,10 +51,10 @@ Set your DNS name lookup at proxy end to Yes. This will let you connect to the
 resulting host if your HPC team hasn't all the nodes to your HPC site's DNS.
 Set your username.
 
-Under ``Telnet command, or local proxy command``, enter the following command: 
+Under ``Telnet command, or local proxy command``, enter the following command:
 
 .. code::
-    plink -agent -l %user %proxyhost -nc %host %port
+    plink -agent -l %user %proxyhost -nc %host:%port
 
 .. image:: img/06-putty-proxy.png
 
