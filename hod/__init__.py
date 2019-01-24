@@ -30,4 +30,4 @@
 @author: Kenneth Hoste (Ghent University)
 """
 NAME = 'hanythingondemand'
-VERSION = '3.2.2'
+VERSION = '3.2.3'
