@@ -73,7 +73,11 @@ PACKAGE = {
         'Programming Language :: Python :: 2'
     ],
     'install_requires': [
-        'vsc-base',
+        # stick to latest vsc-base prior to vsc-base 2.6.0
+        # due to changes in vsc-base 2.6.0 (in the shell_quote function used by GeneralOption.generate_cmd_line),
+        # single quotes are being wrapped around values in generated job script (e.g. --workdir='$VSC_SCRATCH/hod'),
+        # which prevents expansion by the shell...
+        'vsc-base<2.6.0',
         'setuptools',
         # pin mpi4py to 1.3.1 since it's the last of the 1.x series and we don't want to pick up 2.0.0
         # note: mpi4py version is also pinned in tox.ini!
