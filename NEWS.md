@@ -1,3 +1,7 @@
+# 3.2.3
+* add dist for Spark 2.4.0 + Hadoop 2.9.2
+* stick to vsc-base < 2.6.0 due to breaking changes related to generated job script
+
 # 3.2.2
 * fix undefined variable in mk_cluster_info_dict, report non-directory entries in cluster info dir
 * add support for specifying reservation to submit to via --job-reservation
